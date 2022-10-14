@@ -1,8 +1,8 @@
 import pytest
 
-from models.nova_component import NovaComponent
-from models.nova_release import NovaRelease
-from models.nova_status import Status
+from core.nova_component import NovaComponent
+from core.nova_release import NovaRelease
+from core.nova_status import Status
 
 
 def test_status_undefined_when_single_component_undefined():

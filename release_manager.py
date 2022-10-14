@@ -1,6 +1,7 @@
 """
 The release manager is responsible for managing the release process.
 """
+from locale import normalize
 import logging
 from urllib.parse import urlparse
 from jira import JIRA, JIRAError
@@ -18,17 +19,21 @@ def parse_jira_component_description(description: str) -> tuple[GitCloudService,
     """Parse Jira component description and return cloud service and repository URL"""
     if description is None:
         return None, None
-    if description.lower().startswith('github'):
-        return GitCloudService.GITHUB, description.split(':')[1]
-    if description.lower().startswith('bitbucket'):
-        return GitCloudService.BITBUCKET, description.split(':')[1]
-    url_parse_result = urlparse(description)
+
+    normalized_description = description.lower()
+    url = normalized_description.split(':')[1]
+    if normalized_description.startswith('github'):
+        return GitCloudService.GITHUB, url
+    if normalized_description.startswith('bitbucket'):
+        return GitCloudService.BITBUCKET, url
+
+    url_parse_result = urlparse(url)
     if url_parse_result.hostname is None:
         return None, None
     if 'github' in url_parse_result.hostname:
-        return GitCloudService.GITHUB, description
+        return GitCloudService.GITHUB, url
     if 'bitbucket' in url_parse_result.hostname:
-        return GitCloudService.BITBUCKET, description
+        return GitCloudService.BITBUCKET, url
     return None, None
 
 
@@ -112,13 +117,13 @@ class ReleaseManager:
         if component is None:
             raise Exception('Component is not specified')
 
-        if component.get_status() == Status.Done:
-            raise Exception(
-                f'Component [{component.name}] is already released')
+        # if component.get_status() == Status.Done:
+        #     raise Exception(
+        #         f'Component [{component.name}] is already released')
 
-        if component.get_status() != Status.ReadyForRelease:
-            raise Exception(
-                f'Component [{component.name}] is not ready for release')
+        # if component.get_status() != Status.ReadyForRelease:
+        #     raise Exception(
+        #         f'Component [{component.name}] is not ready for release')
 
         if component.repo.git_cloud != GitCloudService.GITHUB:
             raise Exception('Only GitHub repositories are currently supported')
@@ -146,7 +151,7 @@ class ReleaseManager:
 
         for t in component.tasks:
             self.__j.transition_issue(
-                t.key, 'Done', comment=f'{release.get_title()} released')
+                t.name, 'Done', comment=f'{release.get_title()} released')
 
     @classmethod
     def input_tag_name(cls) -> str:

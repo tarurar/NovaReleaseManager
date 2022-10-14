@@ -1,7 +1,7 @@
 import pytest
 
-from models.nova_status import Status
-from models.nova_task import NovaTask
+from core.nova_status import Status
+from core.nova_task import NovaTask
 
 
 def test_map_unknown_status():
