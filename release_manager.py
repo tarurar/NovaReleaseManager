@@ -4,6 +4,7 @@ The release manager is responsible for managing the release process.
 from locale import normalize
 import logging
 from urllib.parse import urlparse
+import validators
 from jira import JIRA, JIRAError
 from github import Github
 from git import Repo, Tag
@@ -14,28 +15,20 @@ from core.nova_release import NovaRelease
 from core.nova_status import Status
 from core.nova_task import NovaTask
 
-
 def parse_jira_component_description(description: str) -> tuple[GitCloudService, str]:
     """Parse Jira component description and return cloud service and repository URL"""
     if description is None:
         return None, None
 
-    normalized_description = description.lower()
-    url = normalized_description.split(':')[1]
-    if normalized_description.startswith('github'):
-        return GitCloudService.GITHUB, url
-    if normalized_description.startswith('bitbucket'):
-        return GitCloudService.BITBUCKET, url
+    normalized_description = description.strip().lower()
 
-    url_parse_result = urlparse(url)
-    if url_parse_result.hostname is None:
-        return None, None
-    if 'github' in url_parse_result.hostname:
-        return GitCloudService.GITHUB, url
-    if 'bitbucket' in url_parse_result.hostname:
-        return GitCloudService.BITBUCKET, url
+    if validators.url(description):
+        url_parse_result = urlparse(normalized_description)
+        if 'github' in url_parse_result.hostname:
+            return GitCloudService.GITHUB, normalized_description
+        if 'bitbucket' in url_parse_result.hostname:
+            return GitCloudService.BITBUCKET, normalized_description
     return None, None
-
 
 class ReleaseManager:
     """The release manager is responsible for managing the release process."""
