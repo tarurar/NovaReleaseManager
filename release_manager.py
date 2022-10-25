@@ -1,7 +1,7 @@
 """
 The release manager is responsible for managing the release process.
 """
-from locale import normalize
+
 import logging
 from urllib.parse import urlparse
 import validators
@@ -14,21 +14,27 @@ from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
 from core.nova_task import NovaTask
+from typing import Optional
 
-def parse_jira_component_description(description: str) -> tuple[GitCloudService, str]:
+
+def parse_jira_cp_descr(description: str) -> tuple[Optional[GitCloudService], Optional[str]]:
     """Parse Jira component description and return cloud service and repository URL"""
     if description is None:
         return None, None
 
     normalized_description = description.strip().lower()
 
-    if validators.url(description):
+    if not normalized_description.startswith('http'):
+        normalized_description = 'http://' + normalized_description
+
+    if validators.url(normalized_description):
         url_parse_result = urlparse(normalized_description)
         if 'github' in url_parse_result.hostname:
-            return GitCloudService.GITHUB, normalized_description
+            return GitCloudService.GITHUB, description
         if 'bitbucket' in url_parse_result.hostname:
-            return GitCloudService.BITBUCKET, normalized_description
+            return GitCloudService.BITBUCKET, description
     return None, None
+
 
 class ReleaseManager:
     """The release manager is responsible for managing the release process."""
@@ -89,7 +95,7 @@ class ReleaseManager:
             if filtered_jira_components[0].description is None:
                 logging.warning(
                     'Component [%s] has no description. Skipping', k)
-            (git_cloud, repo_url) = parse_jira_component_description(
+            (git_cloud, repo_url) = parse_jira_cp_descr(
                 filtered_jira_components[0].description)
             if git_cloud is None or repo_url is None:
                 logging.warning(
