@@ -36,6 +36,19 @@ def parse_jira_cp_descr(description: str) -> tuple[Optional[GitCloudService], Op
     return None, None
 
 
+def get_github_repository_address(full_url: str) -> str:
+    """Returns GitHub client compatible repository address"""
+    normalized = full_url.strip().lower()
+    if normalized.startswith('http'):
+        normalized = normalized.replace('http://', '').replace('https://', '')
+
+    chunks = normalized.split('/')
+    result = '/'.join(chunks[1:])
+    if not result.endswith('.git'):
+        result += '.git'
+    return result
+
+
 class ReleaseManager:
     """The release manager is responsible for managing the release process."""
 
@@ -128,6 +141,7 @@ class ReleaseManager:
         if component.repo.git_cloud != GitCloudService.GITHUB:
             raise Exception('Only GitHub repositories are currently supported')
 
+        # todo: proceed from here
         repo = self.__g.get_repo(component.repo.url)
         if repo is None:
             raise Exception(f'Cannot get repository {component.repo.url}')
