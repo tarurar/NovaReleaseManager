@@ -117,13 +117,13 @@ class ReleaseManager:
         if component is None:
             raise Exception('Component is not specified')
 
-        # if component.get_status() == Status.Done:
-        #     raise Exception(
-        #         f'Component [{component.name}] is already released')
+        if component.get_status() == Status.Done:
+            raise Exception(
+                f'Component [{component.name}] is already released')
 
-        # if component.get_status() != Status.ReadyForRelease:
-        #     raise Exception(
-        #         f'Component [{component.name}] is not ready for release')
+        if component.get_status() != Status.ReadyForRelease:
+            raise Exception(
+                f'Component [{component.name}] is not ready for release')
 
         if component.repo.git_cloud != GitCloudService.GITHUB:
             raise Exception('Only GitHub repositories are currently supported')
