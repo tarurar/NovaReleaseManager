@@ -98,8 +98,9 @@ class ReleaseManager:
             (git_cloud, repo_url) = parse_jira_cp_descr(
                 filtered_jira_components[0].description)
             if git_cloud is None or repo_url is None:
-                logging.warning(
-                    'Component [%s] has invalid description: [%s]. Expected to be repository url. Skipping', k, filtered_jira_components[0].description)
+                if k.strip().lower() != 'n/a':
+                    logging.warning(
+                        'Component [%s] has invalid description: [%s]. Expected to be repository url. Skipping', k, filtered_jira_components[0].description)
                 continue
             component = NovaComponent(k, CodeRepository(git_cloud, repo_url))
             jira_tasks = component_tasks[k]
