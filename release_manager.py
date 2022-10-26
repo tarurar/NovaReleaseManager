@@ -69,6 +69,24 @@ def build_jql(project: str, fix_version='', component='') -> str:
     return jql
 
 
+def validate_jira_issues(issues: list) -> str:
+    """
+    Validate Jira issues.
+    Returns error message for the first invalid issue found.
+    """
+    if len(issues) == 0:
+        return 'No issues found'
+
+    for issue in issues:
+        if len(issue.fields.components) == 0:
+            return f'Issue [{issue.key}] has no component'
+        if len(issue.fields.components) > 1:
+            return f'Issue [{issue.key}] has more than one component'
+        if issue.fields.status.name != 'Selected For Release':
+            return f'Issue [{issue.key}] expected to have status [Selected For Release]'
+    return ''
+
+
 class ReleaseManager:
     """The release manager is responsible for managing the release process."""
     # todo: add dependant client packages update validation.
@@ -101,8 +119,13 @@ class ReleaseManager:
         """Get release by project, version and delivery"""
         release = NovaRelease(project, version, delivery)
 
+        jira_issues = self.__get_jira_issues(project, str(release))
+        jira_issues_error = validate_jira_issues(jira_issues)
+        if jira_issues_error:
+            raise Exception(jira_issues_error)
+
         component_tasks = {}
-        for issue in self.__get_jira_issues(project, str(release)):
+        for issue in jira_issues:
             # todo: add issue validation for multiple components, only one component is allowed, it is required at the same time
             if len(issue.fields.components) == 0:
                 logging.warning(
