@@ -18,7 +18,13 @@ from core.nova_task import NovaTask
 
 
 def parse_jira_cp_descr(description: str) -> tuple[Optional[GitCloudService], Optional[str]]:
-    """Parse Jira component description and return cloud service and repository URL"""
+    """
+    Parse Jira component description and return cloud service and repository URL.
+    It is epected that JIRA component description will be in the following format:
+        Bitbucket repository: http(s)://bitbucket.org/<repository>
+        GitHub repository: http(s)://github.com/<company>/<repository> or
+            just <company>/<repository>
+    """
     if description is None:
         return None, None
 
@@ -36,14 +42,31 @@ def parse_jira_cp_descr(description: str) -> tuple[Optional[GitCloudService], Op
     return None, None
 
 
-def get_github_repository_address(full_url: str) -> str:
-    """Returns GitHub client compatible repository address"""
+def get_github_compatible_repo_address(full_url: str) -> str:
+    """
+    Returns GitHub client compatible repository address.
+    The address returned can be used with official GitHub API client to access the repository.
+    It will be provided in the following format:
+        <company>/<repository>
+    """
     normalized = full_url.strip().lower()
     if normalized.startswith('http'):
         normalized = normalized.replace('http://', '').replace('https://', '')
 
     chunks = normalized.split('/')
     return '/'.join(chunks[1:])
+
+
+def build_jql(project: str, fix_version='', component='') -> str:
+    """
+    Build JQL query string.
+    """
+    jql = f'project={project}'
+    if fix_version:
+        jql += f' AND fixVersion={fix_version}'
+    if component:
+        jql += f' AND component={component}'
+    return jql
 
 
 class ReleaseManager:
@@ -56,11 +79,12 @@ class ReleaseManager:
         self.__j = jira_client
         self.__g = github_client
 
-    def __get_jira_issues(self, project: str, fix_version: str) -> list:
+    def __get_jira_issues(self, project: str, fix_version: str, component='') -> list:
         result = []
         i = 0
         chunk_size = 50
-        jql = f'project={project} and fixVersion="{fix_version}" order by Component asc'
+
+        jql = build_jql(project, fix_version, component)
         while True:
             try:
                 issues = self.__j.search_issues(
@@ -138,7 +162,7 @@ class ReleaseManager:
         if component.repo.git_cloud != GitCloudService.GITHUB:
             raise Exception('Only GitHub repositories are currently supported')
 
-        repo_url = get_github_repository_address(component.repo.url)
+        repo_url = get_github_compatible_repo_address(component.repo.url)
         repo = self.__g.get_repo(repo_url)
         if repo is None:
             raise Exception(f'Cannot get repository {component.repo.url}')
