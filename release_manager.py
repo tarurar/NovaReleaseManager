@@ -153,7 +153,7 @@ class ReleaseManager:
         component_tasks = {}
         for i in jira_issues:
             name = i.fields.components[0].name
-            component_tasks[name].append(i)
+            component_tasks.setdefault(name, []).append(i)
 
         jira_components = self.__j.project_components(project)
 
