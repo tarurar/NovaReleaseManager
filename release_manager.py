@@ -3,18 +3,18 @@ The release manager is responsible for managing the release process.
 """
 
 import logging
+from typing import Optional
 from urllib.parse import urlparse
 import validators
 from jira import JIRA, JIRAError
 from github import Github
-from git import Repo, Tag
+from git import Tag
 
 from core.cvs import GitCloudService, CodeRepository
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
 from core.nova_task import NovaTask
-from typing import Optional
 
 
 def parse_jira_cp_descr(description: str) -> tuple[Optional[GitCloudService], Optional[str]]:
@@ -48,8 +48,8 @@ def get_github_repository_address(full_url: str) -> str:
 
 class ReleaseManager:
     """The release manager is responsible for managing the release process."""
-
-    # todo: add dependant client packages update validation. Common issue: package updated but not mentioned in release notes
+    # todo: add dependant client packages update validation.
+    # Common issue: package updated but not mentioned in release notes
     # todo: add jira components validation (all have type and url)
 
     def __init__(self, jira_client: JIRA, github_client: Github) -> None:
@@ -127,11 +127,11 @@ class ReleaseManager:
         if component is None:
             raise Exception('Component is not specified')
 
-        if component.get_status() == Status.Done:
+        if component.get_status() == Status.DONE:
             raise Exception(
                 f'Component [{component.name}] is already released')
 
-        if component.get_status() != Status.ReadyForRelease:
+        if component.get_status() != Status.READY_FOR_RELEASE:
             raise Exception(
                 f'Component [{component.name}] is not ready for release')
 

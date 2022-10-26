@@ -1,8 +1,10 @@
-"""Nova task component module"""
-from .nova_status import Status
+"""
+Nova task component module
+"""
+from core.nova_status import Status
 
 
-class NovaTask(object):
+class NovaTask:
     """Nova task"""
 
     @staticmethod
@@ -10,13 +12,13 @@ class NovaTask(object):
         """Maps Jira issue status to Nova task status"""
         match status:
             case 'Selected For Release':
-                return Status.ReadyForRelease
+                return Status.READY_FOR_RELEASE
             case 'Done':
-                return Status.Done
+                return Status.DONE
             case 'In Development':
-                return Status.InDevelopment
+                return Status.IN_DEVELOPMENT
             case _:
-                return Status.Undefined
+                return Status.UNDEFINED
 
     def __init__(self, name, status):
         self._name = name

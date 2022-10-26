@@ -32,14 +32,14 @@ class NovaRelease(object):
         """Returns release status"""
         statuses = [component.get_status() for component in self.components]
         if not statuses:
-            return Status.Undefined
-        if any(s == Status.Undefined for s in statuses):
-            return Status.Undefined
-        if all(s == Status.ReadyForRelease for s in statuses):
-            return Status.ReadyForRelease
-        if all(s == Status.Done for s in statuses):
-            return Status.Done
-        return Status.InDevelopment
+            return Status.UNDEFINED
+        if any(s == Status.UNDEFINED for s in statuses):
+            return Status.UNDEFINED
+        if all(s == Status.READY_FOR_RELEASE for s in statuses):
+            return Status.READY_FOR_RELEASE
+        if all(s == Status.DONE for s in statuses):
+            return Status.DONE
+        return Status.IN_DEVELOPMENT
 
     def describe_status(self):
         """Returns release status description"""

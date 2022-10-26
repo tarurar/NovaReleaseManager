@@ -1,4 +1,6 @@
-"""Start module"""
+"""
+Start module
+"""
 import json
 from github import Github
 from jira import JIRA
@@ -56,7 +58,7 @@ with open('config.json', encoding='utf-8') as f:
 # print('Total issues count: ' + str(len(issues)))
 
 VERSION = '2'
-DELIVERY = '27'
+DELIVERY = '28'
 manager = ReleaseManager(
     JIRA(
         config['jira']['host'],

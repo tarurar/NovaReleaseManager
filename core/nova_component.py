@@ -1,4 +1,7 @@
-"""Nova component module"""
+"""
+Nova component module
+"""
+
 from .cvs import CodeRepository
 from .nova_status import Status
 
@@ -36,17 +39,16 @@ class NovaComponent:
 
     def get_status(self):
         """Returns component status"""
-
         if not self.tasks:
-            return Status.Undefined
+            return Status.UNDEFINED
         statuses = [task.status for task in self.tasks]
-        if any(s == Status.Undefined for s in statuses):
-            return Status.Undefined
-        if all(s == Status.ReadyForRelease for s in statuses):
-            return Status.ReadyForRelease
-        if all(s == Status.Done for s in statuses):
-            return Status.Done
-        return Status.InDevelopment
+        if any(s == Status.UNDEFINED for s in statuses):
+            return Status.UNDEFINED
+        if all(s == Status.READY_FOR_RELEASE for s in statuses):
+            return Status.READY_FOR_RELEASE
+        if all(s == Status.DONE for s in statuses):
+            return Status.DONE
+        return Status.IN_DEVELOPMENT
 
     def describe_status(self) -> str:
         """Returns component status description"""

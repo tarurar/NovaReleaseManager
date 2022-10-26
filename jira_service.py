@@ -1,4 +1,6 @@
-"""JIRA API client wrapper"""
+"""
+JIRA API client wrapper module
+"""
 from datetime import datetime
 from jira import JIRA
 from core.cvs import CodeRepository, GitCloudService

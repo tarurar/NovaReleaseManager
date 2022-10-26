@@ -1,11 +1,15 @@
+"""
+Nova status module
+"""
 from enum import Enum
 
 
 class Status(Enum):
-    InDevelopment = 1
-    ReadyForRelease = 2
-    Done = 3
-    Undefined = 4
+    """Nova status enum"""
+    IN_DEVELOPMENT = 1
+    READY_FOR_RELEASE = 2
+    DONE = 3
+    UNDEFINED = 4
 
     def __str__(self):
         return self.name

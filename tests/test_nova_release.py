@@ -1,3 +1,7 @@
+"""
+Nova release tests
+"""
+
 import pytest
 
 from core.nova_component import NovaComponent

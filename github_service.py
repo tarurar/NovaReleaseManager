@@ -1,7 +1,13 @@
+"""
+GitHub service client wrapper module
+"""
+
 from github import Github, GithubException
 
 
 class GithubService:
+    """GitHub service client wrapper"""
+
     def __init__(self, token):
         self.token = token
         self.g = Github(token)

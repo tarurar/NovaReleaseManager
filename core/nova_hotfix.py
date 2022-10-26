@@ -1,7 +1,12 @@
-from models.nova_release import NovaRelease
+"""
+Nova hotfix component module
+"""
+from core.nova_release import NovaRelease
 
 
 class NovaHotfix(NovaRelease):
+    """Nova hotfix component"""
+
     def __init__(self, project, version, delivery, hotfix):
         super().__init__(project, version, delivery)
         self.hotfix = hotfix
