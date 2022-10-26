@@ -63,9 +63,9 @@ def build_jql(project: str, fix_version='', component='') -> str:
     """
     jql = f'project={project}'
     if fix_version:
-        jql += f' AND fixVersion={fix_version}'
+        jql += f' AND fixVersion="{fix_version}"'
     if component:
-        jql += f' AND component={component}'
+        jql += f' AND component="{component}"'
     return jql
 
 
@@ -153,16 +153,9 @@ class ReleaseManager:
             raise Exception(jira_issues_error)
 
         component_tasks = {}
-        for issue in jira_issues:
-            # todo: add issue validation for multiple components, only one component is allowed, it is required at the same time
-            if len(issue.fields.components) == 0:
-                logging.warning(
-                    'Issue %s has no components, skipping', issue.key)
-                continue
-            issue_component = issue.fields.components[0].name
-            if issue_component not in component_tasks:
-                component_tasks[issue_component] = []
-            component_tasks[issue_component].append(issue)
+        for i in jira_issues:
+            name = i.fields.components[0].name
+            component_tasks[name].append(i)
 
         jira_components = self.__j.project_components(project)
 
