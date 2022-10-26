@@ -87,6 +87,34 @@ def validate_jira_issues(issues: list) -> str:
     return ''
 
 
+def validate_jira_components(components: list) -> str:
+    """
+    Validate Jira components.
+    Returns error message for the first invalid component found.
+    """
+    if len(components) == 0:
+        return 'No components found'
+
+    for component in components:
+        if not hasattr(component, 'name'):
+            return 'Component has no name'
+        if not hasattr(component, 'description'):
+            return f'Component [{component.name}] has no description'
+        if component.name is None:
+            return 'Component name is empty'
+        if component.description is None or component.description.strip() == '':
+            return f'Component [{component.name}] has empty description'
+
+        cloud_service, repo_url = parse_jira_cp_descr(component.description)
+        if cloud_service is None or repo_url is None:
+            return f'Component [{component.name}] has invalid description, ' \
+                f'expected to be in the following format: ' \
+                f'Bitbucket repository: http(s)://bitbucket.org/<repository> or ' \
+                f'GitHub repository: http(s)://github.com/<company>/<repository> or ' \
+                f'just <company>/<repository>'
+    return ''
+
+
 class ReleaseManager:
     """The release manager is responsible for managing the release process."""
     # todo: add dependant client packages update validation.
