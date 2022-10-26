@@ -43,10 +43,7 @@ def get_github_repository_address(full_url: str) -> str:
         normalized = normalized.replace('http://', '').replace('https://', '')
 
     chunks = normalized.split('/')
-    result = '/'.join(chunks[1:])
-    if not result.endswith('.git'):
-        result += '.git'
-    return result
+    return '/'.join(chunks[1:])
 
 
 class ReleaseManager:
@@ -130,19 +127,19 @@ class ReleaseManager:
         if component is None:
             raise Exception('Component is not specified')
 
-        if component.get_status() == Status.Done:
-            raise Exception(
-                f'Component [{component.name}] is already released')
+        # if component.get_status() == Status.Done:
+        #     raise Exception(
+        #         f'Component [{component.name}] is already released')
 
-        if component.get_status() != Status.ReadyForRelease:
-            raise Exception(
-                f'Component [{component.name}] is not ready for release')
+        # if component.get_status() != Status.ReadyForRelease:
+        #     raise Exception(
+        #         f'Component [{component.name}] is not ready for release')
 
         if component.repo.git_cloud != GitCloudService.GITHUB:
             raise Exception('Only GitHub repositories are currently supported')
 
-        # todo: proceed from here
-        repo = self.__g.get_repo(component.repo.url)
+        repo_url = get_github_repository_address(component.repo.url)
+        repo = self.__g.get_repo(repo_url)
         if repo is None:
             raise Exception(f'Cannot get repository {component.repo.url}')
 
