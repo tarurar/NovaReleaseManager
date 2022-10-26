@@ -48,13 +48,6 @@ def test_when_issue_has_more_than_one_component():
     assert error != ''
 
 
-def test_when_issue_has_invalid_status():
-    issues = [MockIssue('issue key', ['c1'], 'invalid status')]
-    error = validate_jira_issues(issues)
-    assert isinstance(error, str)
-    assert error != ''
-
-
 def test_when_issue_is_valid():
     issues = [MockIssue('issue key', ['c1'], 'Selected For Release')]
     error = validate_jira_issues(issues)

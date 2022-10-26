@@ -82,8 +82,6 @@ def validate_jira_issues(issues: list) -> str:
             return f'Issue [{issue.key}] has no component'
         if len(issue.fields.components) > 1:
             return f'Issue [{issue.key}] has more than one component'
-        if issue.fields.status.name != 'Selected For Release':
-            return f'Issue [{issue.key}] expected to have status [Selected For Release]'
     return ''
 
 

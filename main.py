@@ -58,7 +58,7 @@ with open('config.json', encoding='utf-8') as f:
 # print('Total issues count: ' + str(len(issues)))
 
 VERSION = '2'
-DELIVERY = '28'
+DELIVERY = '27'
 manager = ReleaseManager(
     JIRA(
         config['jira']['host'],
