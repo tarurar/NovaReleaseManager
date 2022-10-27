@@ -37,6 +37,10 @@ class NovaComponent:
         """Adds task to component"""
         self.tasks.append(task)
 
+    def add_tasks(self, tasks):
+        """Adds tasks to component"""
+        self.tasks.extend(tasks)
+
     def get_status(self):
         """Returns component status"""
         if not self.tasks:
@@ -60,3 +64,28 @@ class NovaComponent:
     def get_release_notes(self) -> str:
         """Returns release notes for component"""
         return 'Release notes'
+
+
+class NovaEmptyComponent(NovaComponent):
+    """
+    Represents empty Nova component.
+    It is used to group tasks only. According to convention it is
+    named 'N/A' or 'n/a' in Jira.
+    """
+
+    default_component_name = 'n/a'
+
+    def __init__(self):
+        super().__init__(NovaEmptyComponent.default_component_name, None)
+
+    def get_status(self):
+        """Returns component status"""
+        return Status.UNDEFINED
+
+    def describe_status(self) -> str:
+        """Returns component status description"""
+        return 'Empty component'
+
+    def get_release_notes(self) -> str:
+        """Returns release notes for component"""
+        return 'Empty component'

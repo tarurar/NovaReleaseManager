@@ -1,9 +1,10 @@
 """
 Jira issues parser tests
 """
+from cgitb import reset
 import pytest
 from release_manager import parse_jira_component
-from core.nova_component import NovaComponent
+from core.nova_component import NovaComponent, NovaEmptyComponent
 
 
 class MockComponent:
@@ -14,7 +15,7 @@ class MockComponent:
         self.description = description
 
 
-def test_when_no_empty_component_provided():
+def test_when_empty_component_provided():
     with pytest.raises(ValueError):
         parse_jira_component(None)
 
@@ -42,6 +43,14 @@ def test_when_component_is_valid():
         'component name', 'http://github.com/company/project')
     result = parse_jira_component(component)
     assert isinstance(result, NovaComponent)
+
+
+@pytest.mark.parametrize('component_name', ['n/a', 'N/A', 'N/A ', ' N/A', 'N/A  ', 'n/A', 'N/a', 'n/A ', ' N/a', 'N/a  '])
+def test_when_component_is_named_na(component_name):
+    component = MockComponent(component_name, '')
+    result = parse_jira_component(component)
+    assert isinstance(result, NovaEmptyComponent)
+    assert result.name == NovaEmptyComponent.default_component_name
 
 
 def teardown_module():

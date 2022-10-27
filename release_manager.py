@@ -11,24 +11,27 @@ from github import Github
 from git import Tag
 
 from core.cvs import GitCloudService, CodeRepository
-from core.nova_component import NovaComponent
+from core.nova_component import NovaComponent, NovaEmptyComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
 from core.nova_task import NovaTask
 
 
-def parse_jira_cp_descr(description: str) -> tuple[Optional[GitCloudService], Optional[str]]:
+def parse_jira_cmp_descr(descr: str) -> tuple[
+        Optional[GitCloudService],
+        Optional[str]]:
     """
-    Parse Jira component description and return cloud service and repository URL.
-    It is epected that JIRA component description will be in the following format:
-        Bitbucket repository: http(s)://bitbucket.org/<repository>
-        GitHub repository: http(s)://github.com/<company>/<repository> or
-            just <company>/<repository>
+    Parse Jira component description and return cloud service and
+    repository URL. It is epected that JIRA component description
+    will be in the following format:
+        Bitbucket: http(s)://bitbucket.org/<repo>
+        GitHub: http(s)://github.com/<company>/<repo> or
+            just <company>/<repo>
     """
-    if description is None:
+    if descr is None:
         return None, None
 
-    normalized_description = description.strip().lower()
+    normalized_description = descr.strip().lower()
 
     if not normalized_description.startswith('http'):
         normalized_description = 'http://' + normalized_description
@@ -36,9 +39,9 @@ def parse_jira_cp_descr(description: str) -> tuple[Optional[GitCloudService], Op
     if validators.url(normalized_description):
         url_parse_result = urlparse(normalized_description)
         if 'github' in url_parse_result.hostname:
-            return GitCloudService.GITHUB, description
+            return GitCloudService.GITHUB, descr
         if 'bitbucket' in url_parse_result.hostname:
-            return GitCloudService.BITBUCKET, description
+            return GitCloudService.BITBUCKET, descr
     return None, None
 
 
@@ -69,48 +72,58 @@ def build_jql(project: str, fix_version='', component='') -> str:
     return jql
 
 
-def validate_jira_issues(issues: list) -> str:
-    """
-    Validate Jira issues.
-    Returns error message for the first invalid issue found.
-    """
-    if len(issues) == 0:
-        return 'No issues found'
-
-    for issue in issues:
-        if len(issue.fields.components) == 0:
-            return f'Issue [{issue.key}] has no component'
-        if len(issue.fields.components) > 1:
-            return f'Issue [{issue.key}] has more than one component'
-    return ''
-
-
-def parse_jira_component(component: object) -> NovaComponent:
+def parse_jira_component(cmp: object) -> NovaComponent:
     """
     Parse Jira component.
     """
-    if component is None:
+    if cmp is None:
         raise ValueError('Component is None')
-    if not hasattr(component, 'name'):
+    if not hasattr(cmp, 'name'):
         raise ValueError('Component has no name')
-    if not hasattr(component, 'description'):
-        raise ValueError(f'Component [{component.name}] has no description')
-    if component.name is None:
+    if cmp.name is None:
         raise ValueError('Component name is empty')
-    if component.description is None or component.description.strip() == '':
-        raise ValueError(f'Component [{component.name}] has empty description')
+    if cmp.name.strip().lower() == NovaEmptyComponent.default_component_name:
+        return NovaEmptyComponent()
+    if not hasattr(cmp, 'description'):
+        raise ValueError(f'Component [{cmp.name}] has no description')
+    if cmp.description is None or cmp.description.strip() == '':
+        raise ValueError(f'Component [{cmp.name}] has empty description')
 
-    cloud_service, repo_url = parse_jira_cp_descr(component.description)
+    cloud_service, repo_url = parse_jira_cmp_descr(cmp.description)
     if cloud_service is None or repo_url is None:
-        raise ValueError(f'Component [{component.name}] has invalid description, '
+        raise ValueError(f'Component [{cmp.name}] has invalid description, '
                          f'expected to be in the following format: '
-                         f'Bitbucket repository: http(s)://bitbucket.org/<repository> or '
-                         f'GitHub repository: http(s)://github.com/<company>/<repository> or '
-                         f'just <company>/<repository>')
+                         f'Bitbucket: http(s)://bitbucket.org/<repo> or '
+                         f'GitHub: http(s)://github.com/<company>/<repo> or '
+                         f'just <company>/<repo>')
 
     return NovaComponent(
-        component.name,
+        cmp.name,
         CodeRepository(cloud_service, repo_url))
+
+
+def parse_jira_issue(jira_issue: object) -> NovaTask:
+    """
+    Parse Jira issue.
+    """
+    if jira_issue is None:
+        raise ValueError('Issue is None')
+    if not hasattr(jira_issue, 'key'):
+        raise ValueError('Issue has no key')
+    if not jira_issue.key:
+        raise ValueError('Issue key is empty')
+    if len(jira_issue.fields.components) == 0:
+        raise ValueError(f'Issue [{jira_issue.key}] has no component')
+    if len(jira_issue.fields.components) > 1:
+        raise ValueError(
+            f'Issue [{jira_issue.key}] has more than one component')
+
+    status = NovaTask.map_jira_issue_status(jira_issue.fields.status.name)
+    if status == Status.UNDEFINED:
+        raise ValueError(
+            f'Issue [{jira_issue.key}] has invalid status [{jira_issue.fields.status.name}]')
+
+    return NovaTask(jira_issue.key, status)
 
 
 class ReleaseManager:
@@ -123,12 +136,12 @@ class ReleaseManager:
         self.__j = jira_client
         self.__g = github_client
 
-    def __get_jira_issues(self, project: str, fix_version: str, component='') -> list:
+    def __get_jira_issues(self, project: str, fix_version: str, cmp='') -> list:
         result = []
         i = 0
         chunk_size = 50
 
-        jql = build_jql(project, fix_version, component)
+        jql = build_jql(project, fix_version, cmp)
         while True:
             try:
                 issues = self.__j.search_issues(
@@ -141,51 +154,20 @@ class ReleaseManager:
                 break
         return result
 
-    def compose_release(self, project: str, version: str, delivery: str) -> NovaRelease:
+    def compose(self, project: str, version: str, delivery: str) -> NovaRelease:
         """Get release by project, version and delivery"""
         release = NovaRelease(project, version, delivery)
 
-        jira_components = [parse_jira_component(
+        nova_components = [parse_jira_component(
             cmp) for cmp in self.__j.project_components(project)]
 
-        jira_issues = self.__get_jira_issues(project, str(release))
-        jira_issues_error = validate_jira_issues(jira_issues)
-        if jira_issues_error:
-            raise Exception(jira_issues_error)
-
-        component_tasks = {}
-        for i in jira_issues:
-            name = i.fields.components[0].name
-            component_tasks.setdefault(name, []).append(i)
-
-        for (k, v) in component_tasks.items():
-            matches = filter(lambda x: x.name == k, jira_components)
-            filtered_jira_components = list(matches)
-            if len(filtered_jira_components) == 0:
-                raise Exception(f'Component [{k}] not found in Jira')
-            if len(filtered_jira_components) > 1:
-                raise Exception(f'Component [{k}] is not unique in Jira')
-            if not hasattr(filtered_jira_components[0], 'description'):
-                logging.warning(
-                    'Component [%s] has no description property. Skipping', k)
-                continue
-            if filtered_jira_components[0].description is None:
-                logging.warning(
-                    'Component [%s] has no description. Skipping', k)
-            (git_cloud, repo_url) = parse_jira_cp_descr(
-                filtered_jira_components[0].description)
-            if git_cloud is None or repo_url is None:
-                if k.strip().lower() != 'n/a':
-                    logging.warning(
-                        'Component [%s] has invalid description: [%s]. Expected to be repository url. Skipping', k, filtered_jira_components[0].description)
-                continue
-            component = NovaComponent(k, CodeRepository(git_cloud, repo_url))
-            jira_tasks = component_tasks[k]
-            for jira_task in jira_tasks:
-                nova_task = NovaTask(jira_task.key, NovaTask.map_jira_issue_status(
-                    jira_task.fields.status.name))
-                component.add_task(nova_task)
-            release.add_component(component)
+        for n_c in nova_components:
+            # todo: optimize here and get all issues in one request
+            nc_tasks = [parse_jira_issue(issue) for issue in
+                        self.__get_jira_issues(project, release, n_c.name)]
+            if len(nc_tasks) > 0:
+                n_c.add_tasks(nc_tasks)
+                release.add_component(n_c)
 
         return release
 

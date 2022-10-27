@@ -64,7 +64,7 @@ manager = ReleaseManager(
         config['jira']['host'],
         basic_auth=(config['jira']['username'], config['jira']['password'])),
     Github(config['github']['accessToken']))
-release = manager.compose_release(config['jira']['project'], VERSION, DELIVERY)
+release = manager.compose(config['jira']['project'], VERSION, DELIVERY)
 print(release.describe_status())
 component = choose_component_from_release(release)
 if component is not None:
