@@ -81,11 +81,3 @@ class NovaEmptyComponent(NovaComponent):
     def get_status(self):
         """Returns component status"""
         return Status.UNDEFINED
-
-    def describe_status(self) -> str:
-        """Returns component status description"""
-        return 'Empty component'
-
-    def get_release_notes(self) -> str:
-        """Returns release notes for component"""
-        return 'Empty component'
