@@ -77,7 +77,3 @@ class NovaEmptyComponent(NovaComponent):
 
     def __init__(self):
         super().__init__(NovaEmptyComponent.default_component_name, None)
-
-    def get_status(self):
-        """Returns component status"""
-        return Status.UNDEFINED
