@@ -126,11 +126,20 @@ def parse_jira_issue(jira_issue: object) -> NovaTask:
     return NovaTask(jira_issue.key, status)
 
 
+def filter_jira_issue(jira_issue, cmp_name) -> bool:
+    """
+    Filter Jira issue by component name.
+    """
+    jira_name = jira_issue.fields.components[0].name.strip().lower()
+    nova_name = cmp_name.strip().lower()
+
+    return jira_name == nova_name
+
+
 class ReleaseManager:
     """The release manager is responsible for managing the release process."""
     # todo: add dependant client packages update validation.
     # Common issue: package updated but not mentioned in release notes
-    # todo: add jira components validation (all have type and url)
 
     def __init__(self, jira_client: JIRA, github_client: Github) -> None:
         self.__j = jira_client
@@ -158,16 +167,20 @@ class ReleaseManager:
         """Get release by project, version and delivery"""
         release = NovaRelease(project, version, delivery)
 
-        nova_components = [parse_jira_component(
-            cmp) for cmp in self.__j.project_components(project)]
+        components = [parse_jira_component(cmp)
+                      for cmp in self.__j.project_components(project)]
 
-        for n_c in nova_components:
-            # todo: optimize here and get all issues in one request
-            nc_tasks = [parse_jira_issue(issue) for issue in
-                        self.__get_jira_issues(project, release, n_c.name)]
-            if len(nc_tasks) > 0:
-                n_c.add_tasks(nc_tasks)
-                release.add_component(n_c)
+        release_jira_issues = self.__get_jira_issues(project, release)
+
+        for component in components:
+            component_jira_issues = filter(
+                lambda i, c_name=component.name: filter_jira_issue(i, c_name),
+                release_jira_issues)
+            component_tasks = [parse_jira_issue(issue)
+                               for issue in component_jira_issues]
+            if len(component_tasks) > 0:
+                component.add_tasks(component_tasks)
+                release.add_component(component)
 
         return release
 
