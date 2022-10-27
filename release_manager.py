@@ -85,32 +85,32 @@ def validate_jira_issues(issues: list) -> str:
     return ''
 
 
-def validate_jira_components(components: list) -> str:
+def parse_jira_component(component: object) -> NovaComponent:
     """
-    Validate Jira components.
-    Returns error message for the first invalid component found.
+    Parse Jira component.
     """
-    if len(components) == 0:
-        return 'No components found'
+    if component is None:
+        raise ValueError('Component is None')
+    if not hasattr(component, 'name'):
+        raise ValueError('Component has no name')
+    if not hasattr(component, 'description'):
+        raise ValueError(f'Component [{component.name}] has no description')
+    if component.name is None:
+        raise ValueError('Component name is empty')
+    if component.description is None or component.description.strip() == '':
+        raise ValueError(f'Component [{component.name}] has empty description')
 
-    for component in components:
-        if not hasattr(component, 'name'):
-            return 'Component has no name'
-        if not hasattr(component, 'description'):
-            return f'Component [{component.name}] has no description'
-        if component.name is None:
-            return 'Component name is empty'
-        if component.description is None or component.description.strip() == '':
-            return f'Component [{component.name}] has empty description'
+    cloud_service, repo_url = parse_jira_cp_descr(component.description)
+    if cloud_service is None or repo_url is None:
+        raise ValueError(f'Component [{component.name}] has invalid description, '
+                         f'expected to be in the following format: '
+                         f'Bitbucket repository: http(s)://bitbucket.org/<repository> or '
+                         f'GitHub repository: http(s)://github.com/<company>/<repository> or '
+                         f'just <company>/<repository>')
 
-        cloud_service, repo_url = parse_jira_cp_descr(component.description)
-        if cloud_service is None or repo_url is None:
-            return f'Component [{component.name}] has invalid description, ' \
-                f'expected to be in the following format: ' \
-                f'Bitbucket repository: http(s)://bitbucket.org/<repository> or ' \
-                f'GitHub repository: http(s)://github.com/<company>/<repository> or ' \
-                f'just <company>/<repository>'
-    return ''
+    return NovaComponent(
+        component.name,
+        CodeRepository(cloud_service, repo_url))
 
 
 class ReleaseManager:
@@ -141,9 +141,12 @@ class ReleaseManager:
                 break
         return result
 
-    def get_release(self, project: str, version: str, delivery: str) -> NovaRelease:
+    def compose_release(self, project: str, version: str, delivery: str) -> NovaRelease:
         """Get release by project, version and delivery"""
         release = NovaRelease(project, version, delivery)
+
+        jira_components = [parse_jira_component(
+            cmp) for cmp in self.__j.project_components(project)]
 
         jira_issues = self.__get_jira_issues(project, str(release))
         jira_issues_error = validate_jira_issues(jira_issues)
@@ -154,8 +157,6 @@ class ReleaseManager:
         for i in jira_issues:
             name = i.fields.components[0].name
             component_tasks.setdefault(name, []).append(i)
-
-        jira_components = self.__j.project_components(project)
 
         for (k, v) in component_tasks.items():
             matches = filter(lambda x: x.name == k, jira_components)
