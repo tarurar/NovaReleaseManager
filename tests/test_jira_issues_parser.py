@@ -79,8 +79,7 @@ def test_when_issue_is_valid(issue_key, issue_status):
     (' c1', 'c1 ', True),
     ('C1', 'c1', True),
     ('C1', 'C1', True),
-    (' C1', ' c1 ', True)
-])
+    (' C1', ' c1 ', True)])
 def test_if_jira_issue_belongs_to_component(
         jira_cmp_name,
         nova_cmp_name,

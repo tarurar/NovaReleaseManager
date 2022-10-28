@@ -15,9 +15,9 @@ def test_when_url_does_not_start_with_schema(url, expected):
     assert address == expected
 
 
-@pytest.mark.parametrize("url, expected",
-                         [("http://host/company/repo", "company/repo"),
-                          ("https://host/company/repo", "company/repo")])
+@pytest.mark.parametrize("url, expected", [
+    ("http://host/company/repo", "company/repo"),
+    ("https://host/company/repo", "company/repo")])
 def test_when_url_starts_with_schema(url, expected):
     address = get_github_compatible_repo_address(url)
     assert address == expected
