@@ -4,7 +4,7 @@ Jira component decscription parsing tests
 
 import pytest
 
-from release_manager import get_github_compatible_repo_address
+from github_utils import get_github_compatible_repo_address
 
 
 @pytest.mark.parametrize("url, expected",

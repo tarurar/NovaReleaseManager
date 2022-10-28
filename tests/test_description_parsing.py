@@ -4,7 +4,7 @@ Jira component decscription parsing tests
 
 import pytest
 
-from release_manager import parse_jira_cmp_descr
+from jira_utils import parse_jira_cmp_descr
 from core.cvs import GitCloudService
 
 

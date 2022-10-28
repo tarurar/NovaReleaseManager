@@ -2,7 +2,7 @@
 Jira issues parser tests
 """
 import pytest
-from release_manager import parse_jira_component
+from jira_utils import parse_jira_component
 from core.nova_component import NovaComponent, NovaEmptyComponent
 
 

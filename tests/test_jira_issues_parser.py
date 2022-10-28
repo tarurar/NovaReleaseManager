@@ -2,7 +2,7 @@
 Jira issues validation tests
 """
 import pytest
-from release_manager import parse_jira_issue, filter_jira_issue
+from jira_utils import parse_jira_issue, filter_jira_issue
 
 
 class MockComponent:

@@ -1,7 +1,8 @@
 """
 Jira query language request builder tests
 """
-from release_manager import build_jql
+
+from jira_utils import build_jql
 
 
 def test_when_optional_params_are_empty():

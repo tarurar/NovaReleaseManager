@@ -13,8 +13,8 @@ from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
 
-from jira_utils import *
-from github_utils import *
+import jira_utils as ju
+import github_utils as gu
 
 
 class ReleaseManager:
@@ -31,7 +31,7 @@ class ReleaseManager:
         i = 0
         chunk_size = 50
 
-        jql = build_jql(project, fix_version, cmp)
+        jql = ju.build_jql(project, fix_version, cmp)
         while True:
             try:
                 issues = self.__j.search_issues(
@@ -48,16 +48,16 @@ class ReleaseManager:
         """Get release by project, version and delivery"""
         release = NovaRelease(project, version, delivery)
 
-        components = [parse_jira_component(cmp)
+        components = [ju.parse_jira_component(cmp)
                       for cmp in self.__j.project_components(project)]
 
         release_jira_issues = self.__get_jira_issues(project, release)
 
         for component in components:
             component_jira_issues = filter(
-                lambda i, c_name=component.name: filter_jira_issue(i, c_name),
+                lambda i, cname=component.name: ju.filter_jira_issue(i, cname),
                 release_jira_issues)
-            component_tasks = [parse_jira_issue(issue)
+            component_tasks = [ju.parse_jira_issue(issue)
                                for issue in component_jira_issues]
             if len(component_tasks) > 0:
                 component.add_tasks(component_tasks)
@@ -81,7 +81,7 @@ class ReleaseManager:
         if component.repo.git_cloud != GitCloudService.GITHUB:
             raise Exception('Only GitHub repositories are currently supported')
 
-        repo_url = get_github_compatible_repo_address(component.repo.url)
+        repo_url = gu.get_github_compatible_repo_address(component.repo.url)
         repo = self.__g.get_repo(repo_url)
         if repo is None:
             raise Exception(f'Cannot get repository {component.repo.url}')
