@@ -13,7 +13,7 @@ from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
 
-from jira_utils import *˝
+from jira_utils import *
 
 
 def get_github_compatible_repo_address(full_url: str) -> str:
