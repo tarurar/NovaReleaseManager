@@ -6,8 +6,9 @@ from typing import Optional
 from urllib.parse import urlparse
 import validators
 
-from core.cvs import GitCloudService
+from core.cvs import GitCloudService, CodeRepository
 from core.nova_task import NovaTask
+from core.nova_component import NovaComponent, NovaEmptyComponent
 from core.nova_status import Status
 
 
@@ -73,3 +74,33 @@ def parse_jira_issue(jira_issue: object) -> NovaTask:
             f'Issue [{jira_issue.key}] has invalid status [{jira_issue.fields.status.name}]')
 
     return NovaTask(jira_issue.key, status)
+
+
+def parse_jira_component(cmp: object) -> NovaComponent:
+    """
+    Parse Jira component.
+    """
+    if cmp is None:
+        raise ValueError('Component is None')
+    if not hasattr(cmp, 'name'):
+        raise ValueError('Component has no name')
+    if cmp.name is None:
+        raise ValueError('Component name is empty')
+    if cmp.name.strip().lower() == NovaEmptyComponent.default_component_name:
+        return NovaEmptyComponent()
+    if not hasattr(cmp, 'description'):
+        raise ValueError(f'Component [{cmp.name}] has no description')
+    if cmp.description is None or cmp.description.strip() == '':
+        raise ValueError(f'Component [{cmp.name}] has empty description')
+
+    cloud_service, repo_url = parse_jira_cmp_descr(cmp.description)
+    if cloud_service is None or repo_url is None:
+        raise ValueError(f'Component [{cmp.name}] has invalid description, '
+                         f'expected to be in the following format: '
+                         f'Bitbucket: http(s)://bitbucket.org/<repo> or '
+                         f'GitHub: http(s)://github.com/<company>/<repo> or '
+                         f'just <company>/<repo>')
+
+    return NovaComponent(
+        cmp.name,
+        CodeRepository(cloud_service, repo_url))
