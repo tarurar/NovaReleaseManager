@@ -35,3 +35,15 @@ def parse_jira_cmp_descr(descr: str) -> tuple[
         if 'bitbucket' in url_parse_result.hostname:
             return GitCloudService.BITBUCKET, descr
     return None, None
+
+
+def build_jql(project: str, fix_version='', component='') -> str:
+    """
+    Build JQL query string.
+    """
+    jql = f'project={project}'
+    if fix_version:
+        jql += f' AND fixVersion="{fix_version}"'
+    if component:
+        jql += f' AND component="{component}"'
+    return jql

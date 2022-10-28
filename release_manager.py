@@ -13,7 +13,7 @@ from core.nova_component import NovaComponent, NovaEmptyComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
 from core.nova_task import NovaTask
-from jira_utils import parse_jira_cmp_descr
+from jira_utils import parse_jira_cmp_descr, build_jql
 
 
 def get_github_compatible_repo_address(full_url: str) -> str:
@@ -29,18 +29,6 @@ def get_github_compatible_repo_address(full_url: str) -> str:
 
     chunks = normalized.split('/')
     return '/'.join(chunks[1:])
-
-
-def build_jql(project: str, fix_version='', component='') -> str:
-    """
-    Build JQL query string.
-    """
-    jql = f'project={project}'
-    if fix_version:
-        jql += f' AND fixVersion="{fix_version}"'
-    if component:
-        jql += f' AND component="{component}"'
-    return jql
 
 
 def parse_jira_component(cmp: object) -> NovaComponent:
