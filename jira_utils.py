@@ -104,3 +104,13 @@ def parse_jira_component(cmp: object) -> NovaComponent:
     return NovaComponent(
         cmp.name,
         CodeRepository(cloud_service, repo_url))
+
+
+def filter_jira_issue(jira_issue, cmp_name) -> bool:
+    """
+    Filter Jira issue by component name.
+    """
+    jira_name = jira_issue.fields.components[0].name.strip().lower()
+    nova_name = cmp_name.strip().lower()
+
+    return jira_name == nova_name

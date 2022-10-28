@@ -13,7 +13,7 @@ from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
 
-from jira_utils import parse_jira_cmp_descr, build_jql, parse_jira_issue, parse_jira_component
+from jira_utils import *˝
 
 
 def get_github_compatible_repo_address(full_url: str) -> str:
@@ -29,16 +29,6 @@ def get_github_compatible_repo_address(full_url: str) -> str:
 
     chunks = normalized.split('/')
     return '/'.join(chunks[1:])
-
-
-def filter_jira_issue(jira_issue, cmp_name) -> bool:
-    """
-    Filter Jira issue by component name.
-    """
-    jira_name = jira_issue.fields.components[0].name.strip().lower()
-    nova_name = cmp_name.strip().lower()
-
-    return jira_name == nova_name
 
 
 class ReleaseManager:
