@@ -1,7 +1,6 @@
 """
 Jira issues parser tests
 """
-from cgitb import reset
 import pytest
 from release_manager import parse_jira_component
 from core.nova_component import NovaComponent, NovaEmptyComponent
