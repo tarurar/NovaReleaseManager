@@ -9,18 +9,18 @@ from core.nova_release import NovaRelease
 from release_manager import ReleaseManager
 
 
-def choose_component_from_release(r: NovaRelease) -> NovaComponent:
+def choose_component_from_release(rel: NovaRelease) -> NovaComponent:
     """Choose component from release"""
     print('\n')
     component_name = input(
         'Please, select component to release or press \'q\': ')
-    if (component_name == 'q'):
+    if component_name == 'q':
         return None
-    c = r.get_component_by_name(component_name)
-    if c is None:
+    cmp = rel.get_component_by_name(component_name)
+    if cmp is None:
         print('Component not found')
-        return choose_component_from_release(r)
-    return c
+        return choose_component_from_release(rel)
+    return cmp
 
 
 # def removeComponentName(source):
@@ -40,22 +40,19 @@ def choose_component_from_release(r: NovaRelease) -> NovaComponent:
 #                 componentName = issue.fields.components[0].name
 #                 print('\n' + componentName)
 #                 print('===========================================')
-#         print('* {}: {}'.format(issue.key, removeComponentName(issue.fields.summary.strip())))
+#         print('* {}: {}'.format(issue.key,
+#               removeComponentName(issue.fields.summary.strip())))
 #         instructions = issue.raw['fields']['customfield_10646']
 #         if instructions is not None:
 #             print('DEPLOYMENT INSTRUCTIONS:' + str(instructions))
 #         if showPullRequest:
-#             print('Pull request: ' + str(issue.raw['fields']['customfield_10659']))
+#             print('Pull request: ' +
+#                str(issue.raw['fields']['customfield_10659']))
 #         if separateTasks:
 #             print('-------------------------------------------')
 
 with open('config.json', encoding='utf-8') as f:
     config = json.load(f)
-
-# issues = jira.search_issues('project=LT and fixVersion="Nova 2. Delivery 26" order by Component asc', maxResults=100)
-# printIssues(issues, False, False)
-# #changeStatusDone(issues)
-# print('Total issues count: ' + str(len(issues)))
 
 VERSION = '2'
 DELIVERY = '27'

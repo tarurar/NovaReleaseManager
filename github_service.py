@@ -9,17 +9,16 @@ class GithubService:
     """GitHub service client wrapper"""
 
     def __init__(self, token):
-        self.token = token
-        self.g = Github(token)
+        self._token = token
+        self._g = Github(token)
 
     def try_get_repo(self, repo_name):
         try:
-            repo = self.g.get_repo(repo_name)
-        except GithubException as e:
-            if e.status == 404:
+            repo = self._g.get_repo(repo_name)
+        except GithubException as ex:
+            if ex.status == 404:
                 return None
-            else:
-                raise e
+            raise ex
         return repo
 
     def try_get_release(self, repo_name, tag):
@@ -29,11 +28,10 @@ class GithubService:
 
         try:
             release = repo.get_release(tag)
-        except GithubException as e:
-            if e.status == 404:
+        except GithubException as ex:
+            if ex.status == 404:
                 return None
-            else:
-                raise e
+            raise ex
         return release
 
     def try_get_repo_latest_tag(self, repo_name):
@@ -52,8 +50,11 @@ class GithubService:
         release = next(iter(releases), None)
         return release
 
-    def create_release(self, repo_name, tag, name, body, draft, prerelease, target_commitish):
+    def create_release(
+            self, repo_name, tag, name, body, draft,
+            prerelease, target_commitish):
         repo = self.try_get_repo(repo_name)
         if repo is None:
             return None
-        return repo.create_git_release(tag, name, body, draft, prerelease, target_commitish)
+        return repo.create_git_release(
+            tag, name, body, draft, prerelease, target_commitish)

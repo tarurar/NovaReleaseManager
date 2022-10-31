@@ -65,7 +65,7 @@ class ReleaseManager:
 
         return release
 
-    def release_component(self, release: NovaRelease, component: NovaComponent) -> None:
+    def release_component(self, release: NovaRelease, component: NovaComponent):
         """Release component"""
         if component is None:
             raise Exception('Component is not specified')
@@ -103,9 +103,9 @@ class ReleaseManager:
         if git_release is None:
             raise Exception(f'Could not create release for tag {git_tag.tag}')
 
-        for t in component.tasks:
+        for task in component.tasks:
             self.__j.transition_issue(
-                t.name, 'Done', comment=f'{release.get_title()} released')
+                task.name, 'Done', comment=f'{release.get_title()} released')
 
     @classmethod
     def input_tag_name(cls) -> str:
@@ -122,22 +122,23 @@ class ReleaseManager:
         """Choose tag from existing tags"""
         if len(existing_tags) == 0:
             return None
-        d = {}
+        tags = {}
         for i, value in enumerate(existing_tags):
-            d[i] = value
+            tags[i] = value
 
-        for (k, v) in d.items():
-            print(f'{k+1}: {v.name} @ {v.last_modified}')
+        for (k, val) in tags.items():
+            print(f'{k+1}: {val.name} @ {val.last_modified}')
 
-        command = input(
-            '\nEnter either tag position number from the list or just press enter for new tag: ')
+        command = input("""
+            \nEnter either tag position number from 
+            the list or just press enter for new tag: """)
         if command is None or command.strip() == '':
             return None
 
         if command.isdigit():
             tag_position = int(command) - 1
-            if tag_position in d:
-                return d[tag_position]
+            if tag_position in tags:
+                return tags[tag_position]
             else:
                 logging.warning('Tag number is not in the list')
                 return cls.choose_existing_tag(existing_tags)

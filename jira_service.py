@@ -8,7 +8,7 @@ from core.cvs import CodeRepository, GitCloudService
 
 def build_release_comment():
     """"Generates release comment"""
-    return 'Released on ' + datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S') + ' UTC'
+    return f"Released on {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
 
 
 def try_get_component_repository(component):
@@ -18,10 +18,11 @@ def try_get_component_repository(component):
     if component.description is None:
         return None
     cvs_type = component.description.split(':')[0]
+    url = component.description.split(':')[1]
     if cvs_type.lower() == 'github':
-        return CodeRepository(component.description.split(':')[1], GitCloudService.GITHUB)
+        return CodeRepository(GitCloudService.GITHUB, url)
     if cvs_type.lower() == 'bitbucket':
-        return CodeRepository(component.description.split(':')[1], GitCloudService.BITBUCKET)
+        return CodeRepository(GitCloudService.BITBUCKET, url)
     return None
 
 
@@ -47,7 +48,8 @@ class JiraService:
     #     comment = build_release_comment()
     #     for issue in issues:
     #         if issue.fields.status.name == self.ready_for_release_status:
-    #             self.jira.transition_issue(issue, self.done_status, comment=comment)
+    #             self.jira.transition_issue(
+    #                issue, self.done_status, comment=comment)
 
     # def try_get_project(self):
     #     try:

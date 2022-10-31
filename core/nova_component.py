@@ -59,7 +59,11 @@ class NovaComponent:
         status = self.get_status()
         tasks_count = len(self.tasks)
         width = NovaComponent.longest_component_name
-        return f'{self._name:<{width}} | {str(status):<15} | {tasks_count:>3} tasks'
+        description = f"""
+            {self._name:<{width}} | 
+            {str(status):<15} | 
+            {tasks_count:>3} tasks"""
+        return description
 
     def get_release_notes(self) -> str:
         """Returns release notes for component"""

@@ -52,28 +52,28 @@ def build_jql(project: str, fix_version='', component='') -> str:
     return jql
 
 
-def parse_jira_issue(jira_issue: object) -> NovaTask:
+def parse_jira_issue(issue: object) -> NovaTask:
     """
     Parse Jira issue.
     """
-    if jira_issue is None:
+    if issue is None:
         raise ValueError('Issue is None')
-    if not hasattr(jira_issue, 'key'):
+    if not hasattr(issue, 'key'):
         raise ValueError('Issue has no key')
-    if not jira_issue.key:
+    if not issue.key:
         raise ValueError('Issue key is empty')
-    if len(jira_issue.fields.components) == 0:
-        raise ValueError(f'Issue [{jira_issue.key}] has no component')
-    if len(jira_issue.fields.components) > 1:
+    if len(issue.fields.components) == 0:
+        raise ValueError(f'Issue [{issue.key}] has no component')
+    if len(issue.fields.components) > 1:
         raise ValueError(
-            f'Issue [{jira_issue.key}] has more than one component')
+            f'Issue [{issue.key}] has more than one component')
 
-    status = NovaTask.map_jira_issue_status(jira_issue.fields.status.name)
+    status = NovaTask.map_jira_issue_status(issue.fields.status.name)
     if status == Status.UNDEFINED:
         raise ValueError(
-            f'Issue [{jira_issue.key}] has invalid status [{jira_issue.fields.status.name}]')
+            f'[{issue.key}] has invalid status [{issue.fields.status.name}]')
 
-    return NovaTask(jira_issue.key, status)
+    return NovaTask(issue.key, status)
 
 
 def parse_jira_component(cmp: object) -> NovaComponent:

@@ -12,7 +12,10 @@ class NovaHotfix(NovaRelease):
         self.hotfix = hotfix
 
     def __str__(self):
-        return 'Nova ' + str(self.version) + ". Delivery " + str(self.delivery) + ". Hotfix " + str(self.hotfix)
+        return f"""
+            Nova {self.version}. 
+            Delivery {self.delivery}. 
+            Hotfix {self.hotfix}"""
 
     def __repr__(self):
         return self.__str__()
