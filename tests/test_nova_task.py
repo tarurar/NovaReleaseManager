@@ -34,3 +34,8 @@ def test_map_in_ready_for_uat_status():
 def test_map_in_testing_status():
     status = NovaTask.map_jira_issue_status('In Testing')
     assert status == Status.IN_DEVELOPMENT
+
+
+def test_map_ready_for_review_status():
+    status = NovaTask.map_jira_issue_status('Ready for Review')
+    assert status == Status.IN_DEVELOPMENT
