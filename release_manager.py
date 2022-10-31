@@ -129,9 +129,9 @@ class ReleaseManager:
         for (k, val) in tags.items():
             print(f'{k+1}: {val.name} @ {val.last_modified}')
 
-        command = input("""
-            \nEnter either tag position number from 
-            the list or just press enter for new tag: """)
+        command = input(
+            "\nEnter either tag position number from " +
+            "the list or just press enter for new tag: ")
         if command is None or command.strip() == '':
             return None
 
