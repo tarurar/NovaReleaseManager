@@ -30,7 +30,8 @@ class NovaRelease(object):
 
     def get_status(self):
         """Returns release status"""
-        statuses = [component.get_status() for component in self.components]
+        statuses = list(set([component.get_status()
+                        for component in self.components]))
         if not statuses:
             return Status.UNDEFINED
         if any(s == Status.UNDEFINED for s in statuses):
@@ -39,6 +40,8 @@ class NovaRelease(object):
             return Status.READY_FOR_RELEASE
         if all(s == Status.DONE for s in statuses):
             return Status.DONE
+        if Status.READY_FOR_RELEASE in statuses and Status.DONE in statuses:
+            return Status.READY_FOR_RELEASE
         return Status.IN_DEVELOPMENT
 
     def describe_status(self):
