@@ -61,7 +61,7 @@ class NovaComponent:
         width = NovaComponent.longest_component_name
         description = f'{self._name:<{width}}' + \
             f' | {str(status):<20}' + \
-            f' | {tasks_count:>3} tasks'˝
+            f' | {tasks_count:>3} tasks'
         return description
 
     def get_release_notes(self) -> str:
