@@ -55,7 +55,7 @@ with open('config.json', encoding='utf-8') as f:
     config = json.load(f)
 
 VERSION = '2'
-DELIVERY = '27'
+DELIVERY = '28'
 manager = ReleaseManager(
     JIRA(
         config['jira']['host'],

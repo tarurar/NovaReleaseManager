@@ -5,6 +5,13 @@ from .nova_status import Status
 from .nova_component import NovaComponent
 
 
+def get_release_status(component_statuses: list) -> Status:
+    """Get release status"""
+    if not component_statuses:
+        return Status.UNDEFINED
+    return min(component_statuses)
+
+
 class NovaRelease(object):
     """Nova release component"""
 
@@ -32,17 +39,7 @@ class NovaRelease(object):
         """Returns release status"""
         statuses = list(set([component.get_status()
                         for component in self.components]))
-        if not statuses:
-            return Status.UNDEFINED
-        if any(s == Status.UNDEFINED for s in statuses):
-            return Status.UNDEFINED
-        if all(s == Status.READY_FOR_RELEASE for s in statuses):
-            return Status.READY_FOR_RELEASE
-        if all(s == Status.DONE for s in statuses):
-            return Status.DONE
-        if Status.READY_FOR_RELEASE in statuses and Status.DONE in statuses:
-            return Status.READY_FOR_RELEASE
-        return Status.IN_DEVELOPMENT
+        return get_release_status(statuses)
 
     def describe_status(self):
         """Returns release status description"""

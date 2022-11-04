@@ -1,15 +1,15 @@
 """
 Nova status module
 """
-from enum import Enum
+from enum import IntEnum
 
 
-class Status(Enum):
+class Status(IntEnum):
     """Nova status enum"""
+    UNDEFINED = 0
     IN_DEVELOPMENT = 1
     READY_FOR_RELEASE = 2
     DONE = 3
-    UNDEFINED = 4
 
     def __str__(self):
         return self.name
