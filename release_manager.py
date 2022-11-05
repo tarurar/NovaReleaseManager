@@ -119,26 +119,29 @@ class ReleaseManager:
 
     @classmethod
     def choose_existing_tag(cls, existing_tags: list[Tag]) -> Tag:
-        """Choose tag from existing tags"""
-        if len(existing_tags) == 0:
+        """Choose a tag from existing tags"""
+        if not existing_tags:
             return None
-        tags = {}
-        for i, value in enumerate(existing_tags):
-            tags[i] = value
 
-        for (k, val) in tags.items():
-            print(f'{k+1}: {val.name} @ {val.commit.commit.last_modified}')
+        size = len(existing_tags)
+        tags_numbered = {}
+        for i in range(1, size + 1):
+            tags_numbered[i] = existing_tags[i - 1]
+            tag_name = tags_numbered[i].name
+            commit_datetime = tags_numbered[i].commit.commit.last_modified
+            author = tags_numbered[i].commit.commit.author.name
+            print(f'{i}: {tag_name} @ {commit_datetime} by {author}')
 
-        command = input(
+        selection = input(
             "\nEnter either tag position number from " +
             "the list or just press enter for new tag: ")
-        if command is None or command.strip() == '':
+        if selection is None or selection.strip() == '':
             return None
 
-        if command.isdigit():
-            tag_position = int(command) - 1
-            if tag_position in tags:
-                return tags[tag_position]
+        if selection.isdigit():
+            tag_position = int(selection)
+            if tag_position in tags_numbered:
+                return tags_numbered[tag_position]
             else:
                 logging.warning('Tag number is not in the list')
                 return cls.choose_existing_tag(existing_tags)
