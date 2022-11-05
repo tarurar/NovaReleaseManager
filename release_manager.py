@@ -127,7 +127,7 @@ class ReleaseManager:
             tags[i] = value
 
         for (k, val) in tags.items():
-            print(f'{k+1}: {val.name} @ {val.last_modified}')
+            print(f'{k+1}: {val.name} @ {val.commit.commit.last_modified}')
 
         command = input(
             "\nEnter either tag position number from " +
