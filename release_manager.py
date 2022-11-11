@@ -4,17 +4,16 @@ The release manager is responsible for managing the release process.
 
 import logging
 
-from jira import JIRA, JIRAError
-from github import Github
 from git import Tag
+from github import Github
+from jira import JIRA, JIRAError
+from core.nova_status import Status
 
+import github_utils as gu
+import jira_utils as ju
 from core.cvs import GitCloudService
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
-from core.nova_status import Status
-
-import jira_utils as ju
-import github_utils as gu
 
 
 class ReleaseManager:
@@ -99,7 +98,7 @@ class ReleaseManager:
             git_tag = tag
 
         git_release = repo.create_git_release(
-            git_tag.name, release.get_title(), component.get_release_notes())
+            git_tag.tag, release.get_title(), component.get_release_notes())
         if git_release is None:
             raise Exception(f'Could not create release for tag {git_tag.tag}')
 
