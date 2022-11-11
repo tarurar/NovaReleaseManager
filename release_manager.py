@@ -87,7 +87,7 @@ class ReleaseManager:
             raise Exception(f'Cannot get repository {component.repo.url}')
 
         tags = repo.get_tags()
-        tag = ReleaseManager.choose_existing_tag(list(tags[:5]))
+        tag = ReleaseManager.choose_existing_tag(list(tags)[:5])
         if tag is None:
             tag_name = ReleaseManager.input_tag_name()
             if tag_name is None:
