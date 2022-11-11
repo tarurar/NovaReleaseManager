@@ -123,14 +123,12 @@ class ReleaseManager:
         if not existing_tags:
             return None
 
-        size = len(existing_tags)
-        tags_numbered = {}
-        for i in range(1, size + 1):
-            tags_numbered[i] = existing_tags[i - 1]
-            tag_name = tags_numbered[i].name
-            commit_datetime = tags_numbered[i].commit.commit.last_modified
-            author = tags_numbered[i].commit.commit.author.name
-            print(f'{i}: {tag_name} @ {commit_datetime} by {author}')
+        tags_view = {}
+        for index, tag in enumerate(existing_tags):
+            view_index = index + 1
+            tags_view[view_index] = tag
+            print(
+                f'{view_index}: {tag.name} @ {tag.commit.commit.last_modified} by {tag.commit.commit.author.name}')
 
         selection = input(
             "\nEnter either tag position number from " +
@@ -140,8 +138,8 @@ class ReleaseManager:
 
         if selection.isdigit():
             tag_position = int(selection)
-            if tag_position in tags_numbered:
-                return tags_numbered[tag_position]
+            if tag_position in tags_view:
+                return tags_view[tag_position]
             else:
                 logging.warning('Tag number is not in the list')
                 return cls.choose_existing_tag(existing_tags)
