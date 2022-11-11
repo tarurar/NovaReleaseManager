@@ -15,9 +15,10 @@ class MockComponent:
 class MockFields:
     """ Mock Jira issue fields"""
 
-    def __init__(self, components: list, status_name: str):
+    def __init__(self, components: list, status_name: str, summary: str):
         self.components = list(map(MockComponent, components))
         self.status = MockStatus(status_name)
+        self.summary = summary
 
 
 class MockStatus:
@@ -30,8 +31,8 @@ class MockStatus:
 class MockIssue:
     """ Mock Jira issue """
 
-    def __init__(self, key: str, components: list, status_name: str):
-        self.fields = MockFields(components, status_name)
+    def __init__(self, key: str, components: list, status_name: str, summary: str = ''):
+        self.fields = MockFields(components, status_name, summary)
         self.key = key
 
 

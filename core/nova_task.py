@@ -26,9 +26,10 @@ class NovaTask:
             case _:
                 return Status.UNDEFINED
 
-    def __init__(self, name, status):
+    def __init__(self, name, status, summary: str = ''):
         self._name = name
         self._status = status
+        self._summary = summary
 
     @property
     def status(self):
@@ -39,3 +40,8 @@ class NovaTask:
     def name(self):
         """Task name"""
         return self._name
+
+    @property
+    def summary(self):
+        """Task summary"""
+        return self._summary

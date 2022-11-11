@@ -19,7 +19,7 @@ class NovaRelease(object):
         self.version = version
         self.delivery = delivery
         self.project = project
-        self.components = []
+        self.components: list[NovaComponent] = []
 
     def __str__(self):
         return 'Nova ' + str(self.version) + ". Delivery " + str(self.delivery)

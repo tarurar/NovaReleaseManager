@@ -7,13 +7,13 @@ import logging
 from git import Tag
 from github import Github
 from jira import JIRA, JIRAError
-from core.nova_status import Status
 
 import github_utils as gu
 import jira_utils as ju
 from core.cvs import GitCloudService
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
+from core.nova_status import Status
 
 
 class ReleaseManager:
