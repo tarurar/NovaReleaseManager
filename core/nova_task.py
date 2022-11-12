@@ -26,7 +26,12 @@ class NovaTask:
             case _:
                 return Status.UNDEFINED
 
-    def __init__(self, name, status, summary: str = ''):
+    def __init__(self, name: str, status: Status, summary: str = ''):
+        if not name:
+            raise ValueError('Task name is not defined')
+        if status is None:
+            raise ValueError('Task status is not defined')
+
         self._name = name
         self._status = status
         self._summary = summary
@@ -45,3 +50,12 @@ class NovaTask:
     def summary(self):
         """Task summary"""
         return self._summary
+
+    def get_release_notes(self) -> str:
+        """Returns release notes for task"""
+        key = self._name.strip().upper()
+        summary = self._summary.split(
+            ']')[-1].strip().lstrip('[').rstrip('.').strip().capitalize()
+        ending = '' if summary.endswith('.') else '.'
+
+        return f'{key}: {summary}{ending}'
