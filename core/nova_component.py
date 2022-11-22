@@ -2,8 +2,20 @@
 Nova component module
 """
 
+from core.nova_task import NovaTask
+
 from .cvs import CodeRepository
 from .nova_status import Status
+
+
+def get_release_notes_md(tasks: list[NovaTask]) -> str:
+    """Returns release notes for component tasks in markdown format"""
+    header = '### What\'s changed'
+    task_notes = [('* ' + task.get_release_notes()) for task in tasks]
+    change_log = '**Full change log**: <placeholder>'
+    result = [header, *task_notes, change_log]
+
+    return '\n'.join(result)
 
 
 class NovaComponent:
@@ -66,7 +78,7 @@ class NovaComponent:
 
     def get_release_notes(self) -> str:
         """Returns release notes for component"""
-        return 'Release notes'
+        return get_release_notes_md(self.tasks)
 
 
 class NovaEmptyComponent(NovaComponent):
@@ -77,6 +89,15 @@ class NovaEmptyComponent(NovaComponent):
     """
 
     default_component_name = 'n/a'
+    component_names = [default_component_name, 'multiple components']
 
     def __init__(self):
         super().__init__(NovaEmptyComponent.default_component_name, None)
+
+    @staticmethod
+    def parse(component_name: str):
+        """Parses component name"""
+        normalized = component_name.strip().lower()
+        if normalized in NovaEmptyComponent.component_names:
+            return NovaEmptyComponent()
+        return None

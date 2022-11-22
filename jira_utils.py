@@ -88,8 +88,10 @@ def parse_jira_component(cmp: object) -> NovaComponent:
         raise ValueError('Component has no name')
     if cmp.name is None:
         raise ValueError('Component name is empty')
-    if cmp.name.strip().lower() == NovaEmptyComponent.default_component_name:
-        return NovaEmptyComponent()
+
+    empty_component = NovaEmptyComponent.parse(cmp.name)
+    if empty_component is not None:
+        return empty_component
     if not hasattr(cmp, 'description'):
         raise ValueError(f'Component [{cmp.name}] has no description')
     if cmp.description is None or cmp.description.strip() == '':
