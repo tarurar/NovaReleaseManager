@@ -103,8 +103,12 @@ class ReleaseManager:
             raise Exception(f'Could not create release for tag {git_tag.tag}')
 
         for task in component.tasks:
-            self.__j.transition_issue(
-                task.name, 'Done', comment=f'{release.get_title()} released')
+            try:
+                self.__j.transition_issue(
+                    task.name, 'Done', comment=f'{release.get_title()} released')
+            except JIRAError as error:
+                logging.warning(
+                    'Could not transition issue %s due to error: %s', task.name, error.text)
 
     @classmethod
     def input_tag_name(cls) -> str:

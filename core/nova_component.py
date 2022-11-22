@@ -10,10 +10,10 @@ from .nova_status import Status
 
 def get_release_notes_md(tasks: list[NovaTask]) -> str:
     """Returns release notes for component tasks in markdown format"""
-    header = '### What\'s changed'
+    header = '## What\'s changed'
     task_notes = [('* ' + task.get_release_notes()) for task in tasks]
     change_log = '**Full change log**: <placeholder>'
-    result = [header, *task_notes, change_log]
+    result = [header, *task_notes, '\n', change_log]
 
     return '\n'.join(result)
 
