@@ -31,8 +31,8 @@ class JiraService:
     ready_for_release_status = 'Selected For Release'
     done_status = 'Done'
 
-    @staticmethod
-    def get_issue_component(issue):
+    @classmethod
+    def get_issue_component(cls, issue):
         """Returns JIRA issue component name"""
         try:
             return issue.fields.components[0].name
