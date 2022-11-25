@@ -8,14 +8,48 @@ from .cvs import CodeRepository
 from .nova_status import Status
 
 
-def get_release_notes_md(tasks: list[NovaTask]) -> str:
+def get_release_notes_md(
+        revision_from: str,
+        revision_to: str,
+        repo_url: str,
+        tasks: list[NovaTask]) -> str:
     """Returns release notes for component tasks in markdown format"""
     header = '## What\'s changed'
+
     task_notes = [('* ' + task.get_release_notes()) for task in tasks]
-    change_log = '**Full change log**: <placeholder>'
+
+    change_log_url = get_changelog_url(revision_from, revision_to, repo_url)
+    change_log = f'**Full change log**: {change_log_url}'
+
     result = [header, *task_notes, '\n', change_log]
 
     return '\n'.join(result)
+
+
+def get_changelog_url(
+        revision_from: str,
+        revision_to: str,
+        repo_url: str) -> str:
+    """Returns changelog url
+    Revision from should be less than revision to
+    GitHub format: https://github.com/LykkeBusiness/MT/compare/v2.20.2...v2.21.1
+    """
+    if revision_from is None or revision_to is None or repo_url is None:
+        return ''
+
+    revision_from = revision_from.strip().lower()
+    revision_to = revision_to.strip().lower()
+    repo_url = repo_url.strip().lower().rstrip('/')
+
+    if not revision_from or not revision_to:
+        return ''
+    if not repo_url:
+        return ''
+    if revision_from >= revision_to:
+        return ''
+
+    result = f'{repo_url}/compare/{revision_from}...{revision_to}'
+    return result
 
 
 class NovaComponent:
@@ -76,9 +110,13 @@ class NovaComponent:
             f' | {tasks_count:>3} tasks'
         return description
 
-    def get_release_notes(self) -> str:
+    def get_release_notes(self, revision_from, revision_to) -> str:
         """Returns release notes for component"""
-        return get_release_notes_md(self.tasks)
+        return get_release_notes_md(
+            revision_from,
+            revision_to,
+            self.repo.url,
+            self.tasks)
 
 
 class NovaEmptyComponent(NovaComponent):
@@ -94,8 +132,8 @@ class NovaEmptyComponent(NovaComponent):
     def __init__(self):
         super().__init__(NovaEmptyComponent.default_component_name, None)
 
-    @staticmethod
-    def parse(component_name: str):
+    @classmethod
+    def parse(cls, component_name: str):
         """Parses component name"""
         normalized = component_name.strip().lower()
         if normalized in NovaEmptyComponent.component_names:
