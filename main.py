@@ -13,7 +13,7 @@ def choose_component_from_release(rel: NovaRelease) -> NovaComponent:
     """Choose component from release"""
     print('\n')
     component_name = input(
-        'Please, select component to release or press \'q\': ')
+        'Please, select component to release or press \'q\' (you can specify name partially): ')
     if component_name == 'q':
         return None
     cmp = rel.get_component_by_name(component_name)

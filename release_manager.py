@@ -7,13 +7,13 @@ import logging
 from git import Tag
 from github import Github
 from jira import JIRA, JIRAError
-from core.nova_status import Status
 
 import github_utils as gu
 import jira_utils as ju
 from core.cvs import GitCloudService
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
+from core.nova_status import Status
 
 
 class ReleaseManager:
@@ -85,26 +85,54 @@ class ReleaseManager:
         if repo is None:
             raise Exception(f'Cannot get repository {component.repo.url}')
 
+        # this call return a list of Tag class instances (not GitTag class instances)
         tags = repo.get_tags()
-        tag = ReleaseManager.choose_existing_tag(list(tags)[:5])
+        top5_tags = list(tags)[:5]
+        print(f'Please, choose a tag to release component [{component.name}]')
+        tag = ReleaseManager.choose_existing_tag(top5_tags)
         if tag is None:
             tag_name = ReleaseManager.input_tag_name()
             if tag_name is None:
                 return
             sha = repo.get_branch('master').commit.sha
-            git_tag = repo.create_git_tag(
-                tag_name, release.get_title(), sha, 'commit')
+            git_tag_name = repo.create_git_tag(
+                tag_name, release.get_title(), sha, 'commit').tag
         else:
-            git_tag = tag
+            git_tag_name = tag.name
+
+        print(
+            f'Please, choose a tag of previous component [{component.name}] release')
+        previous_tag = ReleaseManager.choose_existing_tag(top5_tags)
+        if previous_tag is None:
+            logging.warning(
+                'Previous release tag was not specified, auto-detection will be used')
+            # TODO: what if we do not have items in the list after filtration?
+            auto_detected_previous_tag = list(filter(
+                lambda t: t.name != git_tag_name, top5_tags))[0]
+            previous_tag_name = auto_detected_previous_tag.name
+            logging.info('Auto-detected previous release tag: %s',
+                         previous_tag_name)
+        else:
+            previous_tag_name = previous_tag.name
 
         git_release = repo.create_git_release(
-            git_tag.tag, release.get_title(), component.get_release_notes())
+            git_tag_name,
+            release.get_title(),
+            component.get_release_notes(previous_tag_name, git_tag_name))
         if git_release is None:
-            raise Exception(f'Could not create release for tag {git_tag.tag}')
+            raise Exception(f'Could not create release for tag {git_tag_name}')
 
         for task in component.tasks:
-            self.__j.transition_issue(
-                task.name, 'Done', comment=f'{release.get_title()} released')
+            try:
+                self.__j.transition_issue(
+                    task.name,
+                    'Done',
+                    comment=f'{release.get_title()} released')
+            except JIRAError as error:
+                logging.warning(
+                    'Could not transition issue %s due to error: %s',
+                    task.name,
+                    error.text)
 
     @classmethod
     def input_tag_name(cls) -> str:

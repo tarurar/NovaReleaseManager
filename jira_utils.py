@@ -4,12 +4,14 @@ Jira utility helper function module.
 
 from typing import Optional
 from urllib.parse import urlparse
-import validators
 
-from core.cvs import GitCloudService, CodeRepository
-from core.nova_task import NovaTask
+import validators
+from jira.resources import Issue
+
+from core.cvs import CodeRepository, GitCloudService
 from core.nova_component import NovaComponent, NovaEmptyComponent
 from core.nova_status import Status
+from core.nova_task import NovaTask
 
 
 def parse_jira_cmp_descr(descr: str) -> tuple[
@@ -52,7 +54,7 @@ def build_jql(project: str, fix_version='', component='') -> str:
     return jql
 
 
-def parse_jira_issue(issue: object) -> NovaTask:
+def parse_jira_issue(issue: Issue) -> NovaTask:
     """
     Parse Jira issue.
     """
@@ -73,7 +75,7 @@ def parse_jira_issue(issue: object) -> NovaTask:
         raise ValueError(
             f'[{issue.key}] has invalid status [{issue.fields.status.name}]')
 
-    return NovaTask(issue.key, status)
+    return NovaTask(issue.key, status, issue.fields.summary)
 
 
 def parse_jira_component(cmp: object) -> NovaComponent:
@@ -86,8 +88,10 @@ def parse_jira_component(cmp: object) -> NovaComponent:
         raise ValueError('Component has no name')
     if cmp.name is None:
         raise ValueError('Component name is empty')
-    if cmp.name.strip().lower() == NovaEmptyComponent.default_component_name:
-        return NovaEmptyComponent()
+
+    empty_component = NovaEmptyComponent.parse(cmp.name)
+    if empty_component is not None:
+        return empty_component
     if not hasattr(cmp, 'description'):
         raise ValueError(f'Component [{cmp.name}] has no description')
     if cmp.description is None or cmp.description.strip() == '':
