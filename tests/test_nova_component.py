@@ -3,10 +3,10 @@ Nova component tests
 """
 
 import pytest
-
-from core.nova_component import NovaComponent, NovaEmptyComponent
-from core.nova_status import Status
 from core.nova_task import NovaTask
+from core.nova_status import Status
+from core.nova_component import NovaComponent, NovaEmptyComponent, get_changelog_url
+from core.cvs import GitCloudService, CodeRepository
 
 
 def test_longest_name_zero_by_default():
@@ -62,11 +62,15 @@ def test_status_done_only_when_all_tasks_are_done():
     assert component.get_status() == Status.DONE
 
 
-def test_release_notes():
-    component = NovaComponent('foo', None)
+@pytest.mark.parametrize('git_cloud_service', [
+    GitCloudService.GITHUB,
+    GitCloudService.BITBUCKET])
+def test_release_notes(git_cloud_service):
+    repo = CodeRepository(git_cloud_service, 'http://example.com')
+    component = NovaComponent('foo', repo)
     component.add_task(NovaTask('key1', 'status1', 'summary1'))
     component.add_task(NovaTask('key2', 'status2', 'summary2'))
-    release_notes = component.get_release_notes()
+    release_notes = component.get_release_notes('1', '2')
 
     assert release_notes is not None
     assert 'change log' in release_notes
@@ -88,3 +92,43 @@ def test_empty_component_parses_only_predefined_names(component_name):
 def test_empty_component_parse_returns_none_for_other_names(component_name):
     component = NovaEmptyComponent.parse(component_name)
     assert component is None
+
+
+@pytest.mark.parametrize('revision_from,revision_to,repo_url', [
+    ('', '', ''),
+    ('1', '', ''),
+    ('1', '2', ''),
+    (' ', ' ', ' '),
+    ('1', ' ', ' '),
+    ('1', '2', ' '),
+    (None, None, None),
+    ('1', None, None),
+    ('1', '2', None),
+    ('', '2', 'url')
+])
+def test_get_changelog_string_when_invalid_parameters(revision_from, revision_to, repo_url):
+    result = get_changelog_url(revision_from, revision_to, repo_url)
+    assert result == ''
+
+
+@pytest.mark.parametrize('revision_from,revision_to', [
+    ('2', '1'),
+    ('v2', 'v1'),
+    ('v1.1.1', 'v1.1.0')
+])
+def test_get_changelog_string_when_revision_from_is_greater(revision_from, revision_to):
+    result = get_changelog_url(revision_from, revision_to, 'any_url')
+    assert result == ''
+
+
+@pytest.mark.parametrize('revision_from,revision_to,repo_url', [
+    ('1', '2', 'http://example.com'),
+    ('1', '2', 'http://example.com/'),
+    ('1', '2', 'http://example.com//')
+])
+def test_get_changelog_string_happy_path(revision_from, revision_to, repo_url):
+    result = get_changelog_url(revision_from, revision_to, repo_url)
+    assert result is not None
+    assert repo_url in result
+    assert revision_from in result
+    assert revision_to in result
