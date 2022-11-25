@@ -106,12 +106,18 @@ class ReleaseManager:
         if previous_tag is None:
             logging.warning(
                 'Previous release tag was not specified, auto-detection will be used')
-            # TODO: what if we do not have items in the list after filtration?
-            auto_detected_previous_tag = list(filter(
-                lambda t: t.name != git_tag_name, top5_tags))[0]
-            previous_tag_name = auto_detected_previous_tag.name
-            logging.info('Auto-detected previous release tag: %s',
-                         previous_tag_name)
+            auto_detected_previous_tag_list = list(filter(
+                lambda t: t.name != git_tag_name, top5_tags))
+            if len(auto_detected_previous_tag_list) > 0:
+                previous_tag_name = auto_detected_previous_tag_list[0].name
+            else:
+                previous_tag_name = ''
+            if not previous_tag_name:
+                logging.warning(
+                    'Auto-detection failed, changelog url will be empty')
+            else:
+                logging.info(
+                    'Auto-detected previous release tag: %s', previous_tag_name)
         else:
             previous_tag_name = previous_tag.name
 
