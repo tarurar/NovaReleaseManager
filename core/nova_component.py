@@ -19,7 +19,11 @@ def get_release_notes_md(
     task_notes = [('* ' + task.get_release_notes()) for task in tasks]
 
     change_log_url = get_changelog_url(revision_from, revision_to, repo_url)
-    change_log = f'**Full change log**: {change_log_url}'
+    # change log is optional
+    if change_log_url:
+        change_log = f'**Full change log**: {change_log_url}'
+    else:
+        change_log = ''
 
     result = [header, *task_notes, '\n', change_log]
 
