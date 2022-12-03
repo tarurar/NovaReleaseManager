@@ -63,39 +63,45 @@ class NovaComponent:
     longest_component_name = 0
 
     def __init__(self, name: str, repo: CodeRepository):
-        self._name = name
-        self.tasks = []
+        self.__name = name
+        self.__tasks = []
         self.repo = repo
-        if len(self._name) > NovaComponent.longest_component_name:
-            NovaComponent.longest_component_name = len(self._name)
+        if len(self.__name) > NovaComponent.longest_component_name:
+            NovaComponent.longest_component_name = len(self.__name)
 
     def __str__(self):
-        return self._name
+        return self.__name
 
     def __repr__(self):
         return self.__str__()
 
     def __eq__(self, other):
-        return self._name == other.name
+        return self.__name == other.name
 
     @property
     def name(self):
         """Component name"""
-        return self._name
+        return self.__name
+
+    @property
+    def tasks(self):
+        """Returns component tasks"""
+        return self.__tasks
 
     def add_task(self, task):
         """Adds task to component"""
-        self.tasks.append(task)
+        self.__tasks.append(task)
 
     def add_tasks(self, tasks):
         """Adds tasks to component"""
-        self.tasks.extend(tasks)
+        self.__tasks.extend(tasks)
 
-    def get_status(self):
+    @property
+    def status(self) -> Status:
         """Returns component status"""
-        if not self.tasks:
+        if not self.__tasks:
             return Status.UNDEFINED
-        statuses = [task.status for task in self.tasks]
+        statuses = [task.status for task in self.__tasks]
         if any(s == Status.UNDEFINED for s in statuses):
             return Status.UNDEFINED
         if all(s == Status.READY_FOR_RELEASE for s in statuses):
@@ -106,11 +112,10 @@ class NovaComponent:
 
     def describe_status(self) -> str:
         """Returns component status description"""
-        status = self.get_status()
-        tasks_count = len(self.tasks)
+        tasks_count = len(self.__tasks)
         width = NovaComponent.longest_component_name
-        description = f'{self._name:<{width}}' + \
-            f' | {str(status):<20}' + \
+        description = f'{self.__name:<{width}}' + \
+            f' | {str(self.status):<20}' + \
             f' | {tasks_count:>3} tasks'
         return description
 
@@ -120,7 +125,7 @@ class NovaComponent:
             revision_from,
             revision_to,
             self.repo.url,
-            self.tasks)
+            self.__tasks)
 
 
 class NovaEmptyComponent(NovaComponent):

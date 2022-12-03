@@ -37,7 +37,7 @@ class NovaRelease(object):
 
     def get_status(self):
         """Returns release status"""
-        statuses = list(set([component.get_status()
+        statuses = list(set([component.status
                         for component in self.components]))
         return get_release_status(statuses)
 

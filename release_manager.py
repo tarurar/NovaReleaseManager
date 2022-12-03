@@ -69,11 +69,11 @@ class ReleaseManager:
         if component is None:
             raise Exception('Component is not specified')
 
-        if component.get_status() == Status.DONE:
+        if component.status == Status.DONE:
             raise Exception(
                 f'Component [{component.name}] is already released')
 
-        if component.get_status() != Status.READY_FOR_RELEASE:
+        if component.status != Status.READY_FOR_RELEASE:
             raise Exception(
                 f'Component [{component.name}] is not ready for release')
 
