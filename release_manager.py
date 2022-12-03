@@ -96,7 +96,7 @@ class ReleaseManager:
                 return
             sha = repo.get_branch('master').commit.sha
             git_tag_name = repo.create_git_tag(
-                tag_name, release.get_title(), sha, 'commit').tag
+                tag_name, release.title, sha, 'commit').tag
         else:
             git_tag_name = tag.name
 
@@ -123,7 +123,7 @@ class ReleaseManager:
 
         git_release = repo.create_git_release(
             git_tag_name,
-            release.get_title(),
+            release.title,
             component.get_release_notes(previous_tag_name, git_tag_name))
         if git_release is None:
             raise Exception(f'Could not create release for tag {git_tag_name}')
@@ -133,7 +133,7 @@ class ReleaseManager:
                 self.__j.transition_issue(
                     task.name,
                     'Done',
-                    comment=f'{release.get_title()} released')
+                    comment=f'{release.title} released')
             except JIRAError as error:
                 logging.warning(
                     'Could not transition issue %s due to error: %s',

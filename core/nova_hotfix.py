@@ -14,7 +14,7 @@ class NovaHotfix(NovaRelease):
     def __str__(self):
         return f"""
             Nova {self.version}. 
-            Delivery {self.delivery}. 
+            Delivery {self.__delivery}. 
             Hotfix {self.hotfix}"""
 
     def __repr__(self):

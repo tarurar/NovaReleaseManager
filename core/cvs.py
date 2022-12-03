@@ -16,15 +16,15 @@ class CodeRepository:
     """
 
     def __init__(self, git_cloud: GitCloudService, url: str):
-        self._git_cloud = git_cloud
-        self._url = url
+        self.__git_cloud = git_cloud
+        self.__url = url
 
     @property
     def url(self):
         """Repository url"""
-        return self._url
+        return self.__url
 
     @property
     def git_cloud(self):
         """Git cloud service"""
-        return self._git_cloud
+        return self.__git_cloud

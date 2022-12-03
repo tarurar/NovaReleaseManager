@@ -32,29 +32,29 @@ class NovaTask:
         if status is None:
             raise ValueError('Task status is not defined')
 
-        self._name = name
-        self._status = status
-        self._summary = summary
+        self.__name = name
+        self.__status = status
+        self.__summary = summary
 
     @property
     def status(self):
         """Task status"""
-        return self._status
+        return self.__status
 
     @property
     def name(self):
         """Task name"""
-        return self._name
+        return self.__name
 
     @property
     def summary(self):
         """Task summary"""
-        return self._summary
+        return self.__summary
 
     def get_release_notes(self) -> str:
         """Returns release notes for task"""
-        key = self._name.strip().upper()
-        summary = self._summary.split(
+        key = self.__name.strip().upper()
+        summary = self.__summary.split(
             ']')[-1].strip().lstrip('[').rstrip('.').strip().capitalize()
         ending = '' if summary.endswith('.') else '.'
 
