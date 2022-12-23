@@ -1,0 +1,18 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+gitpython = "==3.1.29"
+jira = "==3.4.1"
+pygithub = "==1.57"
+pytest = "==7.2.0"
+validators = "==0.20.0"
+github = "*"
+
+[dev-packages]
+autopep8 = "*"
+
+[requires]
+python_version = "3.10"
