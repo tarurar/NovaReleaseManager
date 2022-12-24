@@ -140,6 +140,34 @@ class ReleaseManager:
                     task.name,
                     error.text)
 
+    def should_mark_as_done(self, project: str, version: str, delivery: str) -> bool:
+        """Checks if all the components has already been released
+        and the release is ready to be marked as DONE"""
+        release = self.compose(project, version, delivery)
+        if release.get_status() == Status.DONE:
+            jira_version = self.__j.get_project_version_by_name(
+                project=project, version_name=release.title)
+            if jira_version is None:
+                logging.warning('Jira version is not found')
+                return False
+            if jira_version.archived:
+                logging.warning('Jira version is archived')
+                return False
+            if jira_version.released:
+                logging.warning('Jira version is already released')
+                return False
+            return True
+        else:
+            logging.warning('Release is not ready to be marked as DONE')
+            return False
+
+    def mark_as_done(self, project: str, version: str, delivery: str):
+        """Marks release as DONE"""
+        release = self.compose(project, version, delivery)
+        jira_version = self.__j.get_project_version_by_name(
+            project=project, version_name=release.title)
+        jira_version.update(released=True)
+
     @classmethod
     def input_tag_name(cls) -> str:
         """Input tag"""

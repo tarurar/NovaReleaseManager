@@ -58,12 +58,16 @@ VERSION = '2'
 DELIVERY = '28'
 manager = ReleaseManager(
     JIRA(
-        config['jira']['host'],
+        server=config['jira']['host'],
         basic_auth=(config['jira']['username'], config['jira']['password'])),
     Github(config['github']['accessToken']))
 release = manager.compose(config['jira']['project'], VERSION, DELIVERY)
 print(release.describe_status())
+
 component = choose_component_from_release(release)
 if component is not None:
     manager.release_component(release, component)
-    print(f'Component {component.name} released')
+    print(f'Component [{component.name}] released')
+    if manager.should_mark_as_done(config['jira']['project'], VERSION, DELIVERY):
+        manager.mark_as_done(config['jira']['project'], VERSION, DELIVERY)
+        print(f'Version [{release.title}] has been successfully released')
