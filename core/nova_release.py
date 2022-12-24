@@ -51,13 +51,13 @@ class NovaRelease(object):
         """Adds component to release"""
         self.__components.append(component)
 
-    def __get_status(self):
+    def get_status(self) -> Status:
         """Returns release status"""
         statuses = list(set([component.status
                         for component in self.__components]))
         return get_release_status(statuses)
 
-    def describe_status(self):
+    def describe_status(self) -> str:
         """Returns release status description"""
         text = [str(self), '*' * len(str(self))]
         for component in self.__components:
@@ -66,10 +66,10 @@ class NovaRelease(object):
         text.append('Total: ' + str(len(self.__components)) + ' component(s)')
         text.append('Total: ' + str(sum([len(component.tasks)
                     for component in self.__components])) + ' task(s)')
-        text.append('Status: ' + str(self.__get_status()))
+        text.append('Status: ' + str(self.get_status()))
         return '\n'.join(text)
 
-    def get_component_by_name(self, name: str):
+    def get_component_by_name(self, name: str) -> NovaComponent:
         """Returns component by name"""
         target_components = [
             c for c in self.__components if name.lower() in c.name.lower()]
