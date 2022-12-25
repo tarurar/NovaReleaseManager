@@ -7,6 +7,7 @@ import logging
 from git import Tag
 from github import Github
 from jira import JIRA, JIRAError
+from jira.resources import Version
 
 import github_utils as gu
 import jira_utils as ju
@@ -140,33 +141,35 @@ class ReleaseManager:
                     task.name,
                     error.text)
 
-    def should_mark_as_done(self, project: str, version: str, delivery: str) -> bool:
-        """Checks if all the components has already been released
-        and the release is ready to be marked as DONE"""
+    def can_release_version(self, project: str, version: str, delivery: str) -> bool:
+        """Checks if release can be marked as DONE"""
         release = self.compose(project, version, delivery)
-        if release.get_status() == Status.DONE:
+        if release.can_release_version():
             jira_version = self.__j.get_project_version_by_name(
                 project=project, version_name=release.title)
-            if jira_version is None:
-                logging.warning('Jira version is not found')
-                return False
-            if jira_version.archived:
-                logging.warning('Jira version is archived')
-                return False
-            if jira_version.released:
-                logging.warning('Jira version is already released')
-                return False
-            return True
-        else:
-            logging.warning('Release is not ready to be marked as DONE')
-            return False
+            return ReleaseManager.can_release_jira_version(jira_version)
+        return False
 
-    def mark_as_done(self, project: str, version: str, delivery: str):
+    def release_version(self, release: NovaRelease):
         """Marks release as DONE"""
-        release = self.compose(project, version, delivery)
+        if release is None:
+            raise Exception('Release is not specified')
         jira_version = self.__j.get_project_version_by_name(
-            project=project, version_name=release.title)
+            project=release.project, version_name=release.title)
+        if jira_version is None:
+            raise Exception(f'Cannot find JIRA version {release.title}')
         jira_version.update(released=True)
+
+    @classmethod
+    def can_release_jira_version(cls, version: Version) -> bool:
+        """Checks if Jira version can be released"""
+        if version is None:
+            return False
+        if version.archived:
+            return False
+        if version.released:
+            return False
+        return True
 
     @classmethod
     def input_tag_name(cls) -> str:

@@ -13,7 +13,7 @@ def get_release_status(component_statuses: list) -> Status:
 
 
 class NovaRelease(object):
-    """Nova release component"""
+    """Nova release component, readonly model"""
 
     def __init__(self, project, version, delivery):
         self.__version = version
@@ -48,7 +48,7 @@ class NovaRelease(object):
         return str(self)
 
     def add_component(self, component: NovaComponent):
-        """Adds component to release"""
+        """Adds component to release model"""
         self.__components.append(component)
 
     def get_status(self) -> Status:
@@ -78,3 +78,7 @@ class NovaRelease(object):
         if len(target_components) > 1:
             raise Exception('More than one component found')
         return target_components[0]
+
+    def can_release_version(self) -> bool:
+        """Returns True if version can be released"""
+        return self.get_status() == Status.DONE
