@@ -14,6 +14,8 @@ from release_manager import ReleaseManager
 def choose_component_from_release(rel: NovaRelease) -> NovaComponent:
     """Choose component from release"""
     print('\n')
+    print('Please note, by default \'contains\' rule will be used for component selection')
+    print('If you want to use strict equality rule, please, add \'!\' sign to the end of component name')
     component_name = input(
         'Please, select component to release or press \'q\' (you can specify name partially): ')
     if component_name == 'q':

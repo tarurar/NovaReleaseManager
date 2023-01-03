@@ -36,3 +36,51 @@ def test_can_release_version(second_task_status: s, expected_result: bool):
     fake_release.add_component(fake_component)
 
     assert fake_release.can_release_version() is expected_result
+
+
+def test_get_component_by_name_raises_exception_when_multiple_components_fit():
+    fake_component1 = NovaComponent('name1', None)
+    fake_component2 = NovaComponent('name2', None)
+
+    sut = NovaRelease('project1', 'version1', 'delivery1')
+    sut.add_component(fake_component1)
+    sut.add_component(fake_component2)
+
+    with pytest.raises(Exception):
+        sut.get_component_by_name('name')
+
+
+def test_get_component_by_name_strict_equality():
+    fake_component1 = NovaComponent('name1', None)
+    fake_component2 = NovaComponent('name12', None)
+
+    sut = NovaRelease('project1', 'version1', 'delivery1')
+    sut.add_component(fake_component1)
+    sut.add_component(fake_component2)
+
+    # ensure that we indeed have components with names intersecting
+    with pytest.raises(Exception):
+        sut.get_component_by_name('name1')
+
+    component = sut.get_component_by_name('name1!')
+    assert component == fake_component1
+
+
+def test_get_component_by_name_strict_equality_special_symbol_used_twice():
+    fake_component1 = NovaComponent('!', None)
+    fake_component2 = NovaComponent('!1', None)
+
+    sut = NovaRelease('project1', 'version1', 'delivery1')
+    sut.add_component(fake_component1)
+    sut.add_component(fake_component2)
+
+    component = sut.get_component_by_name('!')
+    assert component is None
+
+    component = sut.get_component_by_name('!!')
+    assert component == fake_component1
+
+
+def test_get_component_by_name_when_no_components_fit():
+    sut = NovaRelease('project1', 'version1', 'delivery1')
+    assert sut.get_component_by_name('name') is None
