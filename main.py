@@ -1,6 +1,8 @@
 """
 Start module
 """
+
+import sys
 import json
 from github import Github
 from jira import JIRA
@@ -51,24 +53,30 @@ def choose_component_from_release(rel: NovaRelease) -> NovaComponent:
 #         if separateTasks:
 #             print('-------------------------------------------')
 
+
+print('Nova Release Manager, version 1.0')
+version = input('Please, enter version (or `q` for quit): ')
+if version == 'q':
+    sys.exit()
+delivery = input('Please, enter delivery (or `q` for quit): ')
+if delivery == 'q':
+    sys.exit()
+
 with open('config.json', encoding='utf-8') as f:
     config = json.load(f)
 
-VERSION = '2'
-DELIVERY = '28'
-manager = ReleaseManager(
-    JIRA(
-        server=config['jira']['host'],
-        basic_auth=(config['jira']['username'], config['jira']['password'])),
+manager = ReleaseManager(JIRA(
+    config['jira']['host'],
+    basic_auth=(config['jira']['username'], config['jira']['password'])),
     Github(config['github']['accessToken']))
-release = manager.compose(config['jira']['project'], VERSION, DELIVERY)
+release = manager.compose(config['jira']['project'], version, delivery)
 print(release.describe_status())
 
 component = choose_component_from_release(release)
 if component is not None:
     manager.release_component(release, component)
     print(f'Component [{component.name}] released')
-    if manager.can_release_version(config['jira']['project'], VERSION, DELIVERY):
+    if manager.can_release_version(config['jira']['project'], version, delivery):
         release_version_decision = input(
             'Looks like all components are released. Do you want to release version [Y/n]?')
         if release_version_decision == 'Y':
