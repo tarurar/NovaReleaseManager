@@ -70,9 +70,24 @@ class NovaRelease(object):
         return '\n'.join(text)
 
     def get_component_by_name(self, name: str) -> NovaComponent:
-        """Returns component by name"""
-        target_components = [
-            c for c in self.__components if name.lower() in c.name.lower()]
+        """Returns component by name
+
+        Parameters
+        ----------
+        name : str
+            Component name. If name ends with '!' then search will use strict
+            equality, otherwise it will use 'in' operator.
+            In any case search is case insensitive.
+        """
+        if name.endswith('!'):
+            name = name[:-1]
+            if not name:
+                return None
+            target_components = [
+                c for c in self.__components if name.lower() == c.name.lower()]
+        else:
+            target_components = [
+                c for c in self.__components if name.lower() in c.name.lower()]
         if not target_components:
             return None
         if len(target_components) > 1:
