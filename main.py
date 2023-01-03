@@ -57,10 +57,10 @@ def choose_component_from_release(rel: NovaRelease) -> NovaComponent:
 
 
 print('Nova Release Manager, version 1.0')
-version = input('Please, enter version (or `q` for quit): ')
+version = input('Please, enter version (or \'q\' for quit): ')
 if version == 'q':
     sys.exit()
-delivery = input('Please, enter delivery (or `q` for quit): ')
+delivery = input('Please, enter delivery (or \'q\' for quit): ')
 if delivery == 'q':
     sys.exit()
 
