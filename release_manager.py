@@ -65,8 +65,14 @@ class ReleaseManager:
 
         return release
 
-    def release_component(self, release: NovaRelease, component: NovaComponent):
-        """Release component"""
+    def release_component(self, release: NovaRelease, component: NovaComponent, branch: str = 'master'):
+        """
+        Creates a tag in the repository and publishes a release
+
+        :param release: release model
+        :param component: component to release
+        :param branch: branch the tag will be created on
+        """
         if component is None:
             raise Exception('Component is not specified')
 
@@ -95,7 +101,7 @@ class ReleaseManager:
             tag_name = ReleaseManager.input_tag_name()
             if tag_name is None:
                 return
-            sha = repo.get_branch('master').commit.sha
+            sha = repo.get_branch(branch).commit.sha
             git_tag_name = repo.create_git_tag(
                 tag_name, release.title, sha, 'commit').tag
         else:
