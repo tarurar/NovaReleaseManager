@@ -65,13 +65,18 @@ class ReleaseManager:
 
         return release
 
-    def release_component(self, release: NovaRelease, component: NovaComponent, branch: str = 'master'):
+    def release_component(
+            self,
+            release: NovaRelease,
+            component: NovaComponent,
+            branch: str = 'master') -> tuple[str, str]:
         """
         Creates a tag in the repository and publishes a release
 
         :param release: release model
         :param component: component to release
         :param branch: branch the tag will be created on
+        :return: tag name and release url as a tuple
         """
         if component is None:
             raise Exception('Component is not specified')
@@ -135,6 +140,7 @@ class ReleaseManager:
         if git_release is None:
             raise Exception(f'Could not create release for tag {git_tag_name}')
 
+        # moving jira issues to DONE
         for task in component.tasks:
             try:
                 self.__j.transition_issue(
@@ -146,6 +152,8 @@ class ReleaseManager:
                     'Could not transition issue %s due to error: %s',
                     task.name,
                     error.text)
+
+        return git_release.tag_name, git_release.url
 
     def can_release_version(self, project: str, version: str, delivery: str) -> bool:
         """Checks if release can be marked as DONE"""
