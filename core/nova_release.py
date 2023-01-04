@@ -72,10 +72,7 @@ class NovaRelease(object):
     def get_component_by_name(self, name: str) -> NovaComponent:
         """Returns component by name
 
-        Parameters
-        ----------
-        name : str
-            Component name. If name ends with '!' then search will use strict
+        :param str name: Component name. If name ends with '!' then search will use strict
             equality, otherwise it will use 'in' operator.
             In any case search is case insensitive.
         """
