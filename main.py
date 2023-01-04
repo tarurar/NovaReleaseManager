@@ -76,8 +76,9 @@ print(release.describe_status())
 
 component = choose_component_from_release(release)
 if component is not None:
-    manager.release_component(release, component, config['release']['branch'])
-    print(f'Component [{component.name}] released')
+    tag, url = manager.release_component(
+        release, component, config['release']['branch'])
+    print(f'Component [{component.name}] released, tag: [{tag}], url: [{url}]')
     if manager.can_release_version(config['jira']['project'], version, delivery):
         release_version_decision = input(
             'Looks like all components are released. Do you want to release version [Y/n]?')
