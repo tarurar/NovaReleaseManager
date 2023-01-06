@@ -74,8 +74,18 @@ manager = ReleaseManager(JIRA(
 release = manager.compose(config['jira']['project'], version, delivery)
 print(release.describe_status())
 
-component = choose_component_from_release(release)
-if component is not None:
+
+while True:
+    component = choose_component_from_release(release)
+    if component is None:
+        break
+    manager.preview_component_release(release, component)
+    release_component_decision = input(
+        'Do you want to release this component [Y/n/q]?')
+    if release_component_decision == 'q':
+        break
+    if release_component_decision == 'n':
+        continue
     tag, url = manager.release_component(
         release, component, config['release']['branch'])
     print(f'Component [{component.name}] released, tag: [{tag}], url: [{url}]')
@@ -85,3 +95,4 @@ if component is not None:
         if release_version_decision == 'Y':
             manager.release_version(release)
             print(f'Version [{release.title}] has been successfully released')
+            break

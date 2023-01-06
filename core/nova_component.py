@@ -84,15 +84,15 @@ class NovaComponent:
         return self.__name
 
     @property
-    def tasks(self):
+    def tasks(self) -> list[NovaTask]:
         """Returns component tasks"""
         return self.__tasks
 
-    def add_task(self, task):
+    def add_task(self, task: NovaTask):
         """Adds task to component"""
         self.__tasks.append(task)
 
-    def add_tasks(self, tasks):
+    def add_tasks(self, tasks: list[NovaTask]):
         """Adds tasks to component"""
         self.__tasks.extend(tasks)
 
