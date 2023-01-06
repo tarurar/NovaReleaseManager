@@ -71,7 +71,8 @@ class ReleaseManager:
             component: NovaComponent,
             branch: str = 'master') -> tuple[str, str]:
         """
-        Creates a tag in the repository and publishes a release
+        Creates a tag in the repository and publishes a release,
+        interacts with user to get the tag name.
 
         :param release: release model
         :param component: component to release
@@ -154,6 +155,20 @@ class ReleaseManager:
                     error.text)
 
         return git_release.tag_name, git_release.url
+
+    def preview_component_release(
+            self,
+            release: NovaRelease,
+            component: NovaComponent):
+        """Prints release information for the component"""
+        print('Please, review the component release information:')
+        print('=' * 80)
+        print(f'Component: {component.name}.')
+        print(f'Version: {release.title}.')
+        print('Tasks:')
+        for task in component.tasks:
+            task_release_notes = task.get_release_notes()
+            print(task_release_notes)
 
     def can_release_version(self, project: str, version: str, delivery: str) -> bool:
         """Checks if release can be marked as DONE"""
