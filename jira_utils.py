@@ -114,6 +114,9 @@ def filter_jira_issue(jira_issue, cmp_name) -> bool:
     """
     Filter Jira issue by component name.
     """
+    if len(jira_issue.fields.components) == 0:
+        raise ValueError(f'Issue [{jira_issue.key}] has no component assigned')
+
     jira_name = jira_issue.fields.components[0].name.strip().lower()
     nova_name = cmp_name.strip().lower()
 
