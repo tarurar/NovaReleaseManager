@@ -154,7 +154,7 @@ class ReleaseManager:
                     task.name,
                     error.text)
 
-        return git_release.tag_name, git_release.url
+        return git_release.tag_name, git_release.html_url
 
     def preview_component_release(
             self,
