@@ -3,9 +3,10 @@ Nova component tests
 """
 
 import pytest
+from packaging.version import InvalidVersion
 from core.nova_task import NovaTask
 from core.nova_status import Status
-from core.nova_component import NovaComponent, NovaEmptyComponent, get_changelog_url
+from core.nova_component import NovaComponent, NovaEmptyComponent, get_changelog_url, compare_revisions
 from core.cvs import GitCloudService, CodeRepository
 
 
@@ -131,6 +132,7 @@ def test_get_changelog_string_when_revision_from_is_greater(
     ('1', '2', 'http://example.com'),
     ('1', '2', 'http://example.com/'),
     ('1', '2', 'http://example.com/any/path'),
+    ('v1.9.0', 'v1.10.0', 'http://example.com/any/path'),
 ])
 def test_get_changelog_string_happy_path(revision_from, revision_to, repo_url):
     result = get_changelog_url(revision_from, revision_to, repo_url)
@@ -145,3 +147,57 @@ def test_get_changelog_string_when_url_has_duplicated_slashes():
     result = get_changelog_url('1', '2', url)
     assert result is not None
     assert url not in result
+
+@pytest.mark.parametrize('revision_from,revision_to', [
+    ('2', '1'),
+    ('1.1.0', '1.0.0'),
+    ('v1.1.0', 'v1.0.0'),
+    ('1.10.0', '1.9.0'),
+    ('v1.10.0', 'v1.9.0'),
+    ('v1.10.0', '1.9.0'),
+    ('1.10.0', 'v1.9.0'),
+])
+def test_compare_revisions_when_revision_from_is_greater(
+        revision_from,
+        revision_to):
+    result = compare_revisions(revision_from, revision_to)
+    assert result is False
+
+@pytest.mark.parametrize('revision_from,revision_to', [
+    ('1', '1'),
+    ('1', '1.0'),
+    ('1', '1.0.0'),
+    ('v1', '1.0'),
+    ('v1', 'v1.0'),
+    ('v1', 'v1.0.0'),
+    ('0.0.1', 'v0.0.1')
+])
+def test_compare_revisions_when_revision_from_is_equal_to_revision_to(
+        revision_from,
+        revision_to):
+    result = compare_revisions(revision_from, revision_to)
+    assert result is False
+
+@pytest.mark.parametrize('revision_from,revision_to', [
+    (None, '1'),
+    ('1', None),
+    (None, None)
+])
+def test_compare_revisions_when_empty_parameters(
+    revision_from,
+    revision_to
+):
+    with pytest.raises(ValueError):
+        compare_revisions(revision_from, revision_to)
+
+@pytest.mark.parametrize('revision_from,revision_to', [
+    ('qwe', '1'),
+    ('1', 'qwe'),
+    ('qwe', 'qwe')
+])
+def test_compare_revisions_when_invalid_parameters(
+    revision_from,
+    revision_to
+):
+    with pytest.raises(InvalidVersion):
+        compare_revisions(revision_from, revision_to)

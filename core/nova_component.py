@@ -2,10 +2,30 @@
 Nova component module
 """
 
+from packaging.version import parse
 from core.nova_task import NovaTask
-
 from .cvs import CodeRepository
 from .nova_status import Status
+
+def compare_revisions(revision1: str, revision2: str) -> bool:
+    """
+    Compares two versions
+
+    :param revision1: The first version to compare.
+    :param revision2: The second version to compare.
+    :return: True if version1 is less than version2, False otherwise.
+    :raises: ValueError if version1 or version2 is None.
+    :raises: InvalidVersion if version1 or version2 is invalid.
+    """
+    if revision1 is None:
+        raise ValueError('Revision1 is None')
+    if revision2 is None:
+        raise ValueError('Revision2 is None')
+
+    parsed_revision1 = parse(revision1)
+    parsed_revision2 = parse(revision2)
+
+    return parsed_revision1 < parsed_revision2
 
 
 def get_release_notes_md(
@@ -49,7 +69,7 @@ def get_changelog_url(
         return ''
     if not repo_url:
         return ''
-    if revision_from >= revision_to:
+    if not compare_revisions(revision_from, revision_to):
         return ''
 
     result = f'{repo_url}/compare/{revision_from}...{revision_to}'
