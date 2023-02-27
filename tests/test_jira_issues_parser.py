@@ -88,3 +88,9 @@ def test_if_jira_issue_belongs_to_component(
     issue = MockIssue('issue key', [jira_cmp_name], 'Selected For Release')
     result = filter_jira_issue(issue, nova_cmp_name)
     assert result == expected
+
+
+def test_when_jira_issue_has_no_component():
+    issue = MockIssue('issue key', [], 'Selected For Release')
+    with pytest.raises(ValueError):
+        filter_jira_issue(issue, 'c1')
