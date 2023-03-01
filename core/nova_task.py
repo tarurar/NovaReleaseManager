@@ -19,6 +19,8 @@ class NovaTask:
                 return Status.IN_DEVELOPMENT
             case 'Ready for UAT':
                 return Status.IN_DEVELOPMENT
+            case 'Ready for testing':
+                return Status.IN_DEVELOPMENT
             case 'In Testing':
                 return Status.IN_DEVELOPMENT
             case 'Ready for Review':
