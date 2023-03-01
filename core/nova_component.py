@@ -21,6 +21,10 @@ def compare_revisions(revision1: str, revision2: str) -> bool:
         raise ValueError('Revision1 is None')
     if revision2 is None:
         raise ValueError('Revision2 is None')
+    
+    # cut beginning 'nova-' if exists
+    revision1 = revision1[5:] if revision1.startswith('nova-') else revision1
+    revision2 = revision2[5:] if revision2.startswith('nova-') else revision2
 
     parsed_revision1 = parse(revision1)
     parsed_revision2 = parse(revision2)

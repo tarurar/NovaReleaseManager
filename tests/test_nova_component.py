@@ -146,7 +146,10 @@ def test_get_changelog_string_when_url_has_duplicated_slashes():
     ('1.10.0', '1.9.0'),
     ('v1.10.0', 'v1.9.0'),
     ('v1.10.0', '1.9.0'),
-    ('1.10.0', 'v1.9.0'),])
+    ('1.10.0', 'v1.9.0'),
+    ('nova-1.10.0', 'nova-1.9.0'),
+    ('nova-1.10.0', '1.9.0'),
+    ('1.10.0', '1.9.0')])
 def test_compare_revisions_when_revision_from_is_greater(
         revision_from,
         revision_to):
