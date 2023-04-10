@@ -76,6 +76,10 @@ def test_search_files_with_content(create_test_files_content):
     assert set(fs.search_files_with_content(file_paths, 'example')) == set([os.path.join(root_dir, 'test_file_2.txt')])
     assert set(fs.search_files_with_content(file_paths, 'test')) == set([os.path.join(root_dir, 'test_file_1.txt'), os.path.join(root_dir, 'test_file_2.txt')])
 
+def test_search_files_with_content_skips_directories(create_test_files_content):
+    file_paths, root_dir = create_test_files_content
+    assert fs.search_files_with_content(root_dir, 'whatever') == []
+
 def test_no_test_search_files_with_content_not_found(create_test_files_content):
     file_paths, root_dir = create_test_files_content
     assert fs.search_files_with_content(file_paths, 'not_found') == []

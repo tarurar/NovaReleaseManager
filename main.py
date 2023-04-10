@@ -70,7 +70,8 @@ with open('config.json', encoding='utf-8') as f:
 manager = ReleaseManager(JIRA(
     config['jira']['host'],
     basic_auth=(config['jira']['username'], config['jira']['password'])),
-    Github(config['github']['accessToken']))
+    Github(config['github']['accessToken']),
+    config['textEditor'])
 release = manager.compose(config['jira']['project'], version, delivery)
 print(release.describe_status())
 

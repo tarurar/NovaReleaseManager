@@ -25,6 +25,8 @@ class NovaTask:
                 return Status.IN_DEVELOPMENT
             case 'Ready for Review':
                 return Status.IN_DEVELOPMENT
+            case 'Open':
+                return Status.IN_DEVELOPMENT
             case _:
                 return Status.UNDEFINED
 

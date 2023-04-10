@@ -40,6 +40,8 @@ def search_files_with_content(file_paths, search_string):
     """
     result = []
     for file_path in file_paths:
+        if not os.path.isfile(file_path):
+            continue
         with open(file_path, 'r', encoding='utf-8') as file_handle:
             if search_string in file_handle.read():
                 result.append(file_path)
