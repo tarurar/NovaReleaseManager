@@ -75,7 +75,9 @@ def parse_jira_issue(issue: Issue) -> NovaTask:
         raise ValueError(
             f'[{issue.key}] has invalid status [{issue.fields.status.name}]')
 
-    return NovaTask(issue.key, status, issue.fields.summary)
+    deployment_field = issue.fields.customfield_10646 if hasattr(issue.fields, 'customfield_10646') else None
+
+    return NovaTask(issue.key, status, issue.fields.summary, deployment_field)
 
 
 def parse_jira_component(cmp: object) -> NovaComponent:

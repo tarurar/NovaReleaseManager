@@ -65,3 +65,9 @@ def test_get_release_notes(key, summary, expected):
 
     assert lines_count == 1
     assert release_notes == expected
+
+def test_get_release_notes_asterisk_when_instruction_is_defined():
+    task = NovaTask('task', Status.IN_DEVELOPMENT, 'summary', 'deployment')
+    release_notes = task.get_release_notes()
+
+    assert NovaTask.deployment_asterisk in release_notes
