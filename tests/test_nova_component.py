@@ -43,10 +43,16 @@ def test_status_in_development_when_single_task_in_development():
     component.add_task(NovaTask('boo3', Status.DONE))
     assert component.status == Status.IN_DEVELOPMENT
 
-def test_status_ready_for_release_only_when_all_tasks_are_ready_for_release():
+def test_status_ready_for_release_only_when_all_tasks_are():
     component = NovaComponent('foo', None)
     component.add_task(NovaTask('boo', Status.READY_FOR_RELEASE))
     component.add_task(NovaTask('boo2', Status.READY_FOR_RELEASE))
+    assert component.status == Status.READY_FOR_RELEASE
+
+def test_status_ready_for_release_when_all_are_greater_or_equal():
+    component = NovaComponent('foo', None)
+    component.add_task(NovaTask('boo', Status.READY_FOR_RELEASE))
+    component.add_task(NovaTask('boo2', Status.DONE))
     assert component.status == Status.READY_FOR_RELEASE
 
 def test_status_done_only_when_all_tasks_are_done():

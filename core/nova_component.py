@@ -134,10 +134,10 @@ class NovaComponent:
         statuses = [task.status for task in self.__tasks]
         if any(s == Status.UNDEFINED for s in statuses):
             return Status.UNDEFINED
-        if all(s == Status.READY_FOR_RELEASE for s in statuses):
-            return Status.READY_FOR_RELEASE
         if all(s == Status.DONE for s in statuses):
             return Status.DONE
+        if all(s >= Status.READY_FOR_RELEASE for s in statuses):
+            return Status.READY_FOR_RELEASE
         return Status.IN_DEVELOPMENT
 
     def describe_status(self) -> str:
