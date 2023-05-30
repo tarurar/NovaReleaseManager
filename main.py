@@ -9,6 +9,7 @@ from jira import JIRA
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from release_manager import ReleaseManager
+from integration.jira import JiraIntegration
 
 
 def choose_component_from_release(rel: NovaRelease) -> NovaComponent:
@@ -67,11 +68,12 @@ if delivery == 'q':
 with open('config.json', encoding='utf-8') as f:
     config = json.load(f)
 
-manager = ReleaseManager(JIRA(
-    config['jira']['host'],
-    basic_auth=(config['jira']['username'], config['jira']['password'])),
-    Github(config['github']['accessToken']),
-    config['textEditor'])
+ji = JiraIntegration(config['jira']['host'],
+                     config['jira']['username'],
+                     config['jira']['password'])
+manager = ReleaseManager(ji,
+                         Github(config['github']['accessToken']),
+                         config['textEditor'])
 release = manager.compose_release(
     config['jira']['project'], version, delivery)
 print(release.describe_status())
@@ -97,6 +99,6 @@ while True:
         release_version_decision = input(
             'Looks like all components are released. Do you want to release version [Y/n]?')
         if release_version_decision == 'Y':
-            manager.release_version(release)
+            ji.mark_version_as_released(release.project, release.title)
             print(f'Version [{release.title}] has been successfully released')
             break

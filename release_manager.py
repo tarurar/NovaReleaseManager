@@ -290,28 +290,7 @@ class ReleaseManager:
         """Checks if release can be marked as DONE"""
         release = self.compose_release(project, version, delivery)
         if release.can_release_version():
-            jira_version = self.__ji.get_project_version_by_name(
-                project=project, version_name=release.title)
-            return ReleaseManager.can_release_jira_version(jira_version)
+            jira_version = self.__ji.get_version_by_name(
+                project_code=project, version_name=release.title)
+            return self.__ji.can_release_version(jira_version)
         return False
-
-    def release_version(self, release: NovaRelease):
-        """Marks release as DONE"""
-        if release is None:
-            raise Exception('Release is not specified')
-        jira_version = self.__ji.get_project_version_by_name(
-            project=release.project, version_name=release.title)
-        if jira_version is None:
-            raise Exception(f'Cannot find JIRA version {release.title}')
-        jira_version.update(released=True)
-
-    @classmethod
-    def can_release_jira_version(cls, version: Version) -> bool:
-        """Checks if Jira version can be released"""
-        if version is None:
-            return False
-        if version.archived:
-            return False
-        if version.released:
-            return False
-        return True
