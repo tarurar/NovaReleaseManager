@@ -3,66 +3,62 @@ The release manager is responsible for managing the release process.
 """
 
 import logging
-
-from git import Tag, Repo
-from github import Github
-from jira import JIRA, JIRAError
-from jira.resources import Version
-from tempfile import TemporaryDirectory
-from subprocess import call
-from packaging.version import parse, Version, InvalidVersion
-from datetime import datetime
 import re
+from datetime import datetime
+from subprocess import call
+from tempfile import TemporaryDirectory
 
+from git import Repo, Tag
+from github import Github
+from packaging.version import InvalidVersion, Version, parse
 
-import github_utils as gu
-import jira_utils as ju
 import fs_utils as fs
+import github_utils as gu
 import text_utils as txt
 from core.cvs import GitCloudService
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
+from integration.jira import JiraIntegration
+import jira_utils as ju
 
 
 class ReleaseManager:
     """The release manager is responsible for managing the release process."""
-    # todo: add dependant client packages update validation.
+    # todo: add dependent client packages update validation.
     # Common issue: package updated but not mentioned in release notes
 
     default_text_editor = 'vim'
 
-    def __init__(self, jira_client: JIRA, github_client: Github, text_editor: str) -> None:
-        self.__j = jira_client
+    def __init__(
+            self,
+            jira: JiraIntegration,
+            github_client: Github,
+            text_editor: str) -> None:
+        self.__ji = jira
         self.__g = github_client
         self.__text_editor = text_editor if text_editor is not None else ReleaseManager.default_text_editor
 
-    def __get_jira_issues(self, project: str, fix_version: str, cmp='') -> list:
-        result = []
-        i = 0
-        chunk_size = 50
+    def compose(
+            self,
+            project_code: str,
+            version: str,
+            delivery: str) -> NovaRelease:
+        """
+        Creates release model by project code, version and delivery
 
-        jql = ju.build_jql(project, fix_version, cmp)
-        while True:
-            try:
-                issues = self.__j.search_issues(
-                    jql, maxResults=chunk_size, startAt=i)
-            except JIRAError:
-                return []
-            i += chunk_size
-            result += issues.iterable
-            if i >= issues.total:
-                break
-        return result
+        :param project_code: project code
+        :param version: version to release
+        :param delivery: delivery number
+        :return: release model
+        """
 
-    def compose(self, project: str, version: str, delivery: str) -> NovaRelease:
-        """Get release by project, version and delivery"""
-        release = NovaRelease(project, version, delivery)
+        release = NovaRelease(project_code, version, delivery)
 
         components = [ju.parse_jira_component(cmp)
-                      for cmp in self.__j.project_components(project)]
+                      for cmp in self.__ji.get_components(project_code)]
 
-        release_jira_issues = self.__get_jira_issues(project, release)
+        release_jira_issues = self.__ji.get_issues(project_code, release)
 
         for component in components:
             component_jira_issues = filter(
@@ -100,14 +96,15 @@ class ReleaseManager:
         if component.status != Status.READY_FOR_RELEASE:
             raise Exception(
                 f'Component [{component.name}] is not ready for release')
-        
+
         if component.repo.git_cloud == GitCloudService.BITBUCKET:
             # TODO: git cli has to be installed and configured to access bitbucket and to push into master
             self.release_component_bitbucket(release, component, branch)
         elif component.repo.git_cloud == GitCloudService.GITHUB:
             # GitHub specific code
             # get an instance of the remote repository
-            repo_url = gu.get_github_compatible_repo_address(component.repo.url)
+            repo_url = gu.get_github_compatible_repo_address(
+                component.repo.url)
             repo = self.__g.get_repo(repo_url)
             if repo is None:
                 raise Exception(f'Cannot get repository {component.repo.url}')
@@ -116,7 +113,8 @@ class ReleaseManager:
             # choosing a tag for the release
             tags = repo.get_tags()
             top5_tags = list(tags)[:5]
-            print(f'Please, choose a tag to release component [{component.name}]')
+            print(
+                f'Please, choose a tag to release component [{component.name}]')
             tag = ReleaseManager.choose_existing_tag(top5_tags)
             if tag is None:
                 tag_name = ReleaseManager.input_tag_name()
@@ -146,7 +144,8 @@ class ReleaseManager:
                         'Auto-detection failed, changelog url will be empty')
                 else:
                     logging.info(
-                        'Auto-detected previous release tag: %s', previous_tag_name)
+                        'Auto-detected previous release tag: %s',
+                        previous_tag_name)
             else:
                 previous_tag_name = previous_tag.name
 
@@ -156,12 +155,13 @@ class ReleaseManager:
                 release.title,
                 component.get_release_notes(previous_tag_name, git_tag_name))
             if git_release is None:
-                raise Exception(f'Could not create release for tag {git_tag_name}')
+                raise Exception(
+                    f'Could not create release for tag {git_tag_name}')
 
         # moving jira issues to DONE
         for task in component.tasks:
             try:
-                self.__j.transition_issue(
+                self.__ji.transition_issue(
                     task.name,
                     'Done',
                     comment=f'{release.title} released')
@@ -187,21 +187,24 @@ class ReleaseManager:
             is_hotix: bool = False):
         with TemporaryDirectory() as sources_dir:
             print(f"Cloning repository into [{sources_dir}]...")
-            repo = Repo.clone_from(component.repo.url, sources_dir, branch=branch)
+            repo = Repo.clone_from(
+                component.repo.url, sources_dir, branch=branch)
             # TODO: move file name to configuration
             changelog_path = fs.search_file(sources_dir, 'CHANGELOG.md')
             if changelog_path is None:
                 raise Exception('CHANGELOG.md file not found')
-            version = self.extract_latest_version_from_changelog(changelog_path)
+            version = self.extract_latest_version_from_changelog(
+                changelog_path)
             if version is None:
                 raise Exception('Could not extract version from CHANGELOG.md')
-            
+
             parsed_version = None
             try:
                 parsed_version = parse(version)
             except InvalidVersion:
-                raise Exception('Could not parse version from CHANGELOG.md, it should be in PEP 440 format')
-            
+                raise Exception(
+                    'Could not parse version from CHANGELOG.md, it should be in PEP 440 format')
+
             if is_hotix:
                 v_str = f'{parsed_version.major}.{parsed_version.minor}.{parsed_version.micro+1}'
                 parsed_version = Version(v_str)
@@ -214,23 +217,31 @@ class ReleaseManager:
             with open(changelog_path, 'r+', encoding='utf-8') as changelog_file:
                 content = changelog_file.read()
                 changelog_file.seek(0, 0)
-                changelog_file.write(relese_notes_title + '\n' + release_notes + '\n\n' + content)
+                changelog_file.write(relese_notes_title +
+                                     '\n' + release_notes + '\n\n' + content)
             # todo: add deployment section if there is any jira task with deployment comment
             call([self.__text_editor, changelog_path])
-            input(f'Press Enter to continue when you are done with editing file in external editor ...')
+            input(
+                f'Press Enter to continue when you are done with editing file in external editor ...')
 
             csproj_file_paths = fs.search_files_with_ext(sources_dir, 'csproj')
-            csproj_file_paths_with_version = fs.search_files_with_content(csproj_file_paths, '<Version>')
+            csproj_file_paths_with_version = fs.search_files_with_content(
+                csproj_file_paths, '<Version>')
             if len(csproj_file_paths_with_version) == 0:
-                raise Exception('Could not find csproj file with version to update')
-            print('There are following csproj files with version found. Please choose the one to update:')
-            csproj_file_path = ReleaseManager.choose_existing_file_path(csproj_file_paths_with_version)
+                raise Exception(
+                    'Could not find csproj file with version to update')
+            print(
+                'There are following csproj files with version found. Please choose the one to update:')
+            csproj_file_path = ReleaseManager.choose_existing_file_path(
+                csproj_file_paths_with_version)
             if csproj_file_path is None:
                 return
             new_file_content = None
             with open(csproj_file_path, 'r', encoding='utf-8') as csproj_file:
                 content = csproj_file.read()
-                new_file_content = re.sub(r'<Version>(.*?)<\/Version>', f'<Version>{str(parsed_version)}</Version>', content)
+                new_file_content = re.sub(
+                    r'<Version>(.*?)<\/Version>',
+                    f'<Version>{str(parsed_version)}</Version>', content)
             with open(csproj_file_path, 'w+', encoding='utf-8') as csproj_file:
                 csproj_file.write(new_file_content)
             # todo: add only csproj and changelog files
@@ -244,7 +255,6 @@ class ReleaseManager:
             origin.push()
             origin.push(tags=True)
 
-    
     def extract_latest_version_from_changelog(self, changelog_path: str) -> str:
         with open(changelog_path, 'r', encoding='utf-8') as changelog_file:
             for line in changelog_file:
@@ -267,11 +277,12 @@ class ReleaseManager:
             task_release_notes = task.get_release_notes()
             print(task_release_notes)
 
-    def can_release_version(self, project: str, version: str, delivery: str) -> bool:
+    def can_release_version(
+            self, project: str, version: str, delivery: str) -> bool:
         """Checks if release can be marked as DONE"""
         release = self.compose(project, version, delivery)
         if release.can_release_version():
-            jira_version = self.__j.get_project_version_by_name(
+            jira_version = self.__ji.get_project_version_by_name(
                 project=project, version_name=release.title)
             return ReleaseManager.can_release_jira_version(jira_version)
         return False
@@ -280,7 +291,7 @@ class ReleaseManager:
         """Marks release as DONE"""
         if release is None:
             raise Exception('Release is not specified')
-        jira_version = self.__j.get_project_version_by_name(
+        jira_version = self.__ji.get_project_version_by_name(
             project=release.project, version_name=release.title)
         if jira_version is None:
             raise Exception(f'Cannot find JIRA version {release.title}')
@@ -335,12 +346,12 @@ class ReleaseManager:
                 return cls.choose_existing_tag(existing_tags)
         else:
             return cls.choose_existing_tag(existing_tags)
-        
+
     @classmethod
     def choose_existing_file_path(cls, existing_file_paths) -> str:
         if not existing_file_paths:
             return None
-        
+
         file_paths_view = {}
         for index, file_path in enumerate(existing_file_paths):
             view_index = index + 1
@@ -351,7 +362,7 @@ class ReleaseManager:
             "\nEnter file path position number from the list or just press enter to skip: ")
         if selection is None or selection.strip() == '':
             return None
-        
+
         if selection.isdigit():
             file_path_position = int(selection)
             if file_path_position in file_paths_view:

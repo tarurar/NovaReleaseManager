@@ -16,12 +16,12 @@ def test_when_fix_version_is_provided():
 
 
 def test_when_component_is_provided():
-    jql = build_jql('project', component='component')
+    jql = build_jql('project', component_name='component')
     assert 'component=' in jql
 
 
 def test_when_all_params_are_provided():
     jql = build_jql('project', fix_version='fix_version',
-                    component='component')
+                    component_name='component')
     assert 'fixVersion=' in jql
     assert 'component=' in jql

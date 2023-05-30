@@ -42,21 +42,29 @@ def parse_jira_cmp_descr(descr: str) -> tuple[
     return None, None
 
 
-def build_jql(project: str, fix_version='', component='') -> str:
+def build_jql(project_code: str, fix_version='', component_name='') -> str:
     """
     Build JQL query string.
+
+    :param project_code: Jira project code.
+    :param fix_version: Jira delivery version number.
+    :param component: Jira component name.
+    :return: JQL query string.
     """
-    jql = f'project={project}'
+    jql = f'project={project_code}'
     if fix_version:
         jql += f' AND fixVersion="{fix_version}"'
-    if component:
-        jql += f' AND component="{component}"'
+    if component_name:
+        jql += f' AND component="{component_name}"'
     return jql
 
 
 def parse_jira_issue(issue: Issue) -> NovaTask:
     """
-    Parse Jira issue.
+    Parse Jira issue into Nova task.
+
+    :param issue: Jira issue.
+    :return: Nova task.
     """
     if issue is None:
         raise ValueError('Issue is None')
@@ -75,14 +83,18 @@ def parse_jira_issue(issue: Issue) -> NovaTask:
         raise ValueError(
             f'[{issue.key}] has invalid status [{issue.fields.status.name}]')
 
-    deployment_field = issue.fields.customfield_10646 if hasattr(issue.fields, 'customfield_10646') else None
+    deployment_field = issue.fields.customfield_10646 if hasattr(
+        issue.fields, 'customfield_10646') else None
 
     return NovaTask(issue.key, status, issue.fields.summary, deployment_field)
 
 
 def parse_jira_component(cmp: object) -> NovaComponent:
     """
-    Parse Jira component.
+    Parse Jira component into Nova component.
+
+    :param cmp: Jira component.
+    :return: Nova component.
     """
     if cmp is None:
         raise ValueError('Component is None')
@@ -112,14 +124,19 @@ def parse_jira_component(cmp: object) -> NovaComponent:
         CodeRepository(cloud_service, repo_url))
 
 
-def filter_jira_issue(jira_issue, cmp_name) -> bool:
+def filter_jira_issue(jira_issue, component_name) -> bool:
     """
     Filter Jira issue by component name.
+
+    :param jira_issue: Jira issue.
+    :param component_name: Jira component name.
+    :return: True if issue references component with the same name, 
+        False otherwise.
     """
     if len(jira_issue.fields.components) == 0:
         raise ValueError(f'Issue [{jira_issue.key}] has no component assigned')
 
     jira_name = jira_issue.fields.components[0].name.strip().lower()
-    nova_name = cmp_name.strip().lower()
+    nova_name = component_name.strip().lower()
 
     return jira_name == nova_name
