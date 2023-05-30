@@ -21,6 +21,7 @@ from core.nova_release import NovaRelease
 from core.nova_status import Status
 from integration.jira import JiraIntegration
 import jira_utils as ju
+import ui.console as console
 
 
 class ReleaseManager:
@@ -39,7 +40,7 @@ class ReleaseManager:
         self.__g = github_client
         self.__text_editor = text_editor if text_editor is not None else ReleaseManager.default_text_editor
 
-    def compose(
+    def compose_release(
             self,
             project_code: str,
             version: str,
@@ -113,11 +114,16 @@ class ReleaseManager:
             # choosing a tag for the release
             tags = repo.get_tags()
             top5_tags = list(tags)[:5]
+            top5_tag_names = map(
+                lambda
+                t:
+                f'{t.name} @ {t.commit.commit.last_modified} by {t.commit.commit.author.name}',
+                top5_tags)
             print(
                 f'Please, choose a tag to release component [{component.name}]')
-            tag = ReleaseManager.choose_existing_tag(top5_tags)
+            tag = console.choose_from_or_skip(top5_tag_names)
             if tag is None:
-                tag_name = ReleaseManager.input_tag_name()
+                tag_name = console.input_tag_name()
                 if tag_name is None:
                     return
                 sha = repo.get_branch(branch).commit.sha
@@ -129,7 +135,8 @@ class ReleaseManager:
             # choosing a tag of the previous release
             print(
                 f'Please, choose a tag of previous component [{component.name}] release')
-            previous_tag = ReleaseManager.choose_existing_tag(top5_tags)
+
+            previous_tag = console.choose_from_or_skip(top5_tag_names)
             if previous_tag is None:
                 logging.warning(
                     'Previous release tag was not specified, auto-detection will be used')
@@ -232,9 +239,10 @@ class ReleaseManager:
                     'Could not find csproj file with version to update')
             print(
                 'There are following csproj files with version found. Please choose the one to update:')
-            csproj_file_path = ReleaseManager.choose_existing_file_path(
+            csproj_file_path = console.choose_from_or_skip(
                 csproj_file_paths_with_version)
             if csproj_file_path is None:
+                # skip selection
                 return
             new_file_content = None
             with open(csproj_file_path, 'r', encoding='utf-8') as csproj_file:
@@ -280,7 +288,7 @@ class ReleaseManager:
     def can_release_version(
             self, project: str, version: str, delivery: str) -> bool:
         """Checks if release can be marked as DONE"""
-        release = self.compose(project, version, delivery)
+        release = self.compose_release(project, version, delivery)
         if release.can_release_version():
             jira_version = self.__ji.get_project_version_by_name(
                 project=project, version_name=release.title)
@@ -307,68 +315,3 @@ class ReleaseManager:
         if version.released:
             return False
         return True
-
-    @classmethod
-    def input_tag_name(cls) -> str:
-        """Input tag"""
-        tag_name = input('Enter new tag or just press `q` to quit: ')
-        if tag_name == 'q':
-            return None
-        if tag_name is None or tag_name.strip() == '':
-            return cls.input_tag_name()
-        return tag_name
-
-    @classmethod
-    def choose_existing_tag(cls, existing_tags: list[Tag]) -> Tag:
-        """Choose a tag from existing tags"""
-        if not existing_tags:
-            return None
-
-        tags_view = {}
-        for index, tag in enumerate(existing_tags):
-            view_index = index + 1
-            tags_view[view_index] = tag
-            print(
-                f'{view_index}: {tag.name} @ {tag.commit.commit.last_modified} by {tag.commit.commit.author.name}')
-
-        selection = input(
-            "\nEnter either tag position number from " +
-            "the list or just press enter for new tag: ")
-        if selection is None or selection.strip() == '':
-            return None
-
-        if selection.isdigit():
-            tag_position = int(selection)
-            if tag_position in tags_view:
-                return tags_view[tag_position]
-            else:
-                logging.warning('Tag number is not in the list')
-                return cls.choose_existing_tag(existing_tags)
-        else:
-            return cls.choose_existing_tag(existing_tags)
-
-    @classmethod
-    def choose_existing_file_path(cls, existing_file_paths) -> str:
-        if not existing_file_paths:
-            return None
-
-        file_paths_view = {}
-        for index, file_path in enumerate(existing_file_paths):
-            view_index = index + 1
-            file_paths_view[view_index] = file_path
-            print(f'{view_index}: {file_path}')
-
-        selection = input(
-            "\nEnter file path position number from the list or just press enter to skip: ")
-        if selection is None or selection.strip() == '':
-            return None
-
-        if selection.isdigit():
-            file_path_position = int(selection)
-            if file_path_position in file_paths_view:
-                return file_paths_view[file_path_position]
-            else:
-                logging.warning('File path number is not in the list')
-                return cls.choose_existing_file_path(existing_file_paths)
-        else:
-            return cls.choose_existing_file_path(existing_file_paths)

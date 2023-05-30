@@ -72,7 +72,8 @@ manager = ReleaseManager(JIRA(
     basic_auth=(config['jira']['username'], config['jira']['password'])),
     Github(config['github']['accessToken']),
     config['textEditor'])
-release = manager.compose(config['jira']['project'], version, delivery)
+release = manager.compose_release(
+    config['jira']['project'], version, delivery)
 print(release.describe_status())
 
 
@@ -90,7 +91,9 @@ while True:
     tag, url = manager.release_component(
         release, component, config['release']['branch'])
     print(f'Component [{component.name}] released, tag: [{tag}], url: [{url}]')
-    if manager.can_release_version(config['jira']['project'], version, delivery):
+    if manager.can_release_version(
+            config['jira']['project'],
+            version, delivery):
         release_version_decision = input(
             'Looks like all components are released. Do you want to release version [Y/n]?')
         if release_version_decision == 'Y':
