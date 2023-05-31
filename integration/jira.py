@@ -2,10 +2,11 @@
 Jira integration layer module.
 """
 
-from typing import Optional
+from typing import Optional, cast
 
 from jira import JIRA, JIRAError
 from jira.resources import Component, Issue, Version
+from jira.client import ResultList
 
 import jira_utils as ju
 
@@ -40,8 +41,10 @@ class JiraIntegration:
         jql = ju.build_jql(project_code, delivery, component_name)
         while True:
             try:
-                issues = self.__j.search_issues(
-                    jql, maxResults=chunk_size, startAt=i)
+                issues = cast(
+                    ResultList[Issue],
+                    self.__j.search_issues(
+                        jql, maxResults=chunk_size, startAt=i))
             except JIRAError:
                 return []
             i += chunk_size
