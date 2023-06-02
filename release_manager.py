@@ -20,7 +20,6 @@ from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
 from integration.jira import JiraIntegration
-import jira_utils as ju
 import ui.console as console
 
 
@@ -39,39 +38,6 @@ class ReleaseManager:
         self.__ji = jira
         self.__g = github_client
         self.__text_editor = text_editor if text_editor is not None else ReleaseManager.default_text_editor
-
-    def compose_release(
-            self,
-            project_code: str,
-            version: str,
-            delivery: str) -> NovaRelease:
-        """
-        Creates release model by project code, version and delivery
-
-        :param project_code: project code
-        :param version: version to release
-        :param delivery: delivery number
-        :return: release model
-        """
-
-        release = NovaRelease(project_code, version, delivery)
-
-        components = [ju.parse_jira_component(cmp)
-                      for cmp in self.__ji.get_components(project_code)]
-
-        release_jira_issues = self.__ji.get_issues(project_code, release)
-
-        for component in components:
-            component_jira_issues = filter(
-                lambda i, cname=component.name: ju.filter_jira_issue(i, cname),
-                release_jira_issues)
-            component_tasks = [ju.parse_jira_issue(issue)
-                               for issue in component_jira_issues]
-            if len(component_tasks) > 0:
-                component.add_tasks(component_tasks)
-                release.add_component(component)
-
-        return release
 
     def release_component(
             self,
@@ -284,13 +250,3 @@ class ReleaseManager:
         for task in component.tasks:
             task_release_notes = task.get_release_notes()
             print(task_release_notes)
-
-    def can_release_version(
-            self, project: str, version: str, delivery: str) -> bool:
-        """Checks if release can be marked as DONE"""
-        release = self.compose_release(project, version, delivery)
-        if release.can_release_version():
-            jira_version = self.__ji.get_version_by_name(
-                project_code=project, version_name=release.title)
-            return self.__ji.can_release_version(jira_version)
-        return False

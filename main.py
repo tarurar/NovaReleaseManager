@@ -5,10 +5,10 @@ Start module
 import sys
 import json
 from github import Github
-from jira import JIRA
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from release_manager import ReleaseManager
+from nova_release_repository import NovaReleaseRepository
 from integration.jira import JiraIntegration
 
 
@@ -74,8 +74,8 @@ ji = JiraIntegration(config['jira']['host'],
 manager = ReleaseManager(ji,
                          Github(config['github']['accessToken']),
                          config['textEditor'])
-release = manager.compose_release(
-    config['jira']['project'], version, delivery)
+release_repository = NovaReleaseRepository(ji)
+release = release_repository.get(config['jira']['project'], version, delivery)
 print(release.describe_status())
 
 
@@ -93,12 +93,15 @@ while True:
     tag, url = manager.release_component(
         release, component, config['release']['branch'])
     print(f'Component [{component.name}] released, tag: [{tag}], url: [{url}]')
-    if manager.can_release_version(
-            config['jira']['project'],
-            version, delivery):
+
+    if release.can_release_version():
         release_version_decision = input(
-            'Looks like all components are released. Do you want to release version [Y/n]?')
+            'Looks like all components are released.' +
+            'Do you want to release version [Y/n]?')
         if release_version_decision == 'Y':
-            ji.mark_version_as_released(release.project, release.title)
-            print(f'Version [{release.title}] has been successfully released')
-            break
+            job_done = release_repository.set_released(release)
+            if job_done:
+                print(
+                    f'Version [{release.title}] has been successfully released')
+                break
+            print(f'Version [{release.title}] has not been released')

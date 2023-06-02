@@ -1,6 +1,7 @@
 """
 Nova release component module
 """
+from typing import Optional
 from .nova_status import Status
 from .nova_component import NovaComponent
 
@@ -69,11 +70,11 @@ class NovaRelease(object):
         text.append('Status: ' + str(self.get_status()))
         return '\n'.join(text)
 
-    def get_component_by_name(self, name: str) -> NovaComponent:
+    def get_component_by_name(self, name: str) -> Optional[NovaComponent]:
         """Returns component by name
 
-        :param str name: Component name. If name ends with '!' then search will use strict
-            equality, otherwise it will use 'in' operator.
+        :param str name: Component name. If name ends with '!' then search 
+            will use strict equality, otherwise it will use 'in' operator.
             In any case search is case insensitive.
         """
         if name.endswith('!'):
@@ -88,7 +89,7 @@ class NovaRelease(object):
         if not target_components:
             return None
         if len(target_components) > 1:
-            raise Exception('More than one component found')
+            raise ValueError('More than one component with same name found')
         return target_components[0]
 
     def can_release_version(self) -> bool:

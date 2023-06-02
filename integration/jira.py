@@ -89,14 +89,17 @@ class JiraIntegration:
             raise ValueError(f'Version {version_name} not found')
         version.update(released=True)
 
-    @classmethod
-    def can_release_version(cls, version: Optional[Version]) -> bool:
+    def can_release_version(self, project_code: str, version_name: str) -> bool:
         """
         Check if a version can be released
 
-        :param version: project version
+        :param project_code: project code
+        :param version_name: version name
         :return: True if version can be released, False otherwise
         """
+        version = self.__j.get_project_version_by_name(
+            project=project_code, version_name=version_name)
+
         if version is None:
             return False
         if version.archived:
