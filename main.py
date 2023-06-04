@@ -11,6 +11,7 @@ from core.nova_release import NovaRelease
 from release_manager import ReleaseManager
 from nova_release_repository import NovaReleaseRepository
 from integration.jira import JiraIntegration
+from ui.console import preview_component_release
 
 
 def choose_component_from_release(rel: NovaRelease) -> Optional[NovaComponent]:
@@ -84,7 +85,7 @@ while True:
     component = choose_component_from_release(release)
     if component is None:
         break
-    manager.preview_component_release(release, component)
+    preview_component_release(release, component)
     release_component_decision = input(
         'Do you want to release this component [Y/n/q]?')
     if release_component_decision == 'q':

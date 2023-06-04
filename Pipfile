@@ -11,6 +11,7 @@ pytest = "==7.2.0"
 validators = "==0.20.0"
 github = "*"
 packaging = "*"
+pytest-cov = "*"
 
 [dev-packages]
 autopep8 = "*"

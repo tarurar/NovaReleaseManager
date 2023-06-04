@@ -2,7 +2,10 @@
 Text helper functions
 """
 
-def try_extract_nova_component_version(line: str) -> str:
+from typing import Optional
+
+
+def try_extract_nova_component_version(line: str) -> Optional[str]:
     """
     Extracts version information from line of text.
     Expected line format is: 

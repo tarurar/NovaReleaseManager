@@ -243,17 +243,3 @@ class ReleaseManager:
                 if version is not None:
                     return version
                 return None
-
-    def preview_component_release(
-            self,
-            release: NovaRelease,
-            component: NovaComponent):
-        """Prints release information for the component"""
-        print('Please, review the compone˝nt release information:')
-        print('=' * 80)
-        print(f'Component: {component.name}.')
-        print(f'Version: {release.title}.')
-        print('Tasks:')
-        for task in component.tasks:
-            task_release_notes = task.get_release_notes()
-            print(task_release_notes)
