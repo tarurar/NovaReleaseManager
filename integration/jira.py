@@ -62,19 +62,6 @@ class JiraIntegration:
         """
         return self.__j.project_components(project_code)
 
-    # todo: probably can be removed
-    def get_version_by_name(
-            self, project_code: str, version_name: str) -> Optional[Version]:
-        """
-        Get project version by name
-
-        :param project_code: project code
-        :param version_name: version name
-        :return: project version or None
-        """
-        return self.__j.get_project_version_by_name(
-            project=project_code, version_name=version_name)
-
     def mark_version_as_released(
             self, project_code: str, version_name: str) -> None:
         """
@@ -107,3 +94,19 @@ class JiraIntegration:
         if version.released:
             return False
         return True
+
+    def transition_issue(
+            self, task_name: str, status: str, comment: str = '') -> str:
+        """
+        Transition issue to a new status
+
+        :param task_name: task name
+        :param status: new status
+        :param comment: comment
+        :return: error message or empty string
+        """
+        try:
+            self.__j.transition_issue(task_name, status, comment)
+            return ''
+        except JIRAError as error:
+            return error.text

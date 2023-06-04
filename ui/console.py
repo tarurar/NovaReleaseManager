@@ -1,7 +1,10 @@
 """ This module contains the console interaction with user """
 
 
-def input_tag_name() -> str:
+from typing import Optional
+
+
+def input_tag_name() -> Optional[str]:
     """
     Input tag
 
@@ -10,7 +13,7 @@ def input_tag_name() -> str:
     return input_value('new tag')
 
 
-def input_value(value_name: str) -> str:
+def input_value(value_name: str) -> Optional[str]:
     """
     Input any non empty value or quit
 
@@ -26,12 +29,12 @@ def input_value(value_name: str) -> str:
     return value
 
 
-def choose_from_or_skip(options: list[str]) -> str:
+def choose_from_or_skip(options: list[str]) -> Optional[int]:
     """
     Choose from list of options
 
     :param options: string list of options
-    :return: selected option or None if user wants to skip selection
+    :return: selected option index or None if user wants to skip selection
     """
     if not options or len(options) == 0:
         return None
@@ -51,5 +54,5 @@ def choose_from_or_skip(options: list[str]) -> str:
     if selection.isdigit():
         item_position = int(selection)
         if item_position in options_view:
-            return options_view[item_position]
+            return item_position - 1
     return choose_from_or_skip(options)

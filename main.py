@@ -4,6 +4,7 @@ Start module
 
 import sys
 import json
+from typing import Optional
 from github import Github
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
@@ -12,7 +13,7 @@ from nova_release_repository import NovaReleaseRepository
 from integration.jira import JiraIntegration
 
 
-def choose_component_from_release(rel: NovaRelease) -> NovaComponent:
+def choose_component_from_release(rel: NovaRelease) -> Optional[NovaComponent]:
     """Choose component from release"""
     print('\n')
     print('Please note, by default \'contains\' rule will be used for component selection')

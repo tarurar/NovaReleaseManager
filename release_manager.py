@@ -7,8 +7,9 @@ import re
 from datetime import datetime
 from subprocess import call
 from tempfile import TemporaryDirectory
+from typing import Optional
 
-from git import Repo, Tag
+from git.repo import Repo
 from github import Github
 from packaging.version import InvalidVersion, Version, parse
 
@@ -54,18 +55,20 @@ class ReleaseManager:
         :return: tag name and release url as a tuple
         """
         if component is None:
-            raise Exception('Component is not specified')
+            raise ValueError('Component is not specified')
 
         if component.status == Status.DONE:
-            raise Exception(
+            raise ValueError(
                 f'Component [{component.name}] is already released')
 
         if component.status != Status.READY_FOR_RELEASE:
-            raise Exception(
+            raise ValueError(
                 f'Component [{component.name}] is not ready for release')
 
+        git_release = None
         if component.repo.git_cloud == GitCloudService.BITBUCKET:
-            # TODO: git cli has to be installed and configured to access bitbucket and to push into master
+            # TODO: git cli has to be installed and configured
+            # to access bitbucket and to push into master
             self.release_component_bitbucket(release, component, branch)
         elif component.repo.git_cloud == GitCloudService.GITHUB:
             # GitHub specific code
@@ -74,36 +77,37 @@ class ReleaseManager:
                 component.repo.url)
             repo = self.__g.get_repo(repo_url)
             if repo is None:
-                raise Exception(f'Cannot get repository {component.repo.url}')
+                raise IOError(f'Cannot get repository {component.repo.url}')
 
-            # this call return a list of Tag class instances (not GitTag class instances)
+            # this call return a list of Tag class instances
+            # (not GitTag class instances)
             # choosing a tag for the release
             tags = repo.get_tags()
             top5_tags = list(tags)[:5]
-            top5_tag_names = map(
+            top5_tag_names = list(map(
                 lambda
                 t:
                 f'{t.name} @ {t.commit.commit.last_modified} by {t.commit.commit.author.name}',
-                top5_tags)
+                top5_tags))
             print(
                 f'Please, choose a tag to release component [{component.name}]')
-            tag = console.choose_from_or_skip(top5_tag_names)
-            if tag is None:
+            tag_index = console.choose_from_or_skip(top5_tag_names)
+            if tag_index is None:
                 tag_name = console.input_tag_name()
                 if tag_name is None:
-                    return
+                    return '', ''
                 sha = repo.get_branch(branch).commit.sha
                 git_tag_name = repo.create_git_tag(
                     tag_name, release.title, sha, 'commit').tag
             else:
-                git_tag_name = tag.name
+                git_tag_name = top5_tags[tag_index].name
 
             # choosing a tag of the previous release
             print(
                 f'Please, choose a tag of previous component [{component.name}] release')
 
-            previous_tag = console.choose_from_or_skip(top5_tag_names)
-            if previous_tag is None:
+            previous_tag_index = console.choose_from_or_skip(top5_tag_names)
+            if previous_tag_index is None:
                 logging.warning(
                     'Previous release tag was not specified, auto-detection will be used')
                 auto_detected_previous_tag_list = list(filter(
@@ -120,7 +124,7 @@ class ReleaseManager:
                         'Auto-detected previous release tag: %s',
                         previous_tag_name)
             else:
-                previous_tag_name = previous_tag.name
+                previous_tag_name = top5_tags[previous_tag_index].name
 
             # creating a release
             git_release = repo.create_git_release(
@@ -128,26 +132,28 @@ class ReleaseManager:
                 release.title,
                 component.get_release_notes(previous_tag_name, git_tag_name))
             if git_release is None:
-                raise Exception(
+                raise IOError(
                     f'Could not create release for tag {git_tag_name}')
 
         # moving jira issues to DONE
         for task in component.tasks:
-            try:
-                self.__ji.transition_issue(
-                    task.name,
-                    'Done',
-                    comment=f'{release.title} released')
-            except JIRAError as error:
+            error_text = self.__ji.transition_issue(
+                task.name, 'Done', f'{release.title} released')
+            if error_text:
                 logging.warning(
                     'Could not transition issue %s due to error: %s',
                     task.name,
-                    error.text)
+                    error_text)
 
         if component.repo.git_cloud == GitCloudService.BITBUCKET:
-            return 'Bitbucket tag to be', 'Bitbucket tah link to be'
+            return 'Bitbucket tag to be', 'Bitbucket tag url to be'
         elif component.repo.git_cloud == GitCloudService.GITHUB:
+            if git_release is None:
+                raise IOError('Could not create release')
             return git_release.tag_name, git_release.html_url
+        else:
+            raise ValueError(
+                f'Unknown git cloud service {component.repo.git_cloud}')
 
     def release_component_github(self):
         pass
@@ -165,18 +171,18 @@ class ReleaseManager:
             # TODO: move file name to configuration
             changelog_path = fs.search_file(sources_dir, 'CHANGELOG.md')
             if changelog_path is None:
-                raise Exception('CHANGELOG.md file not found')
+                raise FileNotFoundError('CHANGELOG.md file not found')
             version = self.extract_latest_version_from_changelog(
                 changelog_path)
             if version is None:
-                raise Exception('Could not extract version from CHANGELOG.md')
+                raise ValueError('Could not extract version from CHANGELOG.md')
 
             parsed_version = None
             try:
                 parsed_version = parse(version)
-            except InvalidVersion:
-                raise Exception(
-                    'Could not parse version from CHANGELOG.md, it should be in PEP 440 format')
+            except InvalidVersion as ex:
+                raise ValueError('Could not parse version from CHANGELOG.md,' +
+                                 ' it should be in PEP 440 format') from ex
 
             if is_hotix:
                 v_str = f'{parsed_version.major}.{parsed_version.minor}.{parsed_version.micro+1}'
@@ -194,14 +200,14 @@ class ReleaseManager:
                                      '\n' + release_notes + '\n\n' + content)
             # todo: add deployment section if there is any jira task with deployment comment
             call([self.__text_editor, changelog_path])
-            input(
-                f'Press Enter to continue when you are done with editing file in external editor ...')
+            input('Press Enter to continue when you are done' +
+                  ' with editing file in external editor ...')
 
             csproj_file_paths = fs.search_files_with_ext(sources_dir, 'csproj')
             csproj_file_paths_with_version = fs.search_files_with_content(
                 csproj_file_paths, '<Version>')
             if len(csproj_file_paths_with_version) == 0:
-                raise Exception(
+                raise FileNotFoundError(
                     'Could not find csproj file with version to update')
             print(
                 'There are following csproj files with version found. Please choose the one to update:')
@@ -229,7 +235,8 @@ class ReleaseManager:
             origin.push()
             origin.push(tags=True)
 
-    def extract_latest_version_from_changelog(self, changelog_path: str) -> str:
+    def extract_latest_version_from_changelog(
+            self, changelog_path: str) -> Optional[str]:
         with open(changelog_path, 'r', encoding='utf-8') as changelog_file:
             for line in changelog_file:
                 version = txt.try_extract_nova_component_version(line)
