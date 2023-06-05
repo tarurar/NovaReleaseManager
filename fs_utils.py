@@ -3,6 +3,10 @@ File system helper functions.
 """
 
 import os
+from typing import Optional
+
+import text_utils as txt
+
 
 def search_file(root_dir, filename):
     """
@@ -17,6 +21,7 @@ def search_file(root_dir, filename):
                 return os.path.join(dirpath, file)
     return None
 
+
 def search_files_with_ext(root_dir, extension):
     """
     Searches for files with a given extension in a directory tree.
@@ -30,6 +35,7 @@ def search_files_with_ext(root_dir, extension):
             if file.endswith(extension):
                 result.append(os.path.join(dirpath, file))
     return result
+
 
 def search_files_with_content(file_paths, search_string):
     """
@@ -46,3 +52,20 @@ def search_files_with_content(file_paths, search_string):
             if search_string in file_handle.read():
                 result.append(file_path)
     return result
+
+
+def extract_latest_version_from_changelog(changelog_path: str) -> Optional[str]:
+    """
+    Extracts version from changelog file. The version is expected to be 
+    the first line in the file. If not, then file will be read line by line 
+    until the first
+    version is found.
+    :param changelog_path: path to changelog file
+    :return: latest version or None if not found
+    """
+    with open(changelog_path, 'r', encoding='utf-8') as changelog_file:
+        for line in changelog_file:
+            version = txt.try_extract_nova_component_version(line)
+            if version is not None:
+                return version
+            return None

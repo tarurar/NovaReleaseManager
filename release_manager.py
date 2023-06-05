@@ -7,7 +7,6 @@ import re
 from datetime import datetime
 from subprocess import call
 from tempfile import TemporaryDirectory
-from typing import Optional
 
 from git.repo import Repo
 from github import Github
@@ -15,7 +14,6 @@ from packaging.version import InvalidVersion, Version, parse
 
 import fs_utils as fs
 import github_utils as gu
-import text_utils as txt
 from core.cvs import GitCloudService
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
@@ -172,10 +170,10 @@ class ReleaseManager:
             changelog_path = fs.search_file(sources_dir, 'CHANGELOG.md')
             if changelog_path is None:
                 raise FileNotFoundError('CHANGELOG.md file not found')
-            version = self.extract_latest_version_from_changelog(
-                changelog_path)
+            version = fs.extract_latest_version_from_changelog(changelog_path)
             if version is None:
-                raise ValueError('Could not extract version from CHANGELOG.md')
+                raise ValueError(
+                    f'Could not extract version from {changelog_path}')
 
             parsed_version = None
             try:
@@ -234,12 +232,3 @@ class ReleaseManager:
             origin = repo.remote(name='origin')
             origin.push()
             origin.push(tags=True)
-
-    def extract_latest_version_from_changelog(
-            self, changelog_path: str) -> Optional[str]:
-        with open(changelog_path, 'r', encoding='utf-8') as changelog_file:
-            for line in changelog_file:
-                version = txt.try_extract_nova_component_version(line)
-                if version is not None:
-                    return version
-                return None
