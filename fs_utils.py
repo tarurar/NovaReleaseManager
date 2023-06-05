@@ -15,7 +15,7 @@ def search_file(root_dir, filename):
     :param filename: file name to search for
     :return: full path to the first file if found, None otherwise
     """
-    for dirpath, dirnames, filenames in os.walk(root_dir):
+    for dirpath, _, filenames in os.walk(root_dir):
         for file in filenames:
             if file == filename:
                 return os.path.join(dirpath, file)
@@ -30,7 +30,7 @@ def search_files_with_ext(root_dir, extension):
     :return: list of full paths to the files if found, empty list otherwise
     """
     result = []
-    for dirpath, dirnames, filenames in os.walk(root_dir):
+    for dirpath, _, filenames in os.walk(root_dir):
         for file in filenames:
             if file.endswith(extension):
                 result.append(os.path.join(dirpath, file))
