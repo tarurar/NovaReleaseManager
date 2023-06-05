@@ -13,7 +13,7 @@ from github import Github
 from packaging.version import InvalidVersion, Version, parse
 
 import fs_utils as fs
-import github_utils as gu
+from github_release_flow import GitHubReleaseFlow
 from core.cvs import GitCloudService
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
@@ -35,8 +35,8 @@ class ReleaseManager:
             github_client: Github,
             text_editor: str) -> None:
         self.__ji = jira
-        self.__g = github_client
         self.__text_editor = text_editor if text_editor is not None else ReleaseManager.default_text_editor
+        self.__github_flow = GitHubReleaseFlow(github_client)
 
     def release_component(
             self,
@@ -69,70 +69,10 @@ class ReleaseManager:
             # to access bitbucket and to push into master
             self.release_component_bitbucket(release, component, branch)
         elif component.repo.git_cloud == GitCloudService.GITHUB:
-            # GitHub specific code
-            # get an instance of the remote repository
-            repo_url = gu.get_github_compatible_repo_address(
-                component.repo.url)
-            repo = self.__g.get_repo(repo_url)
-            if repo is None:
-                raise IOError(f'Cannot get repository {component.repo.url}')
-
-            # this call return a list of Tag class instances
-            # (not GitTag class instances)
-            # choosing a tag for the release
-            tags = repo.get_tags()
-            top5_tags = list(tags)[:5]
-            top5_tag_names = list(map(
-                lambda
-                t:
-                f'{t.name} @ {t.commit.commit.last_modified} by {t.commit.commit.author.name}',
-                top5_tags))
-            print(
-                f'Please, choose a tag to release component [{component.name}]')
-            tag_index = console.choose_from_or_skip(top5_tag_names)
-            if tag_index is None:
-                tag_name = console.input_tag_name()
-                if tag_name is None:
-                    return '', ''
-                sha = repo.get_branch(branch).commit.sha
-                git_tag_name = repo.create_git_tag(
-                    tag_name, release.title, sha, 'commit').tag
-            else:
-                git_tag_name = top5_tags[tag_index].name
-
-            # choosing a tag of the previous release
-            print(
-                f'Please, choose a tag of previous component [{component.name}] release')
-
-            previous_tag_index = console.choose_from_or_skip(top5_tag_names)
-            if previous_tag_index is None:
-                logging.warning(
-                    'Previous release tag was not specified, auto-detection will be used')
-                auto_detected_previous_tag_list = list(filter(
-                    lambda t: t.name != git_tag_name, top5_tags))
-                if len(auto_detected_previous_tag_list) > 0:
-                    previous_tag_name = auto_detected_previous_tag_list[0].name
-                else:
-                    previous_tag_name = ''
-                if not previous_tag_name:
-                    logging.warning(
-                        'Auto-detection failed, changelog url will be empty')
-                else:
-                    logging.info(
-                        'Auto-detected previous release tag: %s',
-                        previous_tag_name)
-            else:
-                previous_tag_name = top5_tags[previous_tag_index].name
-
-            # creating a release
-            git_release = repo.create_git_release(
-                git_tag_name,
-                release.title,
-                component.get_release_notes(previous_tag_name, git_tag_name))
+            git_release = self.__github_flow.create_git_release(
+                release, component)
             if git_release is None:
-                raise IOError(
-                    f'Could not create release for tag {git_tag_name}')
-
+                return '', ''
         # moving jira issues to DONE
         for task in component.tasks:
             error_text = self.__ji.transition_issue(
