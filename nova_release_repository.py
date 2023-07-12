@@ -16,10 +16,8 @@ class NovaReleaseRepository:
         self.__ji = jira
 
     def get(
-            self,
-            project_code: str,
-            version: str,
-            delivery: str) -> NovaRelease:
+        self, project_code: str, version: str, delivery: str
+    ) -> NovaRelease:
         """
         Loads a release model by project code, version and delivery
 
@@ -30,17 +28,21 @@ class NovaReleaseRepository:
         """
         release = NovaRelease(project_code, version, delivery)
 
-        components = [ju.parse_jira_component(cmp)
-                      for cmp in self.__ji.get_components(project_code)]
+        components = [
+            ju.parse_jira_component(cmp)
+            for cmp in self.__ji.get_components(project_code)
+        ]
 
         release_jira_issues = self.__ji.get_issues(project_code, str(release))
 
         for component in components:
             component_jira_issues = filter(
                 lambda i, cname=component.name: ju.filter_jira_issue(i, cname),
-                release_jira_issues)
-            component_tasks = [ju.parse_jira_issue(issue)
-                               for issue in component_jira_issues]
+                release_jira_issues,
+            )
+            component_tasks = [
+                ju.parse_jira_issue(issue) for issue in component_jira_issues
+            ]
             if len(component_tasks) > 0:
                 component.add_tasks(component_tasks)
                 release.add_component(component)

@@ -13,7 +13,7 @@ from core.nova_release import NovaRelease
 import github_utils as gu
 from ui import console
 
-# TODO: move this fiel into integration folder and rename to somewhat
+# todo: move this fiel into integration folder and rename to somewhat
 # like github_integration.py
 
 
@@ -23,7 +23,7 @@ class GitHubReleaseFlow:
     GitHub hosted repositories. Takes care of the GitHub API interaction.
     """
 
-    def __init__(self, github: Github, branch: str = 'master'):
+    def __init__(self, github: Github, branch: str = "master"):
         self.__g = github
         self.__branch = branch
 
@@ -38,7 +38,7 @@ class GitHubReleaseFlow:
 
         repo = self.__g.get_repo(compatible_url)
         if repo is None:
-            raise IOError(f'Could not find repository [{url}]')
+            raise IOError(f"Could not find repository [{url}]")
 
         return repo
 
@@ -50,12 +50,14 @@ class GitHubReleaseFlow:
         :return: text representation of the tag
         """
         return (
-            f'{tag.name}'
-            f' @ {tag.commit.commit.last_modified}'
-            f'by {tag.commit.commit.author.name}')
+            f"{tag.name}"
+            f" @ {tag.commit.commit.last_modified}"
+            f"by {tag.commit.commit.author.name}"
+        )
 
     def get_repository_top_tags(
-            self, url: str, tags_count: int = 5) -> list[Tag]:
+        self, url: str, tags_count: int = 5
+    ) -> list[Tag]:
         """
         Returns the list of the top tags for the repository
         sorted by the last commit date and formatted as text.
@@ -68,8 +70,7 @@ class GitHubReleaseFlow:
         tags = list(repo.get_tags())[:tags_count]
         return tags
 
-    def create_tag(
-            self, repo_url: str, message: str, tag_name: str) -> Tag:
+    def create_tag(self, repo_url: str, message: str, tag_name: str) -> Tag:
         """
         Creates a Tag object in the repository which points to the
         latest commit.
@@ -82,14 +83,15 @@ class GitHubReleaseFlow:
         repo = self.__get_repository(repo_url)
         latest_commit = repo.get_branch(self.__branch).commit
         new_git_tag = repo.create_git_tag(
-            tag_name, message, latest_commit.sha, 'commit')
-        repo.create_git_ref(f'refs/tags/{new_git_tag.tag}', new_git_tag.sha)
+            tag_name, message, latest_commit.sha, "commit"
+        )
+        repo.create_git_ref(f"refs/tags/{new_git_tag.tag}", new_git_tag.sha)
 
         tags_dict = {tag.name: tag for tag in repo.get_tags()}
         tag = tags_dict.get(tag_name)
 
         if tag is None:
-            raise IOError(f'Could not create tag [{tag_name}]')
+            raise IOError(f"Could not create tag [{tag_name}]")
 
         return tag
 
@@ -106,7 +108,7 @@ class GitHubReleaseFlow:
         top_tags = self.get_repository_top_tags(url)
         top_tag_names = list(map(self.tag_to_text, top_tags))
 
-        print('Please, choose a tag:')
+        print("Please, choose a tag:")
         selected_index = console.choose_from_or_skip(top_tag_names)
         if selected_index is not None:
             return top_tags[selected_index]
@@ -117,7 +119,8 @@ class GitHubReleaseFlow:
         return self.create_tag(url, tag_message, tag_name)
 
     def select_or_autodetect_tag(
-            self, url: str, exclude: list[str]) -> Optional[Tag]:
+        self, url: str, exclude: list[str]
+    ) -> Optional[Tag]:
         """
         Returns the Tag object selected by the user or autodetected
         from the repository. Autodetection takes the latest tag.
@@ -131,7 +134,7 @@ class GitHubReleaseFlow:
         top_tags = self.get_repository_top_tags(url)
         top_tag_names = list(map(self.tag_to_text, top_tags))
 
-        print('Please, choose a tag:')
+        print("Please, choose a tag:")
         selected_index = console.choose_from_or_skip(top_tag_names)
         if selected_index:
             return top_tags[selected_index]
@@ -143,9 +146,8 @@ class GitHubReleaseFlow:
         return None
 
     def create_git_release(
-            self,
-            release: NovaRelease,
-            component: NovaComponent) -> Optional[GitRelease]:
+        self, release: NovaRelease, component: NovaComponent
+    ) -> Optional[GitRelease]:
         """
         Creates a GitRelease object in the repository.
 
@@ -160,17 +162,20 @@ class GitHubReleaseFlow:
 
         # get a tag for previous git release
         previous_tag = self.select_or_autodetect_tag(
-            component.repo.url, list(tag.name))
+            component.repo.url, list(tag.name)
+        )
         if previous_tag is None:
             return None
 
         # create git release
         repo = self.__get_repository(component.repo.url)
         git_release_notes = component.get_release_notes(
-            previous_tag.name, tag.name)
+            previous_tag.name, tag.name
+        )
         git_release = repo.create_git_release(
-            tag.name, release.title, git_release_notes)
+            tag.name, release.title, git_release_notes
+        )
         if git_release is None:
-            raise IOError(f'Could not create release for tag {tag.name}')
+            raise IOError(f"Could not create release for tag {tag.name}")
 
         return git_release

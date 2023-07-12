@@ -21,10 +21,8 @@ class JiraIntegration:
         self.__j = JIRA(host, basic_auth=(username, password))
 
     def get_issues(
-            self,
-            project_code: str,
-            delivery: str,
-            component_name: str = '') -> list[Issue]:
+        self, project_code: str, delivery: str, component_name: str = ""
+    ) -> list[Issue]:
         """
         Get JIRA issues for a component in a particular delivery
 
@@ -44,7 +42,9 @@ class JiraIntegration:
                 issues = cast(
                     ResultList[Issue],
                     self.__j.search_issues(
-                        jql, maxResults=chunk_size, startAt=i))
+                        jql, maxResults=chunk_size, startAt=i
+                    ),
+                )
             except JIRAError:
                 return []
             i += chunk_size
@@ -63,7 +63,8 @@ class JiraIntegration:
         return self.__j.project_components(project_code)
 
     def mark_version_as_released(
-            self, project_code: str, version_name: str) -> None:
+        self, project_code: str, version_name: str
+    ) -> None:
         """
         Mark project version as released
 
@@ -71,9 +72,10 @@ class JiraIntegration:
         :param version_name: version name
         """
         version = self.__j.get_project_version_by_name(
-            project=project_code, version_name=version_name)
+            project=project_code, version_name=version_name
+        )
         if version is None:
-            raise ValueError(f'Version {version_name} not found')
+            raise ValueError(f"Version {version_name} not found")
         version.update(released=True)
 
     def can_release_version(self, project_code: str, version_name: str) -> bool:
@@ -85,7 +87,8 @@ class JiraIntegration:
         :return: True if version can be released, False otherwise
         """
         version = self.__j.get_project_version_by_name(
-            project=project_code, version_name=version_name)
+            project=project_code, version_name=version_name
+        )
 
         if version is None:
             return False
@@ -96,7 +99,8 @@ class JiraIntegration:
         return True
 
     def transition_issue(
-            self, task_name: str, status: str, comment: str = '') -> str:
+        self, task_name: str, status: str, comment: str = ""
+    ) -> str:
         """
         Transition issue to a new status
 
@@ -107,6 +111,6 @@ class JiraIntegration:
         """
         try:
             self.__j.transition_issue(task_name, status, comment=comment)
-            return ''
+            return ""
         except JIRAError as error:
             return error.text

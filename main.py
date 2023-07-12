@@ -17,16 +17,21 @@ from ui.console import preview_component_release
 
 def choose_component_from_release(rel: NovaRelease) -> Optional[NovaComponent]:
     """Choose component from release"""
-    print('\n')
-    print('Please note, by default \'contains\' rule will be used for component selection')
-    print('If you want to use strict equality rule, please, add \'!\' sign to the end of component name')
+    print("\n")
+    print(
+        "Please note, by default 'contains' rule will be used for component selection"
+    )
+    print(
+        "If you want to use strict equality rule, please, add '!' sign to the end of component name"
+    )
     component_name = input(
-        'Please, select component to release or press \'q\' (you can specify name partially): ')
-    if component_name == 'q':
+        "Please, select component to release or press 'q' (you can specify name partially): "
+    )
+    if component_name == "q":
         return None
     cmp = rel.get_component_by_name(component_name)
     if cmp is None:
-        print('Component not found')
+        print("Component not found")
         return choose_component_from_release(rel)
     return cmp
 
@@ -60,26 +65,30 @@ def choose_component_from_release(rel: NovaRelease) -> Optional[NovaComponent]:
 #             print('-------------------------------------------')
 
 
-print('Nova Release Manager, version 1.0')
-version = input('Please, enter version (or \'q\' for quit): ')
-if version == 'q':
+print("Nova Release Manager, version 1.0")
+version = input("Please, enter version (or 'q' for quit): ")
+if version == "q":
     sys.exit()
-delivery = input('Please, enter delivery (or \'q\' for quit): ')
-if delivery == 'q':
+delivery = input("Please, enter delivery (or 'q' for quit): ")
+if delivery == "q":
     sys.exit()
 
-with open('config.json', encoding='utf-8') as f:
+with open("config.json", encoding="utf-8") as f:
     config = json.load(f)
 
-ji = JiraIntegration(config['jira']['host'],
-                     config['jira']['username'],
-                     config['jira']['password'])
-manager = ReleaseManager(ji,
-                         Github(config['github']['accessToken']),
-                         GitIntegration(),
-                         config['textEditor'])
+ji = JiraIntegration(
+    config["jira"]["host"],
+    config["jira"]["username"],
+    config["jira"]["password"],
+)
+manager = ReleaseManager(
+    ji,
+    Github(config["github"]["accessToken"]),
+    GitIntegration(),
+    config["textEditor"],
+)
 release_repository = NovaReleaseRepository(ji)
-release = release_repository.get(config['jira']['project'], version, delivery)
+release = release_repository.get(config["jira"]["project"], version, delivery)
 print(release.describe_status())
 
 
@@ -89,23 +98,25 @@ while True:
         break
     preview_component_release(release, component)
     release_component_decision = input(
-        'Do you want to release this component [Y/n/q]?')
-    if release_component_decision == 'q':
+        "Do you want to release this component [Y/n/q]?"
+    )
+    if release_component_decision == "q":
         break
-    if release_component_decision == 'n':
+    if release_component_decision == "n":
         continue
-    tag, url = manager.release_component(
-        release, component, config['release']['branch'])
-    print(f'Component [{component.name}] released, tag: [{tag}], url: [{url}]')
+    tag, url = manager.release_component(release, component)
+    print(f"Component [{component.name}] released, tag: [{tag}], url: [{url}]")
 
     if release.can_release_version():
         release_version_decision = input(
-            'Looks like all components are released.' +
-            'Do you want to release version [Y/n]?')
-        if release_version_decision == 'Y':
+            "Looks like all components are released."
+            + "Do you want to release version [Y/n]?"
+        )
+        if release_version_decision == "Y":
             job_done = release_repository.set_released(release)
             if job_done:
                 print(
-                    f'Version [{release.title}] has been successfully released')
+                    f"Version [{release.title}] has been successfully released"
+                )
                 break
-            print(f'Version [{release.title}] has not been released')
+            print(f"Version [{release.title}] has not been released")

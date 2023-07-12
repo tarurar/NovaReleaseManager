@@ -15,6 +15,7 @@ class FilePosition(Enum):
     """
     File position.
     """
+
     BEGINNING = 0
     END = 1
 
@@ -39,7 +40,7 @@ def search_changelog(root_dir):
     :param root_dir: root directory to start search from
     :return: full path to the first changelog file if found, None otherwise
     """
-    return search_file(root_dir, 'CHANGELOG.md')
+    return search_file(root_dir, "CHANGELOG.md")
 
 
 def search_files_with_ext(root_dir, extension):
@@ -68,7 +69,7 @@ def search_files_with_content(file_paths, search_string):
     for file_path in file_paths:
         if not os.path.isfile(file_path):
             continue
-        with open(file_path, 'r', encoding='utf-8') as file_handle:
+        with open(file_path, "r", encoding="utf-8") as file_handle:
             if search_string in file_handle.read():
                 result.append(file_path)
     return result
@@ -76,14 +77,14 @@ def search_files_with_content(file_paths, search_string):
 
 def extract_latest_version_from_changelog(changelog_path: str) -> Optional[str]:
     """
-    Extracts version from changelog file. The version is expected to be 
-    the first line in the file. If not, then file will be read line by line 
+    Extracts version from changelog file. The version is expected to be
+    the first line in the file. If not, then file will be read line by line
     until the first
     version is found.
     :param changelog_path: path to changelog file
     :return: latest version or None if not found
     """
-    with open(changelog_path, 'r', encoding='utf-8') as changelog_file:
+    with open(changelog_path, "r", encoding="utf-8") as changelog_file:
         for line in changelog_file:
             version = txt.try_extract_nova_component_version(line)
             if version is not None:
@@ -109,10 +110,10 @@ def write_file(file_path: str, content: str, position: FilePosition) -> None:
     :param content: content to write
     :param position: position to write the content
     """
-    mode = 'a+' if position == FilePosition.END else 'r+'
+    mode = "a+" if position == FilePosition.END else "r+"
 
     try:
-        with open(file_path, mode, encoding='utf-8') as file_handle:
+        with open(file_path, mode, encoding="utf-8") as file_handle:
             if position == FilePosition.BEGINNING:
                 existing_content = file_handle.read()
                 file_handle.seek(0, 0)
@@ -120,12 +121,13 @@ def write_file(file_path: str, content: str, position: FilePosition) -> None:
             else:
                 file_handle.write(content)
     except FileNotFoundError:
-        with open(file_path, 'w', encoding='utf-8') as file_handle:
+        with open(file_path, "w", encoding="utf-8") as file_handle:
             file_handle.write(content)
 
 
 def replace_in_file(
-        file_path: str, search_string: str, replace_string: str) -> None:
+    file_path: str, search_string: str, replace_string: str
+) -> None:
     """
     Replaces a string in a file.
     :param file_path: path to the file
@@ -133,16 +135,16 @@ def replace_in_file(
     :param replace_string: string to replace with
     """
     if not os.path.isfile(file_path):
-        raise FileNotFoundError(f'File {file_path} does not exist')
+        raise FileNotFoundError(f"File {file_path} does not exist")
 
     if not search_string:
-        raise ValueError('Search string cannot be empty')
+        raise ValueError("Search string cannot be empty")
 
     if not replace_string:
-        raise ValueError('Replace string cannot be empty')
+        raise ValueError("Replace string cannot be empty")
 
-    with open(file_path, 'r', encoding='utf-8') as file_handle:
+    with open(file_path, "r", encoding="utf-8") as file_handle:
         file_content = file_handle.read()
     file_content = re.sub(search_string, replace_string, file_content)
-    with open(file_path, 'w', encoding='utf-8') as file_handle:
+    with open(file_path, "w", encoding="utf-8") as file_handle:
         file_handle.write(file_content)

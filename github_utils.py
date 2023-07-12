@@ -11,8 +11,8 @@ def get_github_compatible_repo_address(full_url: str) -> str:
     format: <company>/<repository>
     """
     normalized = full_url.strip().lower()
-    if normalized.startswith('http'):
-        normalized = normalized.replace('http://', '').replace('https://', '')
+    if normalized.startswith("http"):
+        normalized = normalized.replace("http://", "").replace("https://", "")
 
-    chunks = normalized.split('/')
-    return '/'.join(chunks[1:])
+    chunks = normalized.split("/")
+    return "/".join(chunks[1:])
