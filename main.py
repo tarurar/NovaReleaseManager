@@ -4,14 +4,18 @@ Start module
 
 import sys
 import json
+from typing import Optional
 from github import Github
-from jira import JIRA
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from release_manager import ReleaseManager
+from nova_release_repository import NovaReleaseRepository
+from integration.jira import JiraIntegration
+from integration.git import GitIntegration
+from ui.console import preview_component_release
 
 
-def choose_component_from_release(rel: NovaRelease) -> NovaComponent:
+def choose_component_from_release(rel: NovaRelease) -> Optional[NovaComponent]:
     """Choose component from release"""
     print('\n')
     print('Please note, by default \'contains\' rule will be used for component selection')
@@ -67,11 +71,15 @@ if delivery == 'q':
 with open('config.json', encoding='utf-8') as f:
     config = json.load(f)
 
-manager = ReleaseManager(JIRA(
-    config['jira']['host'],
-    basic_auth=(config['jira']['username'], config['jira']['password'])),
-    Github(config['github']['accessToken']))
-release = manager.compose(config['jira']['project'], version, delivery)
+ji = JiraIntegration(config['jira']['host'],
+                     config['jira']['username'],
+                     config['jira']['password'])
+manager = ReleaseManager(ji,
+                         Github(config['github']['accessToken']),
+                         GitIntegration(),
+                         config['textEditor'])
+release_repository = NovaReleaseRepository(ji)
+release = release_repository.get(config['jira']['project'], version, delivery)
 print(release.describe_status())
 
 
@@ -79,7 +87,7 @@ while True:
     component = choose_component_from_release(release)
     if component is None:
         break
-    manager.preview_component_release(release, component)
+    preview_component_release(release, component)
     release_component_decision = input(
         'Do you want to release this component [Y/n/q]?')
     if release_component_decision == 'q':
@@ -89,10 +97,15 @@ while True:
     tag, url = manager.release_component(
         release, component, config['release']['branch'])
     print(f'Component [{component.name}] released, tag: [{tag}], url: [{url}]')
-    if manager.can_release_version(config['jira']['project'], version, delivery):
+
+    if release.can_release_version():
         release_version_decision = input(
-            'Looks like all components are released. Do you want to release version [Y/n]?')
+            'Looks like all components are released.' +
+            'Do you want to release version [Y/n]?')
         if release_version_decision == 'Y':
-            manager.release_version(release)
-            print(f'Version [{release.title}] has been successfully released')
-            break
+            job_done = release_repository.set_released(release)
+            if job_done:
+                print(
+                    f'Version [{release.title}] has been successfully released')
+                break
+            print(f'Version [{release.title}] has not been released')

@@ -4,7 +4,7 @@ Nova component module
 
 from packaging.version import parse
 from core.nova_task import NovaTask
-from .cvs import CodeRepository
+from .cvs import CodeRepository, GitCloudService
 from .nova_status import Status
 
 def compare_revisions(revision1: str, revision2: str) -> bool:
@@ -21,6 +21,10 @@ def compare_revisions(revision1: str, revision2: str) -> bool:
         raise ValueError('Revision1 is None')
     if revision2 is None:
         raise ValueError('Revision2 is None')
+    
+    # cut beginning 'nova-' if exists
+    revision1 = revision1[5:] if revision1.startswith('nova-') else revision1
+    revision2 = revision2[5:] if revision2.startswith('nova-') else revision2
 
     parsed_revision1 = parse(revision1)
     parsed_revision2 = parse(revision2)
@@ -28,7 +32,7 @@ def compare_revisions(revision1: str, revision2: str) -> bool:
     return parsed_revision1 < parsed_revision2
 
 
-def get_release_notes_md(
+def get_release_notes_github(
         revision_from: str,
         revision_to: str,
         repo_url: str,
@@ -48,6 +52,12 @@ def get_release_notes_md(
     result = [header, *task_notes, '\n', change_log]
 
     return '\n'.join(result)
+
+
+def get_release_notes_bitbucket(tasks: list[NovaTask]) -> str:
+    """Returns release notes for component tasks in markdown format"""
+    task_notes = [('* ' + task.get_release_notes()) for task in tasks]
+    return '\n'.join(task_notes)
 
 
 def get_changelog_url(
@@ -124,10 +134,10 @@ class NovaComponent:
         statuses = [task.status for task in self.__tasks]
         if any(s == Status.UNDEFINED for s in statuses):
             return Status.UNDEFINED
-        if all(s == Status.READY_FOR_RELEASE for s in statuses):
-            return Status.READY_FOR_RELEASE
         if all(s == Status.DONE for s in statuses):
             return Status.DONE
+        if all(s >= Status.READY_FOR_RELEASE for s in statuses):
+            return Status.READY_FOR_RELEASE
         return Status.IN_DEVELOPMENT
 
     def describe_status(self) -> str:
@@ -141,11 +151,15 @@ class NovaComponent:
 
     def get_release_notes(self, revision_from, revision_to) -> str:
         """Returns release notes for component"""
-        return get_release_notes_md(
-            revision_from,
-            revision_to,
-            self.repo.url,
-            self.__tasks)
+        if self.repo.git_cloud == GitCloudService.GITHUB:
+            return get_release_notes_github(
+                revision_from,
+                revision_to,
+                self.repo.url,
+                self.__tasks)
+        if self.repo.git_cloud == GitCloudService.BITBUCKET:
+            return get_release_notes_bitbucket(self.__tasks)
+        return ''
 
 
 class NovaEmptyComponent(NovaComponent):
