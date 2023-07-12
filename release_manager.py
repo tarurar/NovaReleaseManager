@@ -124,8 +124,8 @@ class ReleaseManager:
 
             # commit changes
             # todo: add only csproj and changelog files
-            self.__g.commit(sources_dir, f'Version {str(parsed_version)}')
-            tag_name = f'nova-{str(parsed_version)}'
+            self.__g.commit(sources_dir, f'Version {str(new_version)}')
+            tag_name = f'nova-{str(new_version)}'
             self.__g.tag(sources_dir, tag_name, f'Version {tag_name} release')
 
         finally:

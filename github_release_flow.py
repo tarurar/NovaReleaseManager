@@ -108,7 +108,7 @@ class GitHubReleaseFlow:
 
         print('Please, choose a tag:')
         selected_index = console.choose_from_or_skip(top_tag_names)
-        if selected_index:
+        if selected_index is not None:
             return top_tags[selected_index]
 
         tag_name = console.input_tag_name()
