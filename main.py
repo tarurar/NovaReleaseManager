@@ -11,6 +11,7 @@ from core.nova_release import NovaRelease
 from release_manager import ReleaseManager
 from nova_release_repository import NovaReleaseRepository
 from integration.jira import JiraIntegration
+from integration.git import GitIntegration
 from ui.console import preview_component_release
 
 
@@ -75,6 +76,7 @@ ji = JiraIntegration(config['jira']['host'],
                      config['jira']['password'])
 manager = ReleaseManager(ji,
                          Github(config['github']['accessToken']),
+                         GitIntegration(),
                          config['textEditor'])
 release_repository = NovaReleaseRepository(ji)
 release = release_repository.get(config['jira']['project'], version, delivery)

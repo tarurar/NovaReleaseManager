@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 gitpython = "==3.1.29"
-jira = "==3.4.1"
+jira = "==3.5.2"
 pygithub = "==1.57"
 pytest = "==7.2.0"
 validators = "==0.20.0"

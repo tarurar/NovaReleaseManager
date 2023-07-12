@@ -3,9 +3,20 @@ File system helper functions.
 """
 
 import os
+import re
+import shutil
 from typing import Optional
+from enum import Enum
 
 import text_utils as txt
+
+
+class FilePosition(Enum):
+    """
+    File position.
+    """
+    BEGINNING = 0
+    END = 1
 
 
 def search_file(root_dir, filename):
@@ -20,6 +31,15 @@ def search_file(root_dir, filename):
             if file == filename:
                 return os.path.join(dirpath, file)
     return None
+
+
+def search_changelog(root_dir):
+    """
+    Searches for a changelog file in a directory tree.
+    :param root_dir: root directory to start search from
+    :return: full path to the first changelog file if found, None otherwise
+    """
+    return search_file(root_dir, 'CHANGELOG.md')
 
 
 def search_files_with_ext(root_dir, extension):
@@ -69,3 +89,60 @@ def extract_latest_version_from_changelog(changelog_path: str) -> Optional[str]:
             if version is not None:
                 return version
             return None
+
+
+def remove_dir(dir_path) -> None:
+    """
+    Removes a directory tree.
+    :param dir_path: path to directory to remove
+    """
+    if os.path.exists(dir_path):
+        shutil.rmtree(dir_path)
+
+
+def write_file(file_path: str, content: str, position: FilePosition) -> None:
+    """
+    Writes content to a file. If the file already exists, then the content
+    will be inserted at the beginning or at the end of the file. If the file
+    does not exist, then it will be created.
+    :param file_path: path to the file
+    :param content: content to write
+    :param position: position to write the content
+    """
+    mode = 'a+' if position == FilePosition.END else 'r+'
+
+    try:
+        with open(file_path, mode, encoding='utf-8') as file_handle:
+            if position == FilePosition.BEGINNING:
+                existing_content = file_handle.read()
+                file_handle.seek(0, 0)
+                file_handle.write(content + existing_content)
+            else:
+                file_handle.write(content)
+    except FileNotFoundError:
+        with open(file_path, 'w', encoding='utf-8') as file_handle:
+            file_handle.write(content)
+
+
+def replace_in_file(
+        file_path: str, search_string: str, replace_string: str) -> None:
+    """
+    Replaces a string in a file.
+    :param file_path: path to the file
+    :param search_string: string to search for, can be a regular expression
+    :param replace_string: string to replace with
+    """
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError(f'File {file_path} does not exist')
+
+    if not search_string:
+        raise ValueError('Search string cannot be empty')
+
+    if not replace_string:
+        raise ValueError('Replace string cannot be empty')
+
+    with open(file_path, 'r', encoding='utf-8') as file_handle:
+        file_content = file_handle.read()
+    file_content = re.sub(search_string, replace_string, file_content)
+    with open(file_path, 'w', encoding='utf-8') as file_handle:
+        file_handle.write(file_content)

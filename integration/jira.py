@@ -2,18 +2,18 @@
 Jira integration layer module.
 """
 
-from typing import Optional, cast
+from typing import cast
 
 from jira import JIRA, JIRAError
-from jira.resources import Component, Issue, Version
+from jira.resources import Component, Issue
 from jira.client import ResultList
 
 import jira_utils as ju
 
 
 class JiraIntegration:
-    """Jira integration service
-
+    """
+    Jira integration service.
     Connects to Jira using basic authentication.
     """
 
@@ -106,7 +106,7 @@ class JiraIntegration:
         :return: error message or empty string
         """
         try:
-            self.__j.transition_issue(task_name, status, comment)
+            self.__j.transition_issue(task_name, status, comment=comment)
             return ''
         except JIRAError as error:
             return error.text

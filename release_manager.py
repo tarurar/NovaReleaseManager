@@ -3,14 +3,9 @@ The release manager is responsible for managing the release process.
 """
 
 import logging
-import re
-from datetime import datetime
 from subprocess import call
-from tempfile import TemporaryDirectory
 
-from git.repo import Repo
 from github import Github
-from packaging.version import InvalidVersion, Version, parse
 
 import fs_utils as fs
 from github_release_flow import GitHubReleaseFlow
@@ -18,8 +13,9 @@ from core.cvs import GitCloudService
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
+from integration.git import GitIntegration
 from integration.jira import JiraIntegration
-import ui.console as console
+import bitbucket_release_flow as bbrf
 
 
 class ReleaseManager:
@@ -33,10 +29,12 @@ class ReleaseManager:
             self,
             jira: JiraIntegration,
             github_client: Github,
+            git_client: GitIntegration,
             text_editor: str) -> None:
         self.__ji = jira
         self.__text_editor = text_editor if text_editor is not None else ReleaseManager.default_text_editor
-        self.__github_flow = GitHubReleaseFlow(github_client)
+        self.__gh_flow = GitHubReleaseFlow(github_client)
+        self.__g = git_client
 
     def release_component(
             self,
@@ -69,10 +67,11 @@ class ReleaseManager:
             # to access bitbucket and to push into master
             self.release_component_bitbucket(release, component, branch)
         elif component.repo.git_cloud == GitCloudService.GITHUB:
-            git_release = self.__github_flow.create_git_release(
+            git_release = self.__gh_flow.create_git_release(
                 release, component)
             if git_release is None:
                 return '', ''
+
         # moving jira issues to DONE
         for task in component.tasks:
             error_text = self.__ji.transition_issue(
@@ -93,82 +92,114 @@ class ReleaseManager:
             raise ValueError(
                 f'Unknown git cloud service {component.repo.git_cloud}')
 
-    def release_component_github(self):
-        pass
-
     def release_component_bitbucket(
             self,
             release: NovaRelease,
             component: NovaComponent,
             branch: str,
             is_hotix: bool = False):
-        with TemporaryDirectory() as sources_dir:
-            print(f"Cloning repository into [{sources_dir}]...")
-            repo = Repo.clone_from(
-                component.repo.url, sources_dir, branch=branch)
-            # TODO: move file name to configuration
-            changelog_path = fs.search_file(sources_dir, 'CHANGELOG.md')
+        print(f"Cloning repository from url [{component.repo.url}]...")
+        sources_dir = self.__g.clone(component.repo.url)
+        print(f"Cloned repository into [{sources_dir}]")
+        try:
+            changelog_path = fs.search_changelog(sources_dir)
             if changelog_path is None:
-                raise FileNotFoundError('CHANGELOG.md file not found')
-            version = fs.extract_latest_version_from_changelog(changelog_path)
-            if version is None:
-                raise ValueError(
-                    f'Could not extract version from {changelog_path}')
+                raise FileNotFoundError('Change log file not found')
+            parsed_version = bbrf.parse_version_from_changelog(changelog_path)
+            new_version = bbrf.increase_version(parsed_version, is_hotix)
 
-            parsed_version = None
-            try:
-                parsed_version = parse(version)
-            except InvalidVersion as ex:
-                raise ValueError('Could not parse version from CHANGELOG.md,' +
-                                 ' it should be in PEP 440 format') from ex
+            # todo: add deployment section if there is any jira task with
+            # deployment comment
+            release_notes_title = bbrf.build_release_title_md(
+                release, new_version)
+            component_notes = component.get_release_notes(None, None)
+            release_notes = release_notes_title + '\n' + component_notes
+            bbrf.insert_release_notes(changelog_path, release_notes)
 
-            if is_hotix:
-                v_str = f'{parsed_version.major}.{parsed_version.minor}.{parsed_version.micro+1}'
-                parsed_version = Version(v_str)
-            else:
-                v_str = f'{parsed_version.major}.{parsed_version.minor+1}.{0}'
-                parsed_version = Version(v_str)
-
-            relese_notes_title = f'## {str(parsed_version)} {release.title} ({datetime.now().strftime("%B %d, %Y")})'
-            release_notes = component.get_release_notes(None, None)
-            with open(changelog_path, 'r+', encoding='utf-8') as changelog_file:
-                content = changelog_file.read()
-                changelog_file.seek(0, 0)
-                changelog_file.write(relese_notes_title +
-                                     '\n' + release_notes + '\n\n' + content)
-            # todo: add deployment section if there is any jira task with deployment comment
+            # open external editor to edit release notes
             call([self.__text_editor, changelog_path])
             input('Press Enter to continue when you are done' +
                   ' with editing file in external editor ...')
+            bbrf.update_solution_version(sources_dir, new_version)
 
-            csproj_file_paths = fs.search_files_with_ext(sources_dir, 'csproj')
-            csproj_file_paths_with_version = fs.search_files_with_content(
-                csproj_file_paths, '<Version>')
-            if len(csproj_file_paths_with_version) == 0:
-                raise FileNotFoundError(
-                    'Could not find csproj file with version to update')
-            print(
-                'There are following csproj files with version found. Please choose the one to update:')
-            csproj_file_path = console.choose_from_or_skip(
-                csproj_file_paths_with_version)
-            if csproj_file_path is None:
-                # skip selection
-                return
-            new_file_content = None
-            with open(csproj_file_path, 'r', encoding='utf-8') as csproj_file:
-                content = csproj_file.read()
-                new_file_content = re.sub(
-                    r'<Version>(.*?)<\/Version>',
-                    f'<Version>{str(parsed_version)}</Version>', content)
-            with open(csproj_file_path, 'w+', encoding='utf-8') as csproj_file:
-                csproj_file.write(new_file_content)
+            # commit changes
             # todo: add only csproj and changelog files
-            repo.git.add('.')
-            commit_message = f'Version {str(parsed_version)}'
-            repo.index.commit(commit_message)
+            self.__g.commit(sources_dir, f'Version {str(parsed_version)}')
             tag_name = f'nova-{str(parsed_version)}'
-            tag_message = f'Version {tag_name} release'
-            repo.create_tag(tag_name, message=tag_message)
-            origin = repo.remote(name='origin')
-            origin.push()
-            origin.push(tags=True)
+            self.__g.tag(sources_dir, tag_name, f'Version {tag_name} release')
+
+        finally:
+            fs.remove_dir(sources_dir)
+
+        # with TemporaryDirectory(prefix='nova') as sources_dir:
+            # print(f"Cloning repository into [{sources_dir}]...")
+            # repo = Repo.clone_from(
+            #     component.repo.url, sources_dir, branch=branch)
+            # # TODO: move file name to configuration
+            # changelog_path = fs.search_changelog(sources_dir)
+            # if changelog_path is None:
+            #     raise FileNotFoundError('CHANGELOG.md file not found')
+            # version = fs.extract_latest_version_from_changelog(changelog_path)
+            # if version is None:
+            #     raise ValueError(
+            #         f'Could not extract version from {changelog_path}')
+
+            # parsed_version = None
+            # try:
+            #     parsed_version = parse(version)
+            # except InvalidVersion as ex:
+            #     raise ValueError('Could not parse version from CHANGELOG.md,' +
+            #                      ' it should be in PEP 440 format') from ex
+
+            # if is_hotix:
+            #     v_str = f'{parsed_version.major}.{parsed_version.minor}.{parsed_version.micro+1}'
+            #     parsed_version = Version(v_str)
+            # else:
+            #     v_str = f'{parsed_version.major}.{parsed_version.minor+1}.{0}'
+            #     parsed_version = Version(v_str)
+
+            # release_notes_title = f'## {str(parsed_version)} {release.title} ({datetime.utcnow().strftime("%B %d, %Y")})'
+            # release_notes = component.get_release_notes(None, None)
+            # with open(changelog_path, 'r+', encoding='utf-8') as changelog_file:
+            #     content = changelog_file.read()
+            #     changelog_file.seek(0, 0)
+            #     changelog_file.write(release_notes_title +
+            #                          '\n' + release_notes + '\n\n' + content)
+
+            # todo: add deployment section if there is any jira task with deployment comment
+            # call([self.__text_editor, changelog_path])
+            # input('Press Enter to continue when you are done' +
+            #       ' with editing file in external editor ...')
+
+            # csproj_file_paths = fs.search_files_with_ext(sources_dir, 'csproj')
+            # csproj_file_paths_with_version = fs.search_files_with_content(
+            #     csproj_file_paths, '<Version>')
+            # if len(csproj_file_paths_with_version) == 0:
+            #     raise FileNotFoundError(
+            #         'Could not find csproj file with version to update')
+            # print(
+            #     'There are following csproj files with version found. Please choose the one to update:')
+            # csproj_file_path = console.choose_from_or_skip(
+            #     csproj_file_paths_with_version)
+            # if csproj_file_path is None:
+            #     # skip selection
+            #     return
+            # new_file_content = None
+            # with open(csproj_file_path, 'r', encoding='utf-8') as csproj_file:
+            #     content = csproj_file.read()
+            #     new_file_content = re.sub(
+            #         r'<Version>(.*?)<\/Version>',
+            #         f'<Version>{str(parsed_version)}</Version>', content)
+            # with open(csproj_file_path, 'w+', encoding='utf-8') as csproj_file:
+            #     csproj_file.write(new_file_content)
+
+            # todo: add only csproj and changelog files
+            # repo.git.add('.')
+            # commit_message = f'Version {str(parsed_version)}'
+            # repo.index.commit(commit_message)
+            # tag_name = f'nova-{str(parsed_version)}'
+            # tag_message = f'Version {tag_name} release'
+            # repo.create_tag(tag_name, message=tag_message)
+            # origin = repo.remote(name='origin')
+            # origin.push()
+            # origin.push(tags=True)

@@ -13,6 +13,9 @@ from core.nova_release import NovaRelease
 import github_utils as gu
 from ui import console
 
+# TODO: move this fiel into integration folder and rename to somewhat
+# like github_integration.py
+
 
 class GitHubReleaseFlow:
     """
@@ -78,7 +81,9 @@ class GitHubReleaseFlow:
         """
         repo = self.__get_repository(repo_url)
         latest_commit = repo.get_branch(self.__branch).commit
-        repo.create_git_tag(tag_name, message, latest_commit.sha, 'commit')
+        new_git_tag = repo.create_git_tag(
+            tag_name, message, latest_commit.sha, 'commit')
+        repo.create_git_ref(f'refs/tags/{new_git_tag.tag}', new_git_tag.sha)
 
         tags_dict = {tag.name: tag for tag in repo.get_tags()}
         tag = tags_dict.get(tag_name)
