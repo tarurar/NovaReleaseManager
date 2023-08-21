@@ -1,16 +1,16 @@
 """
-Nova status module
+Nova component type enum
 """
+
 from enum import IntEnum
 
 
-class Status(IntEnum):
-    """Nova status enum"""
+class NovaComponentType(IntEnum):
+    """Nova component type enum"""
 
     UNDEFINED = 0
-    IN_DEVELOPMENT = 1
-    READY_FOR_RELEASE = 2
-    DONE = 3
+    SERVICE = 1
+    PACKAGE = 2
 
     def __str__(self):
         return self.name

@@ -5,7 +5,7 @@ Jira utility helper function module.
 from typing import Optional
 from urllib.parse import urlparse
 
-import validators
+from validators import url
 from jira.resources import Issue
 
 from core.cvs import CodeRepository, GitCloudService
@@ -33,7 +33,7 @@ def parse_jira_cmp_descr(
     if not normalized_description.startswith("http"):
         normalized_description = "http://" + normalized_description
 
-    if validators.url(normalized_description):
+    if url(normalized_description):
         url_parse_result = urlparse(normalized_description)
         if "github" in url_parse_result.hostname:
             return GitCloudService.GITHUB, descr
