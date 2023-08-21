@@ -2,6 +2,8 @@
 Release repository module
 """
 
+from core.nova_component import NovaComponent
+from core.nova_component_type import NovaComponentType
 from core.nova_release import NovaRelease
 import jira_utils as ju
 from integration.jira import JiraIntegration
@@ -14,6 +16,22 @@ class NovaReleaseRepository:
 
     def __init__(self, jira: JiraIntegration) -> None:
         self.__ji = jira
+
+    def get_packages(self, project_code: str) -> list[NovaComponent]:
+        """
+        Loads a list of packages for a project
+
+        :param project_code: project code
+        :return: list of packages
+        """
+        packages = [
+            pkg
+            for cmp in self.__ji.get_components(project_code)
+            if (pkg := ju.parse_jira_component(cmp))
+            and pkg.ctype == NovaComponentType.PACKAGE
+        ]
+
+        return packages
 
     def get(
         self, project_code: str, version: str, delivery: str

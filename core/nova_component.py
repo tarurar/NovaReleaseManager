@@ -110,7 +110,7 @@ class NovaComponent:
 
     def __init__(self, name: str, repo: CodeRepository):
         self.__name = name
-        self.__type = parse_component_type(name)
+        self.__ctype = parse_component_type(name)
         self.__tasks = []
         self.repo = repo
         if len(self.__name) > NovaComponent.longest_component_name:
@@ -134,6 +134,11 @@ class NovaComponent:
     def tasks(self) -> list[NovaTask]:
         """Returns component tasks"""
         return self.__tasks
+
+    @property
+    def ctype(self) -> NovaComponentType:
+        """Returns component type"""
+        return self.__ctype
 
     def add_task(self, task: NovaTask):
         """Adds task to component"""
