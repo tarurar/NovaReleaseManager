@@ -96,7 +96,7 @@ def parse_component_type(name: str) -> NovaComponentType:
     if "client" in normalized_name:
         return NovaComponentType.PACKAGE
     if "library" in normalized_name:
-        return NovaComponentType.PACKAGE
+        return NovaComponentType.PACKAGE_LIBRARY
 
     return NovaComponentType.SERVICE
 

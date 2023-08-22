@@ -10,7 +10,7 @@ from github import Github
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from csv_utils import export_packages_to_csv
-from mappers import map_to_tag_info
+from mappers import is_package_tag, map_to_tag_info
 from release_manager import ReleaseManager
 from nova_release_repository import NovaReleaseRepository
 from integration.jira import JiraIntegration
@@ -133,13 +133,22 @@ if __name__ == "__main__":
         gi = GitIntegration()
         all_tags_info = []
         for package in packages:
-            package_tags = gi.list_tags(package.repo.url, args.since)
+            repo_all_tags = gi.list_tags(package.repo.url, args.since)
+
+            package_tags = list(
+                filter(
+                    lambda tag, pkg=package: is_package_tag(pkg, tag),
+                    repo_all_tags,
+                )
+            )
+
             package_tags_info = list(
                 map(
                     lambda tag, pkg=package: map_to_tag_info(pkg, tag),
                     package_tags,
                 )
             )
+
             package_tags_info_sorted = sorted(
                 package_tags_info,
                 key=lambda tag_info: tag_info["date"],

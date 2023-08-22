@@ -17,7 +17,7 @@
                 "--since",
                 "2023-07-12",
                 "--csv-output",
-                "output.csv"
+                "package-only-output.csv"
             ]
         }
     ]
