@@ -247,3 +247,8 @@ config.json
 
 # VSCode specific
 .vscode/**/settings.json
+
+# Excel files
+*.xlsx
+*.xls
+*.csv
