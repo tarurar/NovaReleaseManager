@@ -12,6 +12,7 @@ validators = "==0.20.0"
 github = "*"
 packaging = "*"
 pytest-cov = "*"
+argparse = "*"
 
 [dev-packages]
 autopep8 = "*"
