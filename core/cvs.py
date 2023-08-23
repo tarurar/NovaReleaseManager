@@ -6,6 +6,8 @@ class GitCloudService(Enum):
     """
     Git cloud service type
     """
+
+    UNDEFINED = 0
     GITHUB = 1
     BITBUCKET = 2
 

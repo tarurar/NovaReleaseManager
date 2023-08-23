@@ -86,8 +86,14 @@ def get_changelog_url(
 
 
 def parse_component_type(name: str) -> NovaComponentType:
-    """Parses component type from component name"""
-    if name is None:
+    """
+    Parses component type from component name.
+    By default it is a micro-service.
+
+    :param name: The component name.
+    :return: Component type.
+    """
+    if name is None or not name:
         return NovaComponentType.UNDEFINED
 
     normalized_name = name.lower()
@@ -181,6 +187,7 @@ class NovaComponent:
             )
         if self.repo.git_cloud == GitCloudService.BITBUCKET:
             return get_release_notes_bitbucket(self.__tasks)
+
         return ""
 
 
