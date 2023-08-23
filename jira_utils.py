@@ -103,28 +103,30 @@ def parse_jira_component(cmp: object) -> NovaComponent:
         raise ValueError("Component is None")
     if not hasattr(cmp, "name"):
         raise ValueError("Component has no name")
-    if cmp.name is None:
+    name = getattr(cmp, "name")
+    if name is None:
         raise ValueError("Component name is empty")
 
-    empty_component = NovaEmptyComponent.parse(cmp.name)
+    empty_component = NovaEmptyComponent.parse(name)
     if empty_component is not None:
         return empty_component
     if not hasattr(cmp, "description"):
-        raise ValueError(f"Component [{cmp.name}] has no description")
-    if cmp.description is None or cmp.description.strip() == "":
-        raise ValueError(f"Component [{cmp.name}] has empty description")
+        raise ValueError(f"Component [{name}] has no description")
+    description = getattr(cmp, "description")
+    if description is None or description.strip() == "":
+        raise ValueError(f"Component [{name}] has empty description")
 
-    cloud_service, repo_url = parse_jira_cmp_descr(cmp.description)
+    cloud_service, repo_url = parse_jira_cmp_descr(description)
     if cloud_service is None or repo_url is None:
         raise ValueError(
-            f"Component [{cmp.name}] has invalid description, "
+            f"Component [{name}] has invalid description, "
             f"expected to be in the following format: "
             f"Bitbucket: http(s)://bitbucket.org/<repo> or "
             f"GitHub: http(s)://github.com/<company>/<repo> or "
             f"just <company>/<repo>"
         )
 
-    return NovaComponent(cmp.name, CodeRepository(cloud_service, repo_url))
+    return NovaComponent(name, CodeRepository(cloud_service, repo_url))
 
 
 def filter_jira_issue(jira_issue, component_name) -> bool:

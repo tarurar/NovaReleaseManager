@@ -13,7 +13,7 @@ def get_release_status(component_statuses: list) -> Status:
     return min(component_statuses)
 
 
-class NovaRelease(object):
+class NovaRelease:
     """Nova release component, readonly model"""
 
     def __init__(self, project, version, delivery):
@@ -54,9 +54,7 @@ class NovaRelease(object):
 
     def get_status(self) -> Status:
         """Returns release status"""
-        statuses = list(
-            set([component.status for component in self.__components])
-        )
+        statuses = list({component.status for component in self.__components})
         return get_release_status(statuses)
 
     def describe_status(self) -> str:
@@ -68,9 +66,7 @@ class NovaRelease(object):
         text.append("Total: " + str(len(self.__components)) + " component(s)")
         text.append(
             "Total: "
-            + str(
-                sum([len(component.tasks) for component in self.__components])
-            )
+            + str(sum(len(component.tasks) for component in self.__components))
             + " task(s)"
         )
         text.append("Status: " + str(self.get_status()))

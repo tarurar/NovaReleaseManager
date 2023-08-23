@@ -7,41 +7,40 @@ from core.nova_status import Status
 class NovaTask:
     """Nova task"""
 
-    deployment_asterisk = '*'
+    deployment_asterisk = "*"
 
     @classmethod
     def map_jira_issue_status(cls, status):
         """Maps Jira issue status to Nova task status"""
         match status:
-            case 'Selected For Release':
-                return Status.READY_FOR_RELEASE
-            case 'Done':
-                return Status.DONE
-            case 'In Development':
-                return Status.IN_DEVELOPMENT
-            case 'Ready for UAT':
-                return Status.IN_DEVELOPMENT
-            case 'Ready for testing':
-                return Status.IN_DEVELOPMENT
-            case 'In Testing':
-                return Status.IN_DEVELOPMENT
-            case 'Ready for Review':
-                return Status.IN_DEVELOPMENT
-            case 'Open':
-                return Status.IN_DEVELOPMENT
+            case "Selected For Release":
+                result = Status.READY_FOR_RELEASE
+            case "Done":
+                result = Status.DONE
+            case "In Development":
+                result = Status.IN_DEVELOPMENT
+            case "Ready for UAT":
+                result = Status.IN_DEVELOPMENT
+            case "Ready for testing":
+                result = Status.IN_DEVELOPMENT
+            case "In Testing":
+                result = Status.IN_DEVELOPMENT
+            case "Ready for Review":
+                result = Status.IN_DEVELOPMENT
+            case "Open":
+                result = Status.IN_DEVELOPMENT
             case _:
-                return Status.UNDEFINED
+                result = Status.UNDEFINED
+
+        return result
 
     def __init__(
-            self,
-            name: str,
-            status: Status,
-            summary: str = '',
-            deployment: str = ''):
+        self, name: str, status: Status, summary: str = "", deployment: str = ""
+    ):
         if not name:
-            raise ValueError('Task name is not defined')
+            raise ValueError("Task name is not defined")
         if status is None:
-            raise ValueError('Task status is not defined')
+            raise ValueError("Task status is not defined")
 
         self.__name = name
         self.__status = status
@@ -71,9 +70,17 @@ class NovaTask:
     def get_release_notes(self) -> str:
         """Returns release notes for task"""
         key = self.__name.strip().upper()
-        summary = self.__summary.split(
-            ']')[-1].strip().lstrip('[').rstrip('.').strip().capitalize()
-        ending = '' if summary.endswith('.') else '.'
-        asterisk_or_not = NovaTask.deployment_asterisk if self.__deployment else ''
+        summary = (
+            self.__summary.split("]")[-1]
+            .strip()
+            .lstrip("[")
+            .rstrip(".")
+            .strip()
+            .capitalize()
+        )
+        ending = "" if summary.endswith(".") else "."
+        asterisk_or_not = (
+            NovaTask.deployment_asterisk if self.__deployment else ""
+        )
 
-        return f'{key}{asterisk_or_not}: {summary}{ending}'
+        return f"{key}{asterisk_or_not}: {summary}{ending}"
