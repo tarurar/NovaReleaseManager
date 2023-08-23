@@ -30,7 +30,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Run linter
       run: |
-        pip install -r requirements.txt ; pylint **/*.py
+        pylint **/*.py
     - name: Test with pytest
       run: |
         pytest
