@@ -10,6 +10,7 @@ from github import Github
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from csv_utils import export_packages_to_csv
+from integration.github import GitHubIntegration
 from mappers import is_package_tag, map_to_tag_info
 from release_manager import ReleaseManager
 from nova_release_repository import NovaReleaseRepository
@@ -88,7 +89,7 @@ if __name__ == "__main__":
 
         manager = ReleaseManager(
             ji,
-            Github(config["github"]["accessToken"]),
+            GitHubIntegration(Github(config["github"]["accessToken"])),
             GitIntegration(),
             config["textEditor"],
         )

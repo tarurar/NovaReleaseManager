@@ -14,10 +14,10 @@ import github_utils as gu
 from ui import console
 
 
-class GitHubReleaseFlow:
+class GitHubIntegration:
     """
     The class describes the component release flow for the
-    GitHub hosted repositories. Takes care of the GitHub API interaction.
+    GitHub hosted repositories. Takes care of the GitHub API integration.
     """
 
     def __init__(self, github: Github, branch: str = "master"):
@@ -108,7 +108,7 @@ class GitHubReleaseFlow:
         """
         Returns the Tag object selected by the user or autodetected
         from the repository. Autodetection takes the latest tag.
-        If user neither selects nor there is no tag in the repository,
+        If user neither selects one nor there is a tag in the repository,
         returns None.
 
         :param url: repository url
@@ -139,6 +139,9 @@ class GitHubReleaseFlow:
         :param component: NovaComponent object
         :return: GitRelease object or None
         """
+        if component.repo is None:
+            return None
+
         # get a tag for the git release
         tag = self.select_or_create_tag(component.repo.url, release.title)
         if tag is None:
@@ -146,7 +149,7 @@ class GitHubReleaseFlow:
 
         # get a tag for previous git release
         previous_tag = self.select_or_autodetect_tag(
-            component.repo.url, list(tag.name)
+            component.repo.url, exclude=list(tag.name)
         )
         if previous_tag is None:
             return None

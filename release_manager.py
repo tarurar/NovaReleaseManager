@@ -5,15 +5,13 @@ The release manager is responsible for managing the release process.
 import logging
 from subprocess import call
 
-from github import Github
-
 import fs_utils as fs
-from github_release_flow import GitHubReleaseFlow
 from core.cvs import GitCloudService
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
 from integration.git import GitIntegration
+from integration.github import GitHubIntegration
 from integration.jira import JiraIntegration
 import bitbucket_release_flow as bbrf
 
@@ -29,7 +27,7 @@ class ReleaseManager:
     def __init__(
         self,
         jira: JiraIntegration,
-        github_client: Github,
+        github_client: GitHubIntegration,
         git_client: GitIntegration,
         text_editor: str,
     ) -> None:
@@ -39,7 +37,7 @@ class ReleaseManager:
             if text_editor is not None
             else ReleaseManager.default_text_editor
         )
-        self.__gh_flow = GitHubReleaseFlow(github_client)
+        self.__gh = github_client
         self.__g = git_client
 
     def release_component(
@@ -73,7 +71,7 @@ class ReleaseManager:
             # to access bitbucket and to push into master
             self.release_component_bitbucket(release, component)
         elif component.repo.git_cloud == GitCloudService.GITHUB:
-            git_release = self.__gh_flow.create_git_release(release, component)
+            git_release = self.__gh.create_git_release(release, component)
             if git_release is None:
                 return "", ""
 
