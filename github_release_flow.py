@@ -13,9 +13,6 @@ from core.nova_release import NovaRelease
 import github_utils as gu
 from ui import console
 
-# todo: move this fiel into integration folder and rename to somewhat
-# like github_integration.py
-
 
 class GitHubReleaseFlow:
     """
@@ -41,19 +38,6 @@ class GitHubReleaseFlow:
             raise IOError(f"Could not find repository [{url}]")
 
         return repo
-
-    def tag_to_text(self, tag: Tag) -> str:
-        """
-        Creates a text representation of the tag.
-
-        :param tag: Tag object
-        :return: text representation of the tag
-        """
-        return (
-            f"{tag.name}"
-            f" @ {tag.commit.commit.last_modified}"
-            f"by {tag.commit.commit.author.name}"
-        )
 
     def get_repository_top_tags(
         self, url: str, tags_count: int = 5
@@ -106,7 +90,7 @@ class GitHubReleaseFlow:
         :return: Tag object or None
         """
         top_tags = self.get_repository_top_tags(url)
-        top_tag_names = list(map(self.tag_to_text, top_tags))
+        top_tag_names = list(map(gu.tag_to_text, top_tags))
 
         print("Please, choose a tag:")
         selected_index = console.choose_from_or_skip(top_tag_names)
@@ -132,7 +116,7 @@ class GitHubReleaseFlow:
         :return: Tag object or None
         """
         top_tags = self.get_repository_top_tags(url)
-        top_tag_names = list(map(self.tag_to_text, top_tags))
+        top_tag_names = list(map(gu.tag_to_text, top_tags))
 
         print("Please, choose a tag:")
         selected_index = console.choose_from_or_skip(top_tag_names)

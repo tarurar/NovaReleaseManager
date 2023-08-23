@@ -114,7 +114,7 @@ class NovaComponent:
 
     longest_component_name = 0
 
-    def __init__(self, name: str, repo: CodeRepository):
+    def __init__(self, name: str, repo: CodeRepository | None):
         self.__name = name
         self.__ctype = parse_component_type(name)
         self.__tasks = []
@@ -181,6 +181,9 @@ class NovaComponent:
 
     def get_release_notes(self, revision_from, revision_to) -> str:
         """Returns release notes for component"""
+        if self.repo is None:
+            return ""
+
         if self.repo.git_cloud == GitCloudService.GITHUB:
             return get_release_notes_github(
                 revision_from, revision_to, self.repo.url, self.__tasks

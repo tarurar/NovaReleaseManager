@@ -3,6 +3,9 @@ GitHub utility helper function module.
 """
 
 
+from github.Tag import Tag
+
+
 def get_github_compatible_repo_address(full_url: str) -> str:
     """
     Returns GitHub client compatible repository address.
@@ -16,3 +19,17 @@ def get_github_compatible_repo_address(full_url: str) -> str:
 
     chunks = normalized.split("/")
     return "/".join(chunks[1:])
+
+
+def tag_to_text(tag: Tag) -> str:
+    """
+    Creates a text representation of the tag.
+
+    :param tag: Tag object
+    :return: text representation of the tag
+    """
+    return (
+        f"{tag.name}"
+        f" @ {tag.commit.commit.last_modified}"
+        f"by {tag.commit.commit.author.name}"
+    )
