@@ -65,6 +65,11 @@ class ReleaseManager:
                 f"Component [{component.name}] is not ready for release"
             )
 
+        if component.repo is None:
+            raise ValueError(
+                f"Component [{component.name}] does not have repository"
+            )
+
         git_release = None
         if component.repo.git_cloud == GitCloudService.BITBUCKET:
             # todo: git cli has to be installed and configured
@@ -104,6 +109,9 @@ class ReleaseManager:
         component: NovaComponent,
         is_hotix: bool = False,
     ):
+        if component.repo is None:
+            raise ValueError("Component does not have repository")
+
         print(f"Cloning repository from url [{component.repo.url}]...")
         sources_dir = self.__g.clone(component.repo.url)
         print(f"Cloned repository into [{sources_dir}]")
