@@ -23,7 +23,7 @@ class NovaRelease(object):
         self.__components: list[NovaComponent] = []
 
     def __str__(self):
-        return 'Nova ' + str(self.version) + ". Delivery " + str(self.delivery)
+        return "Nova " + str(self.version) + ". Delivery " + str(self.delivery)
 
     def __repr__(self):
         return self.__str__()
@@ -54,42 +54,50 @@ class NovaRelease(object):
 
     def get_status(self) -> Status:
         """Returns release status"""
-        statuses = list(set([component.status
-                        for component in self.__components]))
+        statuses = list(
+            set([component.status for component in self.__components])
+        )
         return get_release_status(statuses)
 
     def describe_status(self) -> str:
         """Returns release status description"""
-        text = [str(self), '*' * len(str(self))]
+        text = [str(self), "*" * len(str(self))]
         for component in self.__components:
             text.append(component.describe_status())
-        text.append('*' * len(str(self)))
-        text.append('Total: ' + str(len(self.__components)) + ' component(s)')
-        text.append('Total: ' + str(sum([len(component.tasks)
-                    for component in self.__components])) + ' task(s)')
-        text.append('Status: ' + str(self.get_status()))
-        return '\n'.join(text)
+        text.append("*" * len(str(self)))
+        text.append("Total: " + str(len(self.__components)) + " component(s)")
+        text.append(
+            "Total: "
+            + str(
+                sum([len(component.tasks) for component in self.__components])
+            )
+            + " task(s)"
+        )
+        text.append("Status: " + str(self.get_status()))
+        return "\n".join(text)
 
     def get_component_by_name(self, name: str) -> Optional[NovaComponent]:
         """Returns component by name
 
-        :param str name: Component name. If name ends with '!' then search 
+        :param str name: Component name. If name ends with '!' then search
             will use strict equality, otherwise it will use 'in' operator.
             In any case search is case insensitive.
         """
-        if name.endswith('!'):
+        if name.endswith("!"):
             name = name[:-1]
             if not name:
                 return None
             target_components = [
-                c for c in self.__components if name.lower() == c.name.lower()]
+                c for c in self.__components if name.lower() == c.name.lower()
+            ]
         else:
             target_components = [
-                c for c in self.__components if name.lower() in c.name.lower()]
+                c for c in self.__components if name.lower() in c.name.lower()
+            ]
         if not target_components:
             return None
         if len(target_components) > 1:
-            raise ValueError('More than one component with same name found')
+            raise ValueError("More than one component with same name found")
         return target_components[0]
 
     def can_release_version(self) -> bool:

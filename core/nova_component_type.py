@@ -9,6 +9,7 @@ class NovaComponentType(IntEnum):
     """Nova component type enum"""
 
     UNDEFINED = 0
+
     """Micro-service"""
     SERVICE = 1
 
