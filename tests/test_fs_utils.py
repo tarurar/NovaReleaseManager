@@ -4,6 +4,7 @@ File system helper function tests
 
 import tempfile
 import os
+import shutil
 import pytest
 import fs_utils as fs
 
@@ -15,50 +16,50 @@ def read_file(file_path):
 
 @pytest.fixture(name="create_test_files")
 def fixture_create_test_files():
-    root_dir = tempfile.TemporaryDirectory()
-    sub_dir = os.path.join(root_dir.name, "subdir")
-    os.mkdir(sub_dir)
-    file_path = os.path.join(sub_dir, "test_file.txt")
-    with open(file_path, "w", encoding="utf-8") as file_handle:
-        file_handle.write("test")
-    yield root_dir.name, sub_dir, file_path
-    root_dir.cleanup()
+    with tempfile.TemporaryDirectory() as root_dir:
+        sub_dir = os.path.join(root_dir, "subdir")
+        os.mkdir(sub_dir)
+        file_path = os.path.join(sub_dir, "test_file.txt")
+        with open(file_path, "w", encoding="utf-8") as file_handle:
+            file_handle.write("test")
+        yield root_dir, sub_dir, file_path
+        shutil.rmtree(root_dir)
 
 
 @pytest.fixture(name="create_test_files_ext")
 def fixture_create_test_files_ext():
-    root_dir = tempfile.TemporaryDirectory()
-    sub_dir = os.path.join(root_dir.name, "subdir")
-    os.mkdir(sub_dir)
-    file_path_1 = os.path.join(sub_dir, "test_file_1.txt")
-    with open(file_path_1, "w", encoding="utf-8") as file_handle:
-        file_handle.write("test")
-    file_path_2 = os.path.join(sub_dir, "test_file_2.doc")
-    with open(file_path_2, "w", encoding="utf-8") as file_handle:
-        file_handle.write("test")
-    file_path_3 = os.path.join(sub_dir, "test_file_3.txt")
-    with open(file_path_3, "w", encoding="utf-8") as file_handle:
-        file_handle.write("test")
-    yield root_dir.name, sub_dir, file_path_1, file_path_2, file_path_3
-    root_dir.cleanup()
+    with tempfile.TemporaryDirectory() as root_dir:
+        sub_dir = os.path.join(root_dir, "subdir")
+        os.mkdir(sub_dir)
+        file_path_1 = os.path.join(sub_dir, "test_file_1.txt")
+        with open(file_path_1, "w", encoding="utf-8") as file_handle:
+            file_handle.write("test")
+        file_path_2 = os.path.join(sub_dir, "test_file_2.doc")
+        with open(file_path_2, "w", encoding="utf-8") as file_handle:
+            file_handle.write("test")
+        file_path_3 = os.path.join(sub_dir, "test_file_3.txt")
+        with open(file_path_3, "w", encoding="utf-8") as file_handle:
+            file_handle.write("test")
+        yield root_dir, sub_dir, file_path_1, file_path_2, file_path_3
+        shutil.rmtree(root_dir)
 
 
 @pytest.fixture(name="create_test_files_content")
 def fixture_create_test_files_content():
-    root_dir = tempfile.TemporaryDirectory()
-    file_path_1 = os.path.join(root_dir.name, "test_file_1.txt")
-    with open(file_path_1, "w", encoding="utf-8") as file_handle:
-        file_handle.write("this is a test\nline 2\nline 3")
-    file_path_2 = os.path.join(root_dir.name, "test_file_2.txt")
-    with open(file_path_2, "w", encoding="utf-8") as file_handle:
-        file_handle.write(
-            "another test\nwith some example text\nand more lines"
-        )
-    file_path_3 = os.path.join(root_dir.name, "test_file_3.txt")
-    with open(file_path_3, "w", encoding="utf-8") as file_handle:
-        file_handle.write("no matches\nin this file")
-    yield [file_path_1, file_path_2, file_path_3], root_dir.name
-    root_dir.cleanup()
+    with tempfile.TemporaryDirectory() as root_dir:
+        file_path_1 = os.path.join(root_dir, "test_file_1.txt")
+        with open(file_path_1, "w", encoding="utf-8") as file_handle:
+            file_handle.write("this is a test\nline 2\nline 3")
+        file_path_2 = os.path.join(root_dir, "test_file_2.txt")
+        with open(file_path_2, "w", encoding="utf-8") as file_handle:
+            file_handle.write(
+                "another test\nwith some example text\nand more lines"
+            )
+        file_path_3 = os.path.join(root_dir, "test_file_3.txt")
+        with open(file_path_3, "w", encoding="utf-8") as file_handle:
+            file_handle.write("no matches\nin this file")
+        yield [file_path_1, file_path_2, file_path_3], root_dir
+        shutil.rmtree(root_dir)
 
 
 def test_search_file_found(create_test_files):
