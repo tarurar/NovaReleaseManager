@@ -1,0 +1,5 @@
+[tool.coverage.run]
+source = ["."]
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report=lcov:lcov.info --cov-report=term"
