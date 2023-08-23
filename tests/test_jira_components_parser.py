@@ -1,31 +1,10 @@
 """
 Jira issues parser tests
 """
+from collections import namedtuple
 import pytest
 from jira_utils import parse_jira_component
 from core.nova_component import NovaComponent, NovaEmptyComponent
-
-
-class MockedComponent:
-    """Mock Jira component"""
-
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
-
-
-class MockedNamelessComponent:
-    """Mock nameless Jira component"""
-
-    def __init__(self, description):
-        self.description = description
-
-
-class MockedDescriptionlessComponent:
-    """Mock descriptionless Jira component"""
-
-    def __init__(self, name):
-        self.name = name
 
 
 def test_when_empty_component_provided():
@@ -34,13 +13,14 @@ def test_when_empty_component_provided():
 
 
 def test_when_component_has_no_description():
-    component = MockedComponent("component name", None)
+    component = {"name": "component name", "description": None}
     with pytest.raises(ValueError):
         parse_jira_component(component)
 
 
 def test_when_component_has_no_description_attr():
-    component = MockedDescriptionlessComponent("component name")
+    FakeComponent = namedtuple("FakeComponent", ["name"])
+    component = FakeComponent("component name")
     with pytest.raises(ValueError) as excinfo:
         parse_jira_component(component)
 
@@ -48,13 +28,13 @@ def test_when_component_has_no_description_attr():
 
 
 def test_when_component_has_no_name():
-    component = MockedComponent(None, "component description")
+    component = {"name": None, "description": "component description"}
     with pytest.raises(ValueError):
         parse_jira_component(component)
 
 
 def test_when_component_has_no_name_attr():
-    component = MockedNamelessComponent("component description")
+    component = {"description": "component description"}
     with pytest.raises(ValueError) as excinfo:
         parse_jira_component(component)
 
@@ -62,13 +42,14 @@ def test_when_component_has_no_name_attr():
 
 
 def test_when_component_has_invalid_description():
-    component = MockedComponent("component name", "invalid description")
+    component = {"name": "component name", "description": "invalid description"}
     with pytest.raises(ValueError):
         parse_jira_component(component)
 
 
 def test_when_component_is_valid():
-    component = MockedComponent(
+    FakeComponent = namedtuple("FakeComponent", ["name", "description"])
+    component = FakeComponent(
         "component name", "http://github.com/company/project"
     )
     result = parse_jira_component(component)
@@ -91,7 +72,8 @@ def test_when_component_is_valid():
     ],
 )
 def test_when_component_is_named_na(component_name):
-    component = MockedComponent(component_name, "")
+    FakeComponent = namedtuple("FakeComponent", ["name", "description"])
+    component = FakeComponent(component_name, "")
     result = parse_jira_component(component)
     assert isinstance(result, NovaEmptyComponent)
     assert result.name == NovaEmptyComponent.default_component_name
