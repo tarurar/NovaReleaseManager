@@ -9,8 +9,8 @@ from integration.github import GitHubIntegration
 # region Fake input fixtures
 
 
-@pytest.fixture(name="fake_input_new_tag_values")
-def fixture_fake_input_new_tag_values():
+@pytest.fixture(name="input_new_tag_values")
+def fixture_input_new_tag_values():
     """
     The sequence of inputs emulates the following user actions:
     1. Empty input to skip tag selection from existing tags.
@@ -20,12 +20,18 @@ def fixture_fake_input_new_tag_values():
     return iter(inputs)
 
 
-@pytest.fixture(name="fake_input_new_tag_func")
-def fixture_fake_input_new_tag_func(fake_input_new_tag_values):
-    def fake_input_new_tag(_):
-        return next(fake_input_new_tag_values)
+@pytest.fixture(name="input_new_tag")
+def fixture_input_new_tag(input_new_tag_values):
+    """
+    This fixture returns a function which emulates user input.
+    Separate fixture is needed to avoid reusing the same iterator
+    for all tests.
+    """
 
-    return fake_input_new_tag
+    def input_new_tag(_):
+        return next(input_new_tag_values)
+
+    return input_new_tag
 
 
 @pytest.fixture(name="fake_input_cancel_values")

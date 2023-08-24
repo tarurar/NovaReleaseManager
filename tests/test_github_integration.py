@@ -43,9 +43,9 @@ def test_select_or_create_tag_returns_existing_tag(
 
 
 def test_select_or_create_tag_returns_created_tag(
-    monkeypatch, integration: GitHubIntegration, fake_input_new_tag_func
+    monkeypatch, integration: GitHubIntegration, input_new_tag
 ):
-    monkeypatch.setattr("builtins.input", fake_input_new_tag_func)
+    monkeypatch.setattr("builtins.input", input_new_tag)
     tag = integration.select_or_create_tag("repo_url", "message")
 
     assert tag
