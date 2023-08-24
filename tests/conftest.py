@@ -34,8 +34,8 @@ def fixture_input_new_tag(input_new_tag_values):
     return input_new_tag
 
 
-@pytest.fixture(name="fake_input_cancel_values")
-def fixture_fake_input_cancel_values():
+@pytest.fixture(name="input_cancel_values")
+def fixture_input_cancel_values():
     """
     The sequence of inputs emulates the following user actions:
     1. Empty input to skip tag selection from existing tags.
@@ -45,16 +45,16 @@ def fixture_fake_input_cancel_values():
     return iter(inputs)
 
 
-@pytest.fixture(name="fake_input_cancel_func")
-def fixture_fake_input_cancel_func(fake_input_cancel_values):
-    def fake_input_cancel(_):
-        return next(fake_input_cancel_values)
+@pytest.fixture(name="input_cancel")
+def fixture_input_cancel(input_cancel_values):
+    def input_cancel(_):
+        return next(input_cancel_values)
 
-    return fake_input_cancel
+    return input_cancel
 
 
-@pytest.fixture(name="fake_input_second_tag_cancel_values")
-def fixture_fake_input_second_tag_cancel_values():
+@pytest.fixture(name="input_second_tag_cancel_values")
+def fixture_input_second_tag_cancel_values():
     """
     The sequence of inputs emulates the following user actions:
     1. Select the first tag from the list of existing tags.
@@ -64,18 +64,18 @@ def fixture_fake_input_second_tag_cancel_values():
     return iter(inputs)
 
 
-@pytest.fixture(name="fake_input_second_tag_cancel_func")
-def fixture_fake_input_second_tag_cancel_func(
-    fake_input_second_tag_cancel_values,
+@pytest.fixture(name="input_second_tag_cancel")
+def fixture_input_second_tag_cancel(
+    input_second_tag_cancel_values,
 ):
-    def fake_input_second_tag_cancel(_):
-        return next(fake_input_second_tag_cancel_values)
+    def input_second_tag_cancel(_):
+        return next(input_second_tag_cancel_values)
 
-    return fake_input_second_tag_cancel
+    return input_second_tag_cancel
 
 
-@pytest.fixture(name="fake_input_both_tags_values")
-def fixture_fake_input_both_tags_values():
+@pytest.fixture(name="input_all_tag_values")
+def fixture_input_all_tag_values():
     """
     The sequence of inputs emulates the following user actions:
     1. Select the first tag from the list of existing tags.
@@ -85,12 +85,12 @@ def fixture_fake_input_both_tags_values():
     return iter(inputs)
 
 
-@pytest.fixture(name="fake_input_both_tags_func")
-def fixture_fake_input_both_tags_func(fake_input_both_tags_values):
-    def fake_input_both_tags(_):
-        return next(fake_input_both_tags_values)
+@pytest.fixture(name="input_all_tags")
+def fixture_input_all_tags(input_all_tag_values):
+    def input_all_tags(_):
+        return next(input_all_tag_values)
 
-    return fake_input_both_tags
+    return input_all_tags
 
 
 # endregion

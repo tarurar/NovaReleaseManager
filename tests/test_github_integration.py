@@ -53,9 +53,9 @@ def test_select_or_create_tag_returns_created_tag(
 
 
 def test_select_or_create_tag_returns_none(
-    monkeypatch, integration: GitHubIntegration, fake_input_cancel_func
+    monkeypatch, integration: GitHubIntegration, input_cancel
 ):
-    monkeypatch.setattr("builtins.input", fake_input_cancel_func)
+    monkeypatch.setattr("builtins.input", input_cancel)
     tag = integration.select_or_create_tag("repo_url", "message")
 
     assert tag is None
@@ -97,9 +97,9 @@ def test_select_or_autodetect_returns_autodetected_tag(
 
 
 def test_create_git_release_if_tag_not_selected_returns_none(
-    monkeypatch, integration: GitHubIntegration, fake_input_cancel_func
+    monkeypatch, integration: GitHubIntegration, input_cancel
 ):
-    monkeypatch.setattr("builtins.input", fake_input_cancel_func)
+    monkeypatch.setattr("builtins.input", input_cancel)
     release = integration.create_git_release(
         NovaRelease("project", "version", "delivery"),
         NovaComponent("component", CodeRepository(GitCloudService.GITHUB, "")),
@@ -112,7 +112,7 @@ def test_create_git_release_if_tag_not_selected_returns_none(
 def test_create_git_release_if_previous_tag_not_selected_returns_none(
     monkeypatch,
     integration: GitHubIntegration,
-    fake_input_second_tag_cancel_func,
+    input_second_tag_cancel,
 ):
     """
     Here the original FakeConfig fixture is replaced with the one that provides
@@ -121,7 +121,7 @@ def test_create_git_release_if_previous_tag_not_selected_returns_none(
     Autoselection of the second tag is not possible in this case. So, the
     create_git_release() method should return None.
     """
-    monkeypatch.setattr("builtins.input", fake_input_second_tag_cancel_func)
+    monkeypatch.setattr("builtins.input", input_second_tag_cancel)
     release = integration.create_git_release(
         NovaRelease("project", "version", "delivery"),
         NovaComponent("component", CodeRepository(GitCloudService.GITHUB, "")),
@@ -134,7 +134,7 @@ def test_create_git_release_if_previous_tag_not_selected_returns_none(
     "fake_config", [FakeConfig(create_release=False)], indirect=True
 )
 def test_create_git_release_raises_exception_if_release_not_created(
-    monkeypatch, integration: GitHubIntegration, fake_input_both_tags_func
+    monkeypatch, integration: GitHubIntegration, input_all_tags
 ):
     """
     Here the original FakeConfig fixture is replaced with the one that
@@ -142,7 +142,7 @@ def test_create_git_release_raises_exception_if_release_not_created(
     when the user selects two tags and the release is not created for some
     reason. The create_git_release() method should raise an exception.
     """
-    monkeypatch.setattr("builtins.input", fake_input_both_tags_func)
+    monkeypatch.setattr("builtins.input", input_all_tags)
     with pytest.raises(IOError):
         integration.create_git_release(
             NovaRelease("project", "version", "delivery"),
