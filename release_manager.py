@@ -19,9 +19,6 @@ import bitbucket_release_flow as bbrf
 class ReleaseManager:
     """The release manager is responsible for managing the release process."""
 
-    # todo: add dependent client packages update validation.
-    # Common issue: package updated but not mentioned in release notes
-
     default_text_editor = "vim"
 
     def __init__(
@@ -40,6 +37,7 @@ class ReleaseManager:
         self.__gh = github_client
         self.__g = git_client
 
+    # pylint: disable=too-many-branches
     def release_component(
         self, release: NovaRelease, component: NovaComponent
     ) -> tuple[str, str]:
@@ -72,8 +70,6 @@ class ReleaseManager:
 
         git_release = None
         if component.repo.git_cloud == GitCloudService.BITBUCKET:
-            # todo: git cli has to be installed and configured
-            # to access bitbucket and to push into master
             self.release_component_bitbucket(release, component)
         elif component.repo.git_cloud == GitCloudService.GITHUB:
             git_release = self.__gh.create_git_release(release, component)
@@ -94,14 +90,13 @@ class ReleaseManager:
 
         if component.repo.git_cloud == GitCloudService.BITBUCKET:
             return "Bitbucket tag to be", "Bitbucket tag url to be"
-        elif component.repo.git_cloud == GitCloudService.GITHUB:
+        if component.repo.git_cloud == GitCloudService.GITHUB:
             if git_release is None:
                 raise IOError("Could not create release")
             return git_release.tag_name, git_release.html_url
-        else:
-            raise ValueError(
-                f"Unknown git cloud service {component.repo.git_cloud}"
-            )
+        raise ValueError(
+            f"Unknown git cloud service {component.repo.git_cloud}"
+        )
 
     def release_component_bitbucket(
         self,
@@ -122,8 +117,6 @@ class ReleaseManager:
             parsed_version = bbrf.parse_version_from_changelog(changelog_path)
             new_version = bbrf.increase_version(parsed_version, is_hotix)
 
-            # todo: add deployment section if there is any jira task with
-            # deployment comment
             release_notes_title = bbrf.build_release_title_md(
                 release, new_version
             )
@@ -139,8 +132,6 @@ class ReleaseManager:
             )
             bbrf.update_solution_version(sources_dir, new_version)
 
-            # commit changes
-            # todo: add only csproj and changelog files
             self.__g.commit(sources_dir, f"Version {str(new_version)}")
             tag_name = f"nova-{str(new_version)}"
             self.__g.tag(sources_dir, tag_name, f"Version {tag_name} release")

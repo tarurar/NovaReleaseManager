@@ -22,14 +22,10 @@ from ui.console import preview_component_release
 def choose_component_from_release(rel: NovaRelease) -> Optional[NovaComponent]:
     """Choose component from release"""
     print("\n")
-    print(
-        "Please note, by default 'contains' rule will be used for component selection"
-    )
-    print(
-        "If you want to use strict equality rule, please, add '!' sign to the end of component name"
-    )
+    print("Please note, 'contains' rule will be used for component selection")
+    print("To use strict equality, please add '!' sign to the end of name")
     component_name = input(
-        "Please, select component to release or press 'q' (you can specify name partially): "
+        "Please, select component or press 'q' (partial name supported): "
     )
     if component_name == "q":
         return None
@@ -57,14 +53,20 @@ if __name__ == "__main__":
         "--since",
         type=str,
         required=False,
-        help="The date to start listing packages from. Format: YYYY-MM-DD. Applicable only for 'list-packages' command",
+        help="""
+        The date to start listing packages from. Format: YYYY-MM-DD. 
+        Applicable only for 'list-packages' command.
+        """,
     )
 
     parser.add_argument(
         "--csv-output",
         type=str,
         required=False,
-        help="The path to CSV file to output the result. Applicable only for 'list-packages' command",
+        help="""
+        The path to CSV file to output the result. 
+        Applicable only for 'list-packages' command.
+        """,
     )
 
     args = parser.parse_args()
@@ -111,9 +113,7 @@ if __name__ == "__main__":
             if release_component_decision == "n":
                 continue
             tag, url = manager.release_component(release, component)
-            print(
-                f"Component [{component.name}] released, tag: [{tag}], url: [{url}]"
-            )
+            print(f"[{component.name}] released, tag: [{tag}], url: [{url}]")
 
             if release.can_release_version():
                 release_version_decision = input(
@@ -121,19 +121,21 @@ if __name__ == "__main__":
                     + "Do you want to release version [Y/n]?"
                 )
                 if release_version_decision == "Y":
-                    job_done = release_repository.set_released(release)
-                    if job_done:
+                    if release_repository.set_released(release):
                         print(
-                            f"Version [{release.title}] has been successfully released"
+                            f"[{release.title}] has been successfully released"
                         )
                         break
-                    print(f"Version [{release.title}] has not been released")
+                    print(f"[{release.title}] has not been released")
 
     if args.command == "list-packages":
         packages = release_repository.get_packages(config["jira"]["project"])
         gi = GitIntegration()
         all_tags_info = []
         for package in packages:
+            if package.repo is None:
+                continue
+
             repo_all_tags = gi.list_tags(package.repo.url, args.since)
 
             package_tags = list(

@@ -4,87 +4,85 @@ Module for fake classes used in tests.
 
 
 from datetime import date
+from dataclasses import dataclass
 
 
+@dataclass
 class FakeConfig:
     """Configuration object for fakes"""
 
-    def __init__(self, tags_count: int = 5, create_release: bool = True):
-        """
-        :param tags_count: number of fake tags to create
-        :param create_release: whether to create a fake release
-        """
-        if tags_count < 1:
+    tags_count: int = 5
+    create_release: bool = True
+
+    def __post_init__(self):
+        if self.tags_count < 1:
             raise ValueError("Tags count must be greater than zero")
 
-        self.tags_count = tags_count
-        self.create_release = create_release
 
-
+@dataclass
 class FakeGitHub:
     """Fake GitHub API client."""
 
-    def __init__(self, config: FakeConfig):
-        self.__config = config
+    config: FakeConfig
 
     def get_repo(self, _):
-        return FakeRepository(self.__config)
+        return FakeRepository(self.config)
 
 
+@dataclass
 class FakeGitTag:
     """Fake GitHub tag."""
 
-    def __init__(self, tag: str, sha: str):
-        self.tag = tag
-        self.sha = sha
+    tag: str
+    sha: str
 
 
+@dataclass
 class FakeGitAuthor:
     """Fake GitHub author."""
 
-    def __init__(self, name: str):
-        self.name = name
+    name: str
 
 
+@dataclass
 class FakeGitCommit:
     """Fake GitHub commit."""
 
-    def __init__(self, last_modified: str, author: FakeGitAuthor):
-        self.last_modified = last_modified
-        self.author = author
+    last_modified: str
+    author: FakeGitAuthor
 
 
+@dataclass
 class FakeCommit:
     """Fake GitHub commit."""
 
-    def __init__(self, commit: FakeGitCommit):
-        self.commit = commit
-        self.sha = "fake_sha"
+    commit: FakeGitCommit
+    sha: str = "fake_sha"
 
 
+@dataclass
 class FakeTag:
     """Fake GitHub tag."""
 
-    def __init__(self, name: str, commit: FakeCommit):
-        self.name = name
-        self.commit = commit
+    name: str
+    commit: FakeCommit
 
 
+@dataclass
 class FakeBranch:
     """Fake GitHub branch."""
 
-    def __init__(self, commit: FakeCommit, branch_name: str):
-        self.commit = commit
-        self.branch = branch_name
+    commit: FakeCommit
+    branch: str
 
 
+@dataclass
 class FakeGitRelease:
     """Fake GitHub release."""
 
-    def __init__(self, tag: str, name: str, message: str):
-        self.tag = tag
-        self.name = name
-        self.message = message
+    tag: str
+    name: str
+    message: str
 
 
 class FakeRepository:
@@ -117,7 +115,8 @@ class FakeRepository:
             FakeCommit(FakeGitCommit("", FakeGitAuthor(""))), branch
         )
 
-    def create_git_tag(self, tag_name, _, sha, tag_type) -> FakeGitTag:
+    # pylint: disable=unused-argument
+    def create_git_tag(self, tag_name, message, sha, tag_type) -> FakeGitTag:
         self.__tags.append(
             FakeTag(tag_name, FakeCommit(FakeGitCommit("", FakeGitAuthor(""))))
         )
