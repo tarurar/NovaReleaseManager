@@ -2,6 +2,7 @@
 Text helper functions
 """
 
+from datetime import datetime
 from typing import Optional
 from packaging.version import Version
 
@@ -42,3 +43,27 @@ def next_version(version: Version, is_hotfix: bool = False) -> Version:
     micro = version.micro + 1 if is_hotfix else 0
 
     return Version(f"{major}.{minor}.{micro}")
+
+
+def build_release_title_md(release_title: str, version: str) -> str:
+    """
+    Builds the release title in markdown format.
+
+    :param release_title: release title string
+    :param version: version string
+    :return: release title in markdown format
+    """
+    release_title = release_title.strip()
+    if not release_title:
+        raise ValueError("Release title is not specified")
+
+    version = version.strip()
+    if not version:
+        raise ValueError("Version is not specified")
+
+    timestamp_str = datetime.utcnow().strftime("%B %d, %Y")
+
+    title = f"{version} - {release_title} ({timestamp_str})"
+    title_md = f"## {title}"
+
+    return title_md

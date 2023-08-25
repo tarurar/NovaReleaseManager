@@ -3,9 +3,7 @@ The module describes the component release flow for the
 Bitbucket hosted repositories.
 """
 
-from datetime import datetime
 from packaging.version import InvalidVersion, Version, parse
-from core.nova_release import NovaRelease
 import fs_utils as fs
 
 
@@ -30,30 +28,6 @@ def parse_version_from_changelog(changelog_path: str) -> Version:
             f"Could not parse version from {changelog_path},"
             + " it should be in PEP 440 format"
         ) from ex
-
-
-def build_release_title_md(release: NovaRelease, version: Version) -> str:
-    """
-    Builds the release title in markdown format.
-
-    :param release: release
-    :param version: version
-    :return: release title
-    """
-    if version is None:
-        raise ValueError("Version is not specified")
-
-    if release is None:
-        raise ValueError("Release is not specified")
-
-    version_str = str(version)
-    release_str = release.title
-    timestamp_str = datetime.utcnow().strftime("%B %d, %Y")
-
-    title = f"{version_str} {release_str} ({timestamp_str})"
-    title_md = f"## {title}"
-
-    return title_md
 
 
 def insert_release_notes(changelog_path: str, release_notes: str):

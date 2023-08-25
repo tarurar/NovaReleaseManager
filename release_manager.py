@@ -118,8 +118,8 @@ class ReleaseManager:
             parsed_version = bb.parse_version_from_changelog(changelog_path)
             new_version = txt.next_version(parsed_version, is_hotix)
 
-            release_notes_title = bb.build_release_title_md(
-                release, new_version
+            release_notes_title = txt.build_release_title_md(
+                release.title, str(new_version)
             )
             component_notes = component.get_release_notes(None, None)
             release_notes = release_notes_title + "\n" + component_notes
