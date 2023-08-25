@@ -3,11 +3,11 @@ Text helper functions tests
 """
 
 import pytest
-import text_utils as txt
 from packaging.version import Version
+import text_utils as txt
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(˝
     "line, expected_version",
     [
         ("## 1.0.0 nova 2 delivery version", "1.0.0"),
