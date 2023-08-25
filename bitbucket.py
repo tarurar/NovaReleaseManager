@@ -32,24 +32,6 @@ def parse_version_from_changelog(changelog_path: str) -> Version:
         ) from ex
 
 
-def increase_version(version: Version, is_hotfix: bool = False) -> Version:
-    """
-    Increases the version.
-
-    :param version: version to increase
-    :param is_hotfix: is hotfix
-    :return: increased version
-    """
-    if version is None:
-        raise ValueError("Version is not specified")
-
-    major = version.major
-    minor = version.minor if is_hotfix else version.minor + 1
-    micro = version.micro + 1 if is_hotfix else 0
-
-    return Version(f"{major}.{minor}.{micro}")
-
-
 def build_release_title_md(release: NovaRelease, version: Version) -> str:
     """
     Builds the release title in markdown format.

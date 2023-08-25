@@ -13,7 +13,8 @@ from core.nova_status import Status
 from integration.git import GitIntegration
 from integration.gh import GitHubIntegration
 from integration.jira import JiraIntegration
-import bitbucket_release_flow as bbrf
+import text_utils as txt
+import bitbucket as bb
 
 
 class ReleaseManager:
@@ -114,15 +115,15 @@ class ReleaseManager:
             changelog_path = fs.search_changelog(sources_dir)
             if changelog_path is None:
                 raise FileNotFoundError("Change log file not found")
-            parsed_version = bbrf.parse_version_from_changelog(changelog_path)
-            new_version = bbrf.increase_version(parsed_version, is_hotix)
+            parsed_version = bb.parse_version_from_changelog(changelog_path)
+            new_version = txt.next_version(parsed_version, is_hotix)
 
-            release_notes_title = bbrf.build_release_title_md(
+            release_notes_title = bb.build_release_title_md(
                 release, new_version
             )
             component_notes = component.get_release_notes(None, None)
             release_notes = release_notes_title + "\n" + component_notes
-            bbrf.insert_release_notes(changelog_path, release_notes)
+            bb.insert_release_notes(changelog_path, release_notes)
 
             # open external editor to edit release notes
             call([self.__text_editor, changelog_path])
@@ -130,7 +131,7 @@ class ReleaseManager:
                 "Press Enter to continue when you are done"
                 + " with editing file in external editor ..."
             )
-            bbrf.update_solution_version(sources_dir, new_version)
+            bb.update_solution_version(sources_dir, new_version)
 
             self.__g.commit(sources_dir, f"Version {str(new_version)}")
             tag_name = f"nova-{str(new_version)}"
