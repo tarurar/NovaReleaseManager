@@ -11,7 +11,7 @@ from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
 from integration.git import GitIntegration
-from integration.github import GitHubIntegration
+from integration.gh import GitHubIntegration
 from integration.jira import JiraIntegration
 import bitbucket_release_flow as bbrf
 

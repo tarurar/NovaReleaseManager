@@ -6,7 +6,7 @@ import pytest
 from core.cvs import CodeRepository, GitCloudService
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
-from integration.github import GitHubIntegration
+from integration.gh import GitHubIntegration
 from tests.fakes import FakeConfig
 
 

@@ -10,12 +10,12 @@ from github import Github
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from csv_utils import export_packages_to_csv
-from integration.github import GitHubIntegration
+from integration.gh import GitHubIntegration
+from integration.jira import JiraIntegration
+from integration.git import GitIntegration
 from mappers import is_package_tag, map_to_tag_info
 from release_manager import ReleaseManager
 from nova_release_repository import NovaReleaseRepository
-from integration.jira import JiraIntegration
-from integration.git import GitIntegration
 from ui.console import preview_component_release
 
 

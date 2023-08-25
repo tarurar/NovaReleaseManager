@@ -4,7 +4,7 @@ This module contains fixtures for the tests.
 
 import pytest
 from tests.fakes import FakeConfig, FakeGitHub
-from integration.github import GitHubIntegration
+from integration.gh import GitHubIntegration
 
 # region Fake input fixtures
 
