@@ -2,6 +2,7 @@
 Test GitHub integration module.
 """
 
+from unittest.mock import Mock
 import pytest
 from core.cvs import CodeRepository, GitCloudService
 from core.nova_component import NovaComponent
@@ -11,6 +12,13 @@ from core.nova_task import NovaTask
 from integration.gh import GitHubIntegration
 from tests.fakes import FakeConfig
 from workers.github_worker import GitHubReleaseWorker
+
+
+@pytest.fixture(name="mock_config")
+def fixture_mock_config():
+    mock_config = Mock()
+    mock_config.data = {"textEditor": ""}
+    return mock_config
 
 
 def test_get_repository_top_tags_default(
@@ -100,11 +108,12 @@ def test_select_or_autodetect_returns_autodetected_tag(
 
 
 def test_create_git_release_if_tag_not_selected_returns_none(
-    monkeypatch, integration: GitHubIntegration, input_cancel
+    monkeypatch, integration: GitHubIntegration, input_cancel, mock_config
 ):
     monkeypatch.setattr("builtins.input", input_cancel)
+
     worker = GitHubReleaseWorker(
-        NovaRelease("project", "version", "delivery"), integration
+        NovaRelease("project", "version", "delivery"), integration, mock_config
     )
     component = NovaComponent(
         "component", CodeRepository(GitCloudService.GITHUB, "")
@@ -120,6 +129,7 @@ def test_create_git_release_if_previous_tag_not_selected_returns_none(
     monkeypatch,
     integration: GitHubIntegration,
     input_second_tag_cancel,
+    mock_config,
 ):
     """
     Here the original FakeConfig fixture is replaced with the one that provides
@@ -130,7 +140,7 @@ def test_create_git_release_if_previous_tag_not_selected_returns_none(
     """
     monkeypatch.setattr("builtins.input", input_second_tag_cancel)
     worker = GitHubReleaseWorker(
-        NovaRelease("project", "version", "delivery"), integration
+        NovaRelease("project", "version", "delivery"), integration, mock_config
     )
     component = NovaComponent(
         "component", CodeRepository(GitCloudService.GITHUB, "")
@@ -145,7 +155,7 @@ def test_create_git_release_if_previous_tag_not_selected_returns_none(
     "fake_config", [FakeConfig(create_release=False)], indirect=True
 )
 def test_create_git_release_raises_exception_if_release_not_created(
-    monkeypatch, integration: GitHubIntegration, input_all_tags
+    monkeypatch, integration: GitHubIntegration, input_all_tags, mock_config
 ):
     """
     Here the original FakeConfig fixture is replaced with the one that
@@ -155,7 +165,7 @@ def test_create_git_release_raises_exception_if_release_not_created(
     """
     monkeypatch.setattr("builtins.input", input_all_tags)
     worker = GitHubReleaseWorker(
-        NovaRelease("project", "version", "delivery"), integration
+        NovaRelease("project", "version", "delivery"), integration, mock_config
     )
     component = NovaComponent(
         "component", CodeRepository(GitCloudService.GITHUB, "")

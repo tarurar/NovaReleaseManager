@@ -3,6 +3,7 @@ Release workflow for GitHub hosted components
 """
 
 from typing import Optional
+from config import Config
 from core.nova_component_release import NovaComponentRelease
 from core.cvs import GitCloudService
 from core.nova_component import NovaComponent
@@ -20,8 +21,10 @@ class GitHubReleaseWorker(ReleaseWorker):
     def git_cloud(self) -> GitCloudService:
         return GitCloudService.GITHUB
 
-    def __init__(self, release: NovaRelease, gh: GitHubIntegration) -> None:
-        super().__init__(release)
+    def __init__(
+        self, release: NovaRelease, gh: GitHubIntegration, config=Config()
+    ) -> None:
+        super().__init__(release, config)
         self.__gh = gh
 
     def release_component(

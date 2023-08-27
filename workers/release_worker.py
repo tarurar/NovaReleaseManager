@@ -19,9 +19,7 @@ class ReleaseWorker(ABC):
 
     _defult_text_editor = "vim"
 
-    def __init__(self, release: NovaRelease) -> None:
-        config = Config()
-
+    def __init__(self, release: NovaRelease, config: Config) -> None:
         self._release = release
         self._text_editor = (
             config.data["textEditor"] or self._defult_text_editor

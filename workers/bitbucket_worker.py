@@ -4,6 +4,7 @@ Release workflow for Bitbucket hosted components
 
 from subprocess import call
 from typing import Optional
+from config import Config
 from core.nova_component_release import NovaComponentRelease
 from core.cvs import GitCloudService
 from core.nova_component import NovaComponent
@@ -25,8 +26,10 @@ class BitbucketReleaseWorker(ReleaseWorker):
     def git_cloud(self) -> GitCloudService:
         return GitCloudService.BITBUCKET
 
-    def __init__(self, release: NovaRelease, gi: GitIntegration) -> None:
-        super().__init__(release)
+    def __init__(
+        self, release: NovaRelease, gi: GitIntegration, config=Config()
+    ) -> None:
+        super().__init__(release, config)
         self.__gi = gi
 
     def release_component(

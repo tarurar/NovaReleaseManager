@@ -25,14 +25,13 @@ class ReleaseWorkerFactory:  # pylint: disable=too-few-public-methods
         config = Config()
 
         if worker_type == "bitbucket":
-            return BitbucketReleaseWorker(release, GitIntegration())
+            return BitbucketReleaseWorker(release, GitIntegration(), config)
 
         if worker_type == "github":
             gh_client = Github(config.data["github"]["accessToken"])
 
             return GitHubReleaseWorker(
-                release,
-                GitHubIntegration(gh_client),
+                release, GitHubIntegration(gh_client), config
             )
 
         raise ValueError(f"Unknown release worker type: {worker_type}")
