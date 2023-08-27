@@ -27,8 +27,10 @@ class BitbucketReleaseWorker(ReleaseWorker):
         return GitCloudService.BITBUCKET
 
     def __init__(
-        self, release: NovaRelease, gi: GitIntegration, config=Config()
+        self, release: NovaRelease, gi: GitIntegration, config=None
     ) -> None:
+        if config is None:
+            config = Config()
         super().__init__(release, config)
         self.__gi = gi
 

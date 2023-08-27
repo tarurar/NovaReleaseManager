@@ -22,8 +22,10 @@ class GitHubReleaseWorker(ReleaseWorker):
         return GitCloudService.GITHUB
 
     def __init__(
-        self, release: NovaRelease, gh: GitHubIntegration, config=Config()
+        self, release: NovaRelease, gh: GitHubIntegration, config=None
     ) -> None:
+        if config is None:
+            config = Config()
         super().__init__(release, config)
         self.__gh = gh
 
