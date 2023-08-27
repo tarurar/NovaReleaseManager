@@ -62,6 +62,34 @@ def fixture_create_test_files_content():
         shutil.rmtree(root_dir)
 
 
+@pytest.fixture(name="create_invalid_changelog_file")
+def fixture_create_invalid_changelog_file():
+    with tempfile.TemporaryDirectory() as root_dir:
+        file_path = os.path.join(root_dir, "CHANGELOG.md")
+        with open(file_path, "w", encoding="utf-8") as file_handle:
+            file_handle.write("this is not a valid changelog file")
+        yield file_path
+        shutil.rmtree(root_dir)
+
+
+@pytest.fixture(name="create_valid_changelog_file")
+def fixture_create_valid_changelog_file():
+    with tempfile.TemporaryDirectory() as root_dir:
+        file_path = os.path.join(root_dir, "CHANGELOG.md")
+        with open(file_path, "w", encoding="utf-8") as file_handle:
+            file_handle.write("## 1.0.0 Nova 2 Delivery 1 (January 1, 2019)")
+        yield file_path
+        shutil.rmtree(root_dir)
+
+
+@pytest.fixture(name="create_test_file_for_replacement")
+def fixture_create_test_file_for_replacement():
+    with tempfile.NamedTemporaryFile() as file_handle:
+        file_handle.write(b"text to replace")
+        file_handle.flush()
+        yield file_handle.name
+
+
 def test_search_file_found(create_test_files):
     root_dir, _, file_path = create_test_files
     assert fs.search_file(root_dir, "test_file.txt") == file_path
@@ -156,3 +184,51 @@ def test_write_to_end_of_file():
         content = read_file(file_handle.name)
 
         assert content == "existing contenttest"
+
+
+def test_extract_latest_version_from_changelog_invalid(
+    create_invalid_changelog_file,
+):
+    file_path = create_invalid_changelog_file
+    version = fs.extract_latest_version_from_changelog(file_path)
+    assert version is None
+
+
+def test_extract_latest_version_from_changelog_valid(
+    create_valid_changelog_file,
+):
+    file_path = create_valid_changelog_file
+    version = fs.extract_latest_version_from_changelog(file_path)
+    assert version
+
+
+def test_replace_in_file_raises_exception_if_file_does_not_exist():
+    with pytest.raises(FileNotFoundError):
+        fs.replace_in_file("not_existing_file_name", "test", "test2")
+
+
+def test_replace_in_file_raises_exception_if_file_is_not_a_file():
+    with tempfile.TemporaryDirectory() as root_dir:
+        file_path = os.path.join(root_dir, "test_file")
+        os.mkdir(file_path)
+        with pytest.raises(FileNotFoundError):
+            fs.replace_in_file(file_path, "test", "test2")
+
+
+def test_replace_in_file_raises_exception_when_search_string_is_empty():
+    with tempfile.NamedTemporaryFile() as file_handle:
+        with pytest.raises(ValueError):
+            fs.replace_in_file(file_handle.name, "", "test2")
+
+
+def test_replace_in_file_raises_exception_when_replace_string_is_empty():
+    with tempfile.NamedTemporaryFile() as file_handle:
+        with pytest.raises(ValueError):
+            fs.replace_in_file(file_handle.name, "test", "")
+
+
+def test_replace_in_file_replaces_text(create_test_file_for_replacement):
+    file_path = create_test_file_for_replacement
+    fs.replace_in_file(file_path, "text to replace", "replacement")
+    content = read_file(file_path)
+    assert content == "replacement"

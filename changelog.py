@@ -2,6 +2,7 @@
 Helper functions for changelog operations.
 """
 
+import os
 from packaging.version import InvalidVersion, Version, parse
 import fs_utils as fs
 
@@ -15,6 +16,9 @@ def parse_version(changelog_path: str) -> Version:
     """
     if not changelog_path:
         raise ValueError("Changelog path is not specified")
+
+    if not os.path.isfile(changelog_path):
+        raise ValueError(f"{changelog_path} is not a file")
 
     version_txt = fs.extract_latest_version_from_changelog(changelog_path)
     if not version_txt:
@@ -40,6 +44,9 @@ def insert_release_notes(changelog_path: str, release_notes: str):
     """
     if not changelog_path:
         raise ValueError("Changelog path is not specified")
+
+    if not os.path.isfile(changelog_path):
+        raise ValueError(f"{changelog_path} is not a file")
 
     if not release_notes:
         raise ValueError("Release notes are not specified")
