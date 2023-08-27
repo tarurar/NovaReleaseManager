@@ -12,7 +12,8 @@ from integration.git import GitIntegration
 from workers.release_worker import ReleaseWorker
 import fs_utils as fs
 import text_utils as txt
-import bitbucket as bb
+import changelog
+import msbuild
 
 
 class BitbucketReleaseWorker(ReleaseWorker):
@@ -42,7 +43,7 @@ class BitbucketReleaseWorker(ReleaseWorker):
             changelog_path = fs.search_changelog(sources_dir)
             if changelog_path is None:
                 raise FileNotFoundError("Change log file not found")
-            parsed_version = bb.parse_version_from_changelog(changelog_path)
+            parsed_version = changelog.parse_version(changelog_path)
             new_version = txt.next_version(parsed_version)
 
             release_notes_title = txt.build_release_title_md(
@@ -50,7 +51,7 @@ class BitbucketReleaseWorker(ReleaseWorker):
             )
             component_notes = component.get_release_notes(None, None)
             release_notes = release_notes_title + "\n" + component_notes
-            bb.insert_release_notes(changelog_path, release_notes)
+            changelog.insert_release_notes(changelog_path, release_notes)
 
             # open external editor to edit release notes
             call([self._text_editor, changelog_path])
@@ -58,7 +59,7 @@ class BitbucketReleaseWorker(ReleaseWorker):
                 "Press Enter to continue when you are done"
                 + " with editing file in external editor ..."
             )
-            bb.update_solution_version(sources_dir, new_version)
+            msbuild.update_solution_version(sources_dir, new_version)
 
             self.__gi.commit(sources_dir, f"Version {str(new_version)}")
             tag_name = f"nova-{str(new_version)}"
