@@ -5,7 +5,7 @@ Jira utility helper function module.
 from typing import Optional
 from urllib.parse import urlparse
 
-from validators import url
+from validators.url import url
 from jira.resources import Issue
 
 from core.cvs import CodeRepository, GitCloudService
@@ -33,8 +33,10 @@ def parse_jira_cmp_descr(
     if not normalized_description.startswith("http"):
         normalized_description = "http://" + normalized_description
 
-    if url(normalized_description):
+    if url(normalized_description):  # type: ignore
         url_parse_result = urlparse(normalized_description)
+        if url_parse_result.hostname is None:
+            return None, None
         if "github" in url_parse_result.hostname:
             return GitCloudService.GITHUB, descr
         if "bitbucket" in url_parse_result.hostname:
@@ -66,8 +68,6 @@ def parse_jira_issue(issue: Issue) -> NovaTask:
     :param issue: Jira issue.
     :return: Nova task.
     """
-    if issue is None:
-        raise ValueError("Issue is None")
     if not hasattr(issue, "key"):
         raise ValueError("Issue has no key")
     if not issue.key:
@@ -83,7 +83,7 @@ def parse_jira_issue(issue: Issue) -> NovaTask:
             f"[{issue.key}] has invalid status [{issue.fields.status.name}]"
         )
 
-    deployment_field = (
+    deployment_field: Optional[str] = (
         issue.fields.customfield_10646
         if hasattr(issue.fields, "customfield_10646")
         else None

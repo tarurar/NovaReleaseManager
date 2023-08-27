@@ -1,6 +1,7 @@
 """
 Nova task component module
 """
+from typing import Optional
 from core.nova_status import Status
 
 
@@ -35,12 +36,14 @@ class NovaTask:
         return result
 
     def __init__(
-        self, name: str, status: Status, summary: str = "", deployment: str = ""
+        self,
+        name: str,
+        status: Status,
+        summary: str = "",
+        deployment: Optional[str] = None,
     ):
         if not name:
             raise ValueError("Task name is not defined")
-        if status is None:
-            raise ValueError("Task status is not defined")
 
         self.__name = name
         self.__status = status

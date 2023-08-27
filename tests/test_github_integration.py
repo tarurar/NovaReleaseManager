@@ -6,8 +6,11 @@ import pytest
 from core.cvs import CodeRepository, GitCloudService
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
+from core.nova_status import Status
+from core.nova_task import NovaTask
 from integration.gh import GitHubIntegration
 from tests.fakes import FakeConfig
+from workers.github_worker import GitHubReleaseWorker
 
 
 def test_get_repository_top_tags_default(
@@ -100,10 +103,14 @@ def test_create_git_release_if_tag_not_selected_returns_none(
     monkeypatch, integration: GitHubIntegration, input_cancel
 ):
     monkeypatch.setattr("builtins.input", input_cancel)
-    release = integration.create_git_release(
-        NovaRelease("project", "version", "delivery"),
-        NovaComponent("component", CodeRepository(GitCloudService.GITHUB, "")),
+    worker = GitHubReleaseWorker(
+        NovaRelease("project", "version", "delivery"), integration
     )
+    component = NovaComponent(
+        "component", CodeRepository(GitCloudService.GITHUB, "")
+    )
+    component.add_task(NovaTask("task1", Status.READY_FOR_RELEASE))
+    release = worker.release_component(component)
 
     assert release is None
 
@@ -122,10 +129,14 @@ def test_create_git_release_if_previous_tag_not_selected_returns_none(
     create_git_release() method should return None.
     """
     monkeypatch.setattr("builtins.input", input_second_tag_cancel)
-    release = integration.create_git_release(
-        NovaRelease("project", "version", "delivery"),
-        NovaComponent("component", CodeRepository(GitCloudService.GITHUB, "")),
+    worker = GitHubReleaseWorker(
+        NovaRelease("project", "version", "delivery"), integration
     )
+    component = NovaComponent(
+        "component", CodeRepository(GitCloudService.GITHUB, "")
+    )
+    component.add_task(NovaTask("task1", Status.READY_FOR_RELEASE))
+    release = worker.release_component(component)
 
     assert release is None
 
@@ -143,10 +154,12 @@ def test_create_git_release_raises_exception_if_release_not_created(
     reason. The create_git_release() method should raise an exception.
     """
     monkeypatch.setattr("builtins.input", input_all_tags)
+    worker = GitHubReleaseWorker(
+        NovaRelease("project", "version", "delivery"), integration
+    )
+    component = NovaComponent(
+        "component", CodeRepository(GitCloudService.GITHUB, "")
+    )
+    component.add_task(NovaTask("task1", Status.READY_FOR_RELEASE))
     with pytest.raises(IOError):
-        integration.create_git_release(
-            NovaRelease("project", "version", "delivery"),
-            NovaComponent(
-                "component", CodeRepository(GitCloudService.GITHUB, "")
-            ),
-        )
+        worker.release_component(component)

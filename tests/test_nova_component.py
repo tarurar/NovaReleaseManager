@@ -80,8 +80,8 @@ def test_status_done_only_when_all_tasks_are_done():
 def test_get_release_notes_github():
     repo = CodeRepository(GitCloudService.GITHUB, "http://example.com")
     component = NovaComponent("foo", repo)
-    component.add_task(NovaTask("key1", "status1", "summary1"))
-    component.add_task(NovaTask("key2", "status2", "summary2"))
+    component.add_task(NovaTask("key1", Status.READY_FOR_RELEASE, "summary1"))
+    component.add_task(NovaTask("key2", Status.READY_FOR_RELEASE, "summary2"))
     release_notes = component.get_release_notes("1", "2")
 
     assert release_notes
@@ -92,8 +92,8 @@ def test_get_release_notes_github():
 def test_get_release_notes_empty_changelog_github():
     repo = CodeRepository(GitCloudService.GITHUB, "http://example.com")
     component = NovaComponent("boo", repo)
-    component.add_task(NovaTask("key1", "status1", "summary1"))
-    component.add_task(NovaTask("key2", "status2", "summary2"))
+    component.add_task(NovaTask("key1", Status.READY_FOR_RELEASE, "summary1"))
+    component.add_task(NovaTask("key2", Status.READY_FOR_RELEASE, "summary2"))
     release_notes = component.get_release_notes(None, None)
 
     assert release_notes
@@ -103,8 +103,8 @@ def test_get_release_notes_empty_changelog_github():
 def test_get_release_notes_bitbucket():
     repo = CodeRepository(GitCloudService.BITBUCKET, "http://example.com")
     component = NovaComponent("foo", repo)
-    component.add_task(NovaTask("key1", "status1", "summary1"))
-    component.add_task(NovaTask("key2", "status2", "summary2"))
+    component.add_task(NovaTask("key1", Status.READY_FOR_RELEASE, "summary1"))
+    component.add_task(NovaTask("key2", Status.READY_FOR_RELEASE, "summary2"))
     release_notes = component.get_release_notes("1", "2")
 
     assert release_notes is not None
@@ -142,6 +142,7 @@ def test_empty_component_with_default_name_only():
 )
 def test_empty_component_parses_only_predefined_names(component_name):
     component = NovaEmptyComponent.parse(component_name)
+    assert component is not None
     assert component.name == NovaEmptyComponent.default_component_name
 
 

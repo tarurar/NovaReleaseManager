@@ -1,5 +1,5 @@
 """The module contains classes to keep info about CVS repositories."""
-from enum import Enum
+from enum import Enum, auto
 
 
 class GitCloudService(Enum):
@@ -7,9 +7,9 @@ class GitCloudService(Enum):
     Git cloud service type
     """
 
-    UNDEFINED = 0
-    GITHUB = 1
-    BITBUCKET = 2
+    UNDEFINED = "undefined"
+    GITHUB = "github"
+    BITBUCKET = "bitbucket"
 
 
 class CodeRepository:

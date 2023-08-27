@@ -12,6 +12,8 @@ def map_to_tag_info(package: NovaComponent, tag: TagReference):
     """
     Map package and tag to tag info
     """
+    if package.repo is None:
+        raise ValueError("Package repository is not specified")
 
     return {
         "package": package.name,

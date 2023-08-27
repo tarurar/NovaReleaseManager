@@ -68,8 +68,3 @@ def test_get_release_notes_asterisk_when_instruction_is_defined():
 def test_create_task_with_empty_name_raises_exception():
     with pytest.raises(ValueError):
         NovaTask("", Status.IN_DEVELOPMENT)
-
-
-def test_create_task_with_none_status_raises_exception():
-    with pytest.raises(ValueError):
-        NovaTask("name", None)

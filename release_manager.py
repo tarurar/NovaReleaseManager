@@ -3,79 +3,49 @@ The release manager is responsible for managing the release process.
 """
 
 import logging
-from subprocess import call
-
-import fs_utils as fs
-from core.cvs import GitCloudService
+from config import Config
 from core.nova_component import NovaComponent
+from core.nova_component_release import NovaComponentRelease
 from core.nova_release import NovaRelease
-from core.nova_status import Status
-from integration.git import GitIntegration
-from integration.gh import GitHubIntegration
 from integration.jira import JiraIntegration
-import text_utils as txt
-import bitbucket as bb
+from workers.release_worker_factory import ReleaseWorkerFactory
 
 
 class ReleaseManager:
     """The release manager is responsible for managing the release process."""
 
-    default_text_editor = "vim"
+    def __init__(self) -> None:
+        config = Config()
 
-    def __init__(
-        self,
-        jira: JiraIntegration,
-        github_client: GitHubIntegration,
-        git_client: GitIntegration,
-        text_editor: str,
-    ) -> None:
-        self.__ji = jira
-        self.__text_editor = (
-            text_editor
-            if text_editor is not None
-            else ReleaseManager.default_text_editor
+        self.__ji = JiraIntegration(
+            config.data["jira"]["host"],
+            config.data["jira"]["username"],
+            config.data["jira"]["password"],
         )
-        self.__gh = github_client
-        self.__g = git_client
 
-    # pylint: disable=too-many-branches
     def release_component(
         self, release: NovaRelease, component: NovaComponent
-    ) -> tuple[str, str]:
+    ) -> NovaComponentRelease:
         """
         Creates a tag in the repository and publishes a release,
         interacts with user to get the tag name.
 
         :param release: release model
         :param component: component to release
-        :param branch: branch the tag will be created on
-        :return: tag name and release url as a tuple
+        :return: component release
         """
-        if component is None:
-            raise ValueError("Component is not specified")
-
-        if component.status == Status.DONE:
-            raise ValueError(
-                f"Component [{component.name}] is already released"
-            )
-
-        if component.status != Status.READY_FOR_RELEASE:
-            raise ValueError(
-                f"Component [{component.name}] is not ready for release"
-            )
-
         if component.repo is None:
-            raise ValueError(
-                f"Component [{component.name}] does not have repository"
-            )
+            raise ValueError("Component repository is not specified")
 
-        git_release = None
-        if component.repo.git_cloud == GitCloudService.BITBUCKET:
-            self.release_component_bitbucket(release, component)
-        elif component.repo.git_cloud == GitCloudService.GITHUB:
-            git_release = self.__gh.create_git_release(release, component)
-            if git_release is None:
-                return "", ""
+        worker = ReleaseWorkerFactory.create_worker(
+            component.repo.git_cloud.name, release
+        )
+        component_release = worker.release_component(component)
+
+        if component_release is None:
+            raise IOError(
+                f"Could not create component release for {component.name}"
+            )
 
         # moving jira issues to DONE
         for task in component.tasks:
@@ -89,53 +59,4 @@ class ReleaseManager:
                     error_text,
                 )
 
-        if component.repo.git_cloud == GitCloudService.BITBUCKET:
-            return "Bitbucket tag to be", "Bitbucket tag url to be"
-        if component.repo.git_cloud == GitCloudService.GITHUB:
-            if git_release is None:
-                raise IOError("Could not create release")
-            return git_release.tag_name, git_release.html_url
-        raise ValueError(
-            f"Unknown git cloud service {component.repo.git_cloud}"
-        )
-
-    def release_component_bitbucket(
-        self,
-        release: NovaRelease,
-        component: NovaComponent,
-        is_hotix: bool = False,
-    ):
-        if component.repo is None:
-            raise ValueError("Component does not have repository")
-
-        print(f"Cloning repository from url [{component.repo.url}]...")
-        sources_dir = self.__g.clone(component.repo.url)
-        print(f"Cloned repository into [{sources_dir}]")
-        try:
-            changelog_path = fs.search_changelog(sources_dir)
-            if changelog_path is None:
-                raise FileNotFoundError("Change log file not found")
-            parsed_version = bb.parse_version_from_changelog(changelog_path)
-            new_version = txt.next_version(parsed_version, is_hotix)
-
-            release_notes_title = txt.build_release_title_md(
-                release.title, str(new_version)
-            )
-            component_notes = component.get_release_notes(None, None)
-            release_notes = release_notes_title + "\n" + component_notes
-            bb.insert_release_notes(changelog_path, release_notes)
-
-            # open external editor to edit release notes
-            call([self.__text_editor, changelog_path])
-            input(
-                "Press Enter to continue when you are done"
-                + " with editing file in external editor ..."
-            )
-            bb.update_solution_version(sources_dir, new_version)
-
-            self.__g.commit(sources_dir, f"Version {str(new_version)}")
-            tag_name = f"nova-{str(new_version)}"
-            self.__g.tag(sources_dir, tag_name, f"Version {tag_name} release")
-
-        finally:
-            fs.remove_dir(sources_dir)
+        return component_release

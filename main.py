@@ -3,14 +3,12 @@ Start module
 """
 
 import sys
-import json
 from typing import Optional
 import argparse
-from github import Github
+from config import Config
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from csv_utils import export_packages_to_csv
-from integration.gh import GitHubIntegration
 from integration.jira import JiraIntegration
 from integration.git import GitIntegration
 from mappers import is_package_tag, map_to_tag_info
@@ -71,13 +69,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    with open("config.json", encoding="utf-8") as f:
-        config = json.load(f)
+    config = Config()
 
     ji = JiraIntegration(
-        config["jira"]["host"],
-        config["jira"]["username"],
-        config["jira"]["password"],
+        config.data["jira"]["host"],
+        config.data["jira"]["username"],
+        config.data["jira"]["password"],
     )
     release_repository = NovaReleaseRepository(ji)
 
@@ -89,14 +86,9 @@ if __name__ == "__main__":
         if delivery == "q":
             sys.exit()
 
-        manager = ReleaseManager(
-            ji,
-            GitHubIntegration(Github(config["github"]["accessToken"])),
-            GitIntegration(),
-            config["textEditor"],
-        )
+        manager = ReleaseManager()
         release = release_repository.get(
-            config["jira"]["project"], version, delivery
+            config.data["jira"]["project"], version, delivery
         )
         print(release.describe_status())
 
@@ -112,8 +104,10 @@ if __name__ == "__main__":
                 break
             if release_component_decision == "n":
                 continue
-            tag, url = manager.release_component(release, component)
-            print(f"[{component.name}] released, tag: [{tag}], url: [{url}]")
+            component_release = manager.release_component(release, component)
+            print(
+                f"[{component.name}] released, tag: [{component_release.tag_name}], url: [{component_release.url}]"
+            )
 
             if release.can_release_version():
                 release_version_decision = input(
@@ -129,7 +123,9 @@ if __name__ == "__main__":
                     print(f"[{release.title}] has not been released")
 
     if args.command == "list-packages":
-        packages = release_repository.get_packages(config["jira"]["project"])
+        packages = release_repository.get_packages(
+            config.data["jira"]["project"]
+        )
         gi = GitIntegration()
         all_tags_info = []
         for package in packages:

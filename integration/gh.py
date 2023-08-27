@@ -7,9 +7,6 @@ from typing import Optional
 from github import Github
 from github.Repository import Repository
 from github.Tag import Tag
-from github.GitRelease import GitRelease
-from core.nova_component import NovaComponent
-from core.nova_release import NovaRelease
 import github_utils as gu
 from ui import console
 
@@ -24,7 +21,7 @@ class GitHubIntegration:
         self.__g = github
         self.__branch = branch
 
-    def __get_repository(self, url: str) -> Repository:
+    def get_repository(self, url: str) -> Repository:
         """
         Returns GitHub repository object.
 
@@ -50,7 +47,7 @@ class GitHubIntegration:
         :param tags_count: number of tags to return
         :return: list of the top Tag objects
         """
-        repo = self.__get_repository(url)
+        repo = self.get_repository(url)
         tags = list(repo.get_tags())[:tags_count]
         return tags
 
@@ -64,7 +61,7 @@ class GitHubIntegration:
         :param tag_name: tag name
         :return: Tag object
         """
-        repo = self.__get_repository(repo_url)
+        repo = self.get_repository(repo_url)
         latest_commit = repo.get_branch(self.__branch).commit
         new_git_tag = repo.create_git_tag(
             tag_name, message, latest_commit.sha, "commit"
@@ -128,41 +125,3 @@ class GitHubIntegration:
                 return tag
 
         return None
-
-    def create_git_release(
-        self, release: NovaRelease, component: NovaComponent
-    ) -> Optional[GitRelease]:
-        """
-        Creates a GitRelease object in the repository.
-
-        :param release: NovaRelease object
-        :param component: NovaComponent object
-        :return: GitRelease object or None
-        """
-        if component.repo is None:
-            return None
-
-        # get a tag for the git release
-        tag = self.select_or_create_tag(component.repo.url, release.title)
-        if tag is None:
-            return None
-
-        # get a tag for previous git release
-        previous_tag = self.select_or_autodetect_tag(
-            component.repo.url, exclude=list(tag.name)
-        )
-        if previous_tag is None:
-            return None
-
-        # create git release
-        repo = self.__get_repository(component.repo.url)
-        git_release_notes = component.get_release_notes(
-            previous_tag.name, tag.name
-        )
-        git_release = repo.create_git_release(
-            tag.name, release.title, git_release_notes
-        )
-        if git_release is None:
-            raise IOError(f"Could not create release for tag {tag.name}")
-
-        return git_release

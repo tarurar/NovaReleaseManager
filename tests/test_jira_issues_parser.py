@@ -12,11 +12,6 @@ FakeIssue = namedtuple("FakeIssue", ["fields", "key"])
 FakeKeyLessIssue = namedtuple("FakeKeyLessIssue", ["fields"])
 
 
-def test_when_empty_issue_provided():
-    with pytest.raises(ValueError):
-        parse_jira_issue(None)
-
-
 @pytest.mark.parametrize("issue_key", ["", None])
 def test_when_issue_has_no_key(issue_key):
     issue = FakeIssue(
@@ -26,7 +21,7 @@ def test_when_issue_has_no_key(issue_key):
         issue_key,
     )
     with pytest.raises(ValueError):
-        parse_jira_issue(issue)
+        parse_jira_issue(issue)  # type: ignore
 
 
 def test_when_issue_has_no_key_attr():
@@ -34,7 +29,7 @@ def test_when_issue_has_no_key_attr():
         FakeFields([FakeComponent("c1")], FakeStatus("invalid status"), "")
     )
     with pytest.raises(ValueError):
-        parse_jira_issue(issue)
+        parse_jira_issue(issue)  # type: ignore
 
 
 def test_when_issue_has_no_component():
@@ -42,7 +37,7 @@ def test_when_issue_has_no_component():
         FakeFields([], FakeStatus("Selected For Release"), ""), "issue key"
     )
     with pytest.raises(ValueError):
-        parse_jira_issue(issue)
+        parse_jira_issue(issue)  # type: ignore
 
 
 def test_when_issue_has_more_than_one_component():
@@ -55,7 +50,7 @@ def test_when_issue_has_more_than_one_component():
         "issue key",
     )
     with pytest.raises(ValueError):
-        parse_jira_issue(issue)
+        parse_jira_issue(issue)  # type: ignore
 
 
 def test_when_issue_has_invalid_status():
@@ -64,7 +59,7 @@ def test_when_issue_has_invalid_status():
         "issue key",
     )
     with pytest.raises(ValueError):
-        parse_jira_issue(issue)
+        parse_jira_issue(issue)  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -75,7 +70,7 @@ def test_when_issue_is_valid(issue_key, issue_status):
         FakeFields([FakeComponent("c1")], FakeStatus(issue_status), ""),
         issue_key,
     )
-    nova_task = parse_jira_issue(issue)
+    nova_task = parse_jira_issue(issue)  # type: ignore
     assert nova_task is not None
 
 
