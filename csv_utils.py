@@ -7,7 +7,9 @@ import csv
 DEFAULT_CSV_OUTPUT = "packages-output.csv"
 
 
-def export_packages_to_csv(data, file_name: str = DEFAULT_CSV_OUTPUT):
+def export_packages_to_csv(
+    data: list[dict[str, str]], file_name: str = DEFAULT_CSV_OUTPUT
+):
     """Export data to csv file"""
     if file_name is None:
         file_name = DEFAULT_CSV_OUTPUT

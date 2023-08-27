@@ -127,7 +127,7 @@ if __name__ == "__main__":
             config.data["jira"]["project"]
         )
         gi = GitIntegration()
-        all_tags_info = []
+        all_tags_info: list[dict[str, str]] = []
         for package in packages:
             if package.repo is None:
                 continue

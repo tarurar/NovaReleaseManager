@@ -78,6 +78,8 @@ def fixture_create_valid_changelog_file():
         file_path = os.path.join(root_dir, "CHANGELOG.md")
         with open(file_path, "w", encoding="utf-8") as file_handle:
             file_handle.write("## 1.0.0 Nova 2 Delivery 1 (January 1, 2019)")
+            file_handle.write("\n\n")
+            file_handle.write("### Added")
         yield file_path
         shutil.rmtree(root_dir)
 

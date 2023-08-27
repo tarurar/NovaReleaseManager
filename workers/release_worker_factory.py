@@ -12,7 +12,7 @@ from workers.bitbucket_worker import BitbucketReleaseWorker
 from config import Config
 
 
-class ReleaseWorkerFactory:
+class ReleaseWorkerFactory:  # pylint: disable=too-few-public-methods
     """
     Release worker factory.
     """
