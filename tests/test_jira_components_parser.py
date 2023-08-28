@@ -2,9 +2,17 @@
 Jira issues parser tests
 """
 from collections import namedtuple
+from unittest.mock import Mock
 import pytest
 from jira_utils import parse_jira_component
 from core.nova_component import NovaComponent, NovaEmptyComponent
+
+
+@pytest.fixture(name="mock_config")
+def fixture_mock_config():
+    mock_config = Mock()
+    mock_config.data = {}
+    return mock_config
 
 
 def test_when_empty_component_provided():
@@ -47,12 +55,12 @@ def test_when_component_has_invalid_description():
         parse_jira_component(component)
 
 
-def test_when_component_is_valid():
+def test_when_component_is_valid(mock_config):
     FakeComponent = namedtuple("FakeComponent", ["name", "description"])
     component = FakeComponent(
-        "component name", "http://github.com/company/project"
+        "component name", "https://github.com/company/project"
     )
-    result = parse_jira_component(component)
+    result = parse_jira_component(component, mock_config)
     assert isinstance(result, NovaComponent)
 
 

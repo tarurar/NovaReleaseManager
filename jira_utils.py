@@ -92,11 +92,13 @@ def parse_jira_issue(issue: Issue) -> NovaTask:
     return NovaTask(issue.key, status, issue.fields.summary, deployment_field)
 
 
-def parse_jira_component(cmp: object) -> NovaComponent:
+def parse_jira_component(cmp: object, config=None) -> NovaComponent:
     """
     Parse Jira component into Nova component.
 
     :param cmp: Jira component.
+    :param config: Application configuration,
+        required to initialize repository object.
     :return: Nova component.
     """
     if cmp is None:
@@ -126,7 +128,7 @@ def parse_jira_component(cmp: object) -> NovaComponent:
             f"just <company>/<repo>"
         )
 
-    return NovaComponent(name, CodeRepository(cloud_service, repo_url))
+    return NovaComponent(name, CodeRepository(cloud_service, repo_url, config))
 
 
 def filter_jira_issue(jira_issue, component_name) -> bool:
