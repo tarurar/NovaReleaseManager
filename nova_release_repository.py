@@ -28,7 +28,8 @@ class NovaReleaseRepository:
             pkg
             for cmp in self.__ji.get_components(project_code)
             if (pkg := ju.parse_jira_component(cmp))
-            and pkg.ctype == NovaComponentType.PACKAGE
+            and pkg.ctype
+            in (NovaComponentType.PACKAGE, NovaComponentType.PACKAGE_LIBRARY)
         ]
 
         return packages
