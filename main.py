@@ -155,5 +155,12 @@ if __name__ == "__main__":
             )
             all_tags_info.extend(package_tags_info_sorted)
 
+            print(
+                f"{package.name} processed, {len(package_tags)} tags discovered"
+            )
+
         if all_tags_info:
-            export_packages_to_csv(all_tags_info, args.csv_output)
+            path = export_packages_to_csv(all_tags_info, args.csv_output)
+            print(f"CSV file has been created: {path}")
+        else:
+            print("No tags found")
