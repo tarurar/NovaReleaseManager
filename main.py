@@ -128,6 +128,7 @@ if __name__ == "__main__":
         )
         gi = GitIntegration()
         all_tags_info: list[dict[str, str]] = []
+        counter = 0
         for package in packages:
             if package.repo is None:
                 continue
@@ -155,8 +156,10 @@ if __name__ == "__main__":
             )
             all_tags_info.extend(package_tags_info_sorted)
 
+            counter += 1
+            percents_done = round(counter / len(packages) * 100)
             print(
-                f"{package.name} processed, {len(package_tags)} tags discovered"
+                f"{package.name:<50} processed, {len(package_tags):<3} tags discovered, ({percents_done:<3}% done)"
             )
 
         if all_tags_info:
