@@ -11,7 +11,10 @@ from core.nova_component import NovaComponent, NovaEmptyComponent
 @pytest.fixture(name="mock_config")
 def fixture_mock_config():
     mock_config = Mock()
-    mock_config.data = {}
+    mock_config.data = {
+        "github": {"username": "", "accessToken": ""},
+        "bitbucket": {"username": "", "password": ""},
+    }
     return mock_config
 
 

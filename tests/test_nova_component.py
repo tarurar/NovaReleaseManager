@@ -22,7 +22,9 @@ from core.cvs import GitCloudService, CodeRepository
 def fixture_mock_config():
     mock_config = Mock()
     mock_config.data = {
+        "github": {"username": "", "accessToken": ""},
         "bitbucket": {"username": "", "password": ""},
+        "undefined": {"username": "", "password": ""},
     }
     return mock_config
 

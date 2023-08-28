@@ -17,7 +17,11 @@ from workers.github_worker import GitHubReleaseWorker
 @pytest.fixture(name="mock_config")
 def fixture_mock_config():
     mock_config = Mock()
-    mock_config.data = {"textEditor": ""}
+    mock_config.data = {
+        "textEditor": "",
+        "github": {"username": "", "accessToken": ""},
+        "bitbucket": {"username": "", "password": ""},
+    }
     return mock_config
 
 

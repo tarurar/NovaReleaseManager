@@ -38,7 +38,7 @@ class ReleaseManager:
             raise ValueError("Component repository is not specified")
 
         worker = ReleaseWorkerFactory.create_worker(
-            component.repo.git_cloud.name, release
+            component.repo.git_cloud.value, release
         )
         component_release = worker.release_component(component)
 

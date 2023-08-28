@@ -29,20 +29,22 @@ def test_when_unknown_cloud_returns_none(descr):
     assert url is None
 
 
-@pytest.mark.parametrize("descr,expected", [
-    ("http://github.com/company/repo.git", GitCloudService.GITHUB),
-    ("http://github.com/company/repo", GitCloudService.GITHUB),
-    ("http://bitbucket.org/company/project.git",
-     GitCloudService.BITBUCKET),
-    ("http://bitbucket.org/company/project",
-     GitCloudService.BITBUCKET),
-    ("https://github.com/company/repo.git",
-     GitCloudService.GITHUB),
-    ("https://bitbucket.org/company/project.git",
-     GitCloudService.BITBUCKET),
-    ("bitbucket.org/company/project.git",
-     GitCloudService.BITBUCKET),
-    ("bitbucket.org/company/project", GitCloudService.BITBUCKET)])
+@pytest.mark.parametrize(
+    "descr,expected",
+    [
+        ("http://github.com/company/repo.git", GitCloudService.GITHUB),
+        ("http://github.com/company/repo", GitCloudService.GITHUB),
+        ("http://bitbucket.org/company/project.git", GitCloudService.BITBUCKET),
+        ("http://bitbucket.org/company/project", GitCloudService.BITBUCKET),
+        ("https://github.com/company/repo.git", GitCloudService.GITHUB),
+        (
+            "https://bitbucket.org/company/project.git",
+            GitCloudService.BITBUCKET,
+        ),
+        ("bitbucket.org/company/project.git", GitCloudService.BITBUCKET),
+        ("bitbucket.org/company/project", GitCloudService.BITBUCKET),
+    ],
+)
 def test_happy_path(descr, expected):
     cloud, url = parse_jira_cmp_descr(descr)
     assert cloud == expected
