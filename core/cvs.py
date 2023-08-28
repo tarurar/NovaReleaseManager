@@ -29,9 +29,11 @@ class CodeRepository:
         if self.__git_cloud == GitCloudService.BITBUCKET:
             # for bitbucket url should include user name and password
             # to access it since it is private repository
+            username = config.data["bitbucket"]["username"]
+            password = config.data["bitbucket"]["password"]
             self.__url = self.__url.replace(
                 "https://",
-                f"https://{config.data['bitbucket']['username']}:{config.data['bitbucket']['password']}@",
+                f"https://{username}:{password}@",
             )
 
     @property
