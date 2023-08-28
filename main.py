@@ -152,6 +152,10 @@ if __name__ == "__main__":
                 )
             )
 
+            # skip packages with no tags
+            if len(package_tags) == 0:
+                continue
+
             package_tags_info = list(
                 map(
                     lambda tag, pkg=package: map_to_tag_info(pkg, tag),
