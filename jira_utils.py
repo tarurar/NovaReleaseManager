@@ -19,7 +19,7 @@ def parse_jira_cmp_descr(
 ) -> tuple[Optional[GitCloudService], Optional[str]]:
     """
     Parse Jira component description and return cloud service and
-    repository URL. It is epected that JIRA component description
+    repository URL. It is expected that JIRA component description
     will be in the following format:
         Bitbucket: http(s)://bitbucket.org/<repo>
         GitHub: http(s)://github.com/<company>/<repo> or

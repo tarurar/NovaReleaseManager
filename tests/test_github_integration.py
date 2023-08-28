@@ -116,7 +116,7 @@ def test_create_git_release_if_tag_not_selected_returns_none(
         NovaRelease("project", "version", "delivery"), integration, mock_config
     )
     component = NovaComponent(
-        "component", CodeRepository(GitCloudService.GITHUB, "")
+        "component", CodeRepository(GitCloudService.GITHUB, "", mock_config)
     )
     component.add_task(NovaTask("task1", Status.READY_FOR_RELEASE))
     release = worker.release_component(component)
@@ -143,7 +143,7 @@ def test_create_git_release_if_previous_tag_not_selected_returns_none(
         NovaRelease("project", "version", "delivery"), integration, mock_config
     )
     component = NovaComponent(
-        "component", CodeRepository(GitCloudService.GITHUB, "")
+        "component", CodeRepository(GitCloudService.GITHUB, "", mock_config)
     )
     component.add_task(NovaTask("task1", Status.READY_FOR_RELEASE))
     release = worker.release_component(component)
@@ -168,7 +168,7 @@ def test_create_git_release_raises_exception_if_release_not_created(
         NovaRelease("project", "version", "delivery"), integration, mock_config
     )
     component = NovaComponent(
-        "component", CodeRepository(GitCloudService.GITHUB, "")
+        "component", CodeRepository(GitCloudService.GITHUB, "", mock_config)
     )
     component.add_task(NovaTask("task1", Status.READY_FOR_RELEASE))
     with pytest.raises(IOError):

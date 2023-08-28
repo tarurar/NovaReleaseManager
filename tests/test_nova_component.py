@@ -2,6 +2,7 @@
 Nova component tests
 """
 
+from unittest.mock import Mock
 import pytest
 from packaging.version import InvalidVersion
 from core.nova_component_type import NovaComponentType
@@ -15,6 +16,15 @@ from core.nova_component import (
     parse_component_type,
 )
 from core.cvs import GitCloudService, CodeRepository
+
+
+@pytest.fixture(name="mock_config")
+def fixture_mock_config():
+    mock_config = Mock()
+    mock_config.data = {
+        "bitbucket": {"username": "", "password": ""},
+    }
+    return mock_config
 
 
 def test_longest_name_zero_by_default():
@@ -77,8 +87,10 @@ def test_status_done_only_when_all_tasks_are_done():
     assert component.status == Status.DONE
 
 
-def test_get_release_notes_github():
-    repo = CodeRepository(GitCloudService.GITHUB, "http://example.com")
+def test_get_release_notes_github(mock_config):
+    repo = CodeRepository(
+        GitCloudService.GITHUB, "https://example.com", mock_config
+    )
     component = NovaComponent("foo", repo)
     component.add_task(NovaTask("key1", Status.READY_FOR_RELEASE, "summary1"))
     component.add_task(NovaTask("key2", Status.READY_FOR_RELEASE, "summary2"))
@@ -89,8 +101,10 @@ def test_get_release_notes_github():
     assert "What's changed" in release_notes
 
 
-def test_get_release_notes_empty_changelog_github():
-    repo = CodeRepository(GitCloudService.GITHUB, "http://example.com")
+def test_get_release_notes_empty_changelog_github(mock_config):
+    repo = CodeRepository(
+        GitCloudService.GITHUB, "https://example.com", mock_config
+    )
     component = NovaComponent("boo", repo)
     component.add_task(NovaTask("key1", Status.READY_FOR_RELEASE, "summary1"))
     component.add_task(NovaTask("key2", Status.READY_FOR_RELEASE, "summary2"))
@@ -100,8 +114,10 @@ def test_get_release_notes_empty_changelog_github():
     assert "change log" not in release_notes
 
 
-def test_get_release_notes_bitbucket():
-    repo = CodeRepository(GitCloudService.BITBUCKET, "http://example.com")
+def test_get_release_notes_bitbucket(mock_config):
+    repo = CodeRepository(
+        GitCloudService.BITBUCKET, "https://example.com", mock_config
+    )
     component = NovaComponent("foo", repo)
     component.add_task(NovaTask("key1", Status.READY_FOR_RELEASE, "summary1"))
     component.add_task(NovaTask("key2", Status.READY_FOR_RELEASE, "summary2"))
@@ -121,9 +137,9 @@ def test_get_release_notes_bitbucket():
     ],
 )
 def test_get_release_notes_are_empty_when_unsupported_git_cloud(
-    git_cloud: GitCloudService, release_notes_empty: bool
+    git_cloud: GitCloudService, release_notes_empty: bool, mock_config
 ):
-    repo = CodeRepository(git_cloud, "http://example.com")
+    repo = CodeRepository(git_cloud, "https://example.com", mock_config)
     component = NovaComponent("foo", repo)
     component.add_task(NovaTask("key1", Status.IN_DEVELOPMENT, "summary1"))
     component.add_task(NovaTask("key2", Status.IN_DEVELOPMENT, "summary2"))
@@ -288,23 +304,23 @@ def test_parse_component_type(
     assert component_type == expected_type
 
 
-def test_component_to_string_returns_name():
+def test_component_to_string_returns_name(mock_config):
     component = NovaComponent(
-        "foo", CodeRepository(GitCloudService.GITHUB, "url")
+        "foo", CodeRepository(GitCloudService.GITHUB, "url", mock_config)
     )
     assert str(component) == "foo"
 
 
-def test_component_repr_returns_name():
+def test_component_repr_returns_name(mock_config):
     component = NovaComponent(
-        "boo", CodeRepository(GitCloudService.GITHUB, "url")
+        "boo", CodeRepository(GitCloudService.GITHUB, "url", mock_config)
     )
     assert repr(component) == "boo"
 
 
-def test_tasks_property_returns_tasks():
+def test_tasks_property_returns_tasks(mock_config):
     component = NovaComponent(
-        "boo", CodeRepository(GitCloudService.GITHUB, "url")
+        "boo", CodeRepository(GitCloudService.GITHUB, "url", mock_config)
     )
     component.add_task(NovaTask("key1", Status.IN_DEVELOPMENT, "summary1"))
     component.add_task(NovaTask("key2", Status.READY_FOR_RELEASE, "summary2"))
@@ -313,9 +329,9 @@ def test_tasks_property_returns_tasks():
     assert component.tasks[1].name == "key2"
 
 
-def test_add_tasks_adds_range_of_tasks():
+def test_add_tasks_adds_range_of_tasks(mock_config):
     component = NovaComponent(
-        "boo", CodeRepository(GitCloudService.GITHUB, "url")
+        "boo", CodeRepository(GitCloudService.GITHUB, "url", mock_config)
     )
     component.add_tasks(
         [
@@ -328,16 +344,18 @@ def test_add_tasks_adds_range_of_tasks():
     assert component.tasks[1].name == "key2"
 
 
-def test_ctype_property_returns_component_type():
+def test_ctype_property_returns_component_type(mock_config):
     component = NovaComponent(
-        "some library", CodeRepository(GitCloudService.GITHUB, "url")
+        "some library",
+        CodeRepository(GitCloudService.GITHUB, "url", mock_config),
     )
     assert component.ctype == NovaComponentType.PACKAGE_LIBRARY
 
 
-def test_describe_status_returns_text_with_3_columns():
+def test_describe_status_returns_text_with_3_columns(mock_config):
     component = NovaComponent(
-        "some library", CodeRepository(GitCloudService.GITHUB, "url")
+        "some library",
+        CodeRepository(GitCloudService.GITHUB, "url", mock_config),
     )
     component.add_tasks(
         [
