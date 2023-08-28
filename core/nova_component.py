@@ -97,11 +97,11 @@ def parse_component_type(name: str) -> NovaComponentType:
         return NovaComponentType.UNDEFINED
 
     normalized_name = name.lower()
-    if "contract" in normalized_name:
+    if normalized_name.endswith("contracts"):
         return NovaComponentType.PACKAGE
-    if "client" in normalized_name:
+    if normalized_name.endswith("client"):
         return NovaComponentType.PACKAGE
-    if "library" in normalized_name:
+    if normalized_name.endswith("library"):
         return NovaComponentType.PACKAGE_LIBRARY
 
     return NovaComponentType.SERVICE
