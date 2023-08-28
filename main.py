@@ -67,9 +67,19 @@ if __name__ == "__main__":
         """,
     )
 
+    parser.add_argument(
+        "--config-path",
+        type=str,
+        required=False,
+        help="""
+        The path to configuration file, optional.
+        If not specified, the config.json file in the current directory will be used.
+        """,
+    )
+
     args = parser.parse_args()
 
-    config = Config()
+    config = Config(args.config_path)
 
     ji = JiraIntegration(
         config.data["jira"]["host"],
