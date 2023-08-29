@@ -80,19 +80,23 @@ class GitIntegration:
         repo.git.push("origin", tag_name)
 
     @staticmethod
-    def list_tags(url: str, since: str = "") -> list[TagReference]:
+    def list_tags(
+        url: str, since: str = "", retry_times=3, retry_interval_sec=5
+    ) -> list[TagReference]:
         """
         List tags in the repository since a specified date
 
         :param url: repository url
         :param since: date in the format YYYY-MM-DD
+        :param retry_times: number of times to retry `git clone` operation if it fails
+        :param retry_interval_sec: interval between retries in seconds
         :return: list of tags
         """
         if not url:
             raise ValueError("Repository url is not specified")
 
         repo = None
-        for _ in range(3):
+        for _ in range(retry_times):
             try:
                 repo = Repo.clone_from(
                     url,
@@ -102,9 +106,8 @@ class GitIntegration:
                     no_single_branch=True,
                 )
                 break
-            except GitCommandError as ex:
-                print(f"Failed to clone the repository: {ex}. Retrying...")
-                time.sleep(5)
+            except GitCommandError:
+                time.sleep(retry_interval_sec)
 
         if not repo:
             raise ValueError("Failed to clone the repository")
