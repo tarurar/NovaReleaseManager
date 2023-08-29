@@ -5,8 +5,10 @@ Git integration layer module.
 
 from datetime import datetime
 import tempfile
+import time
 from typing import Optional
 from git import TagReference
+from git.exc import GitCommandError
 from git.repo import Repo
 
 
@@ -89,13 +91,23 @@ class GitIntegration:
         if not url:
             raise ValueError("Repository url is not specified")
 
-        repo = Repo.clone_from(
-            url,
-            tempfile.mkdtemp(prefix="nova"),
-            depth=1,
-            tags=True,
-            no_single_branch=True,
-        )
+        repo = None
+        for _ in range(3):
+            try:
+                repo = Repo.clone_from(
+                    url,
+                    tempfile.mkdtemp(prefix="nova"),
+                    depth=1,
+                    tags=True,
+                    no_single_branch=True,
+                )
+                break
+            except GitCommandError as ex:
+                print(f"Failed to clone the repository: {ex}. Retrying...")
+                time.sleep(5)
+
+        if not repo:
+            raise ValueError("Failed to clone the repository")
 
         if since:
             since_date = datetime.strptime(since, "%Y-%m-%d").date()
