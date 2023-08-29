@@ -89,7 +89,13 @@ class GitIntegration:
         if not url:
             raise ValueError("Repository url is not specified")
 
-        repo = Repo.clone_from(url, tempfile.mkdtemp(prefix="nova"))
+        repo = Repo.clone_from(
+            url,
+            tempfile.mkdtemp(prefix="nova"),
+            depth=1,
+            tags=True,
+            no_single_branch=True,
+        )
 
         if since:
             since_date = datetime.strptime(since, "%Y-%m-%d").date()
