@@ -3,7 +3,6 @@ Start module
 """
 
 import sys
-import time
 from typing import Optional
 import argparse
 from config import Config
@@ -145,9 +144,6 @@ if __name__ == "__main__":
                 continue
 
             repo_all_tags = gi.list_tags(package.repo.url, args.since)
-
-            # let the server rest a bit
-            time.sleep(5)
 
             package_tags = list(
                 filter(
