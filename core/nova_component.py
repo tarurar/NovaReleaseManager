@@ -63,9 +63,14 @@ def get_release_notes_bitbucket(tasks: list[NovaTask]) -> str:
 def get_changelog_url(
     revision_from: str, revision_to: str, repo_url: str
 ) -> str:
-    """Returns changelog url
-    Revision from should be less than revision to
-    GitHub format: https://github.com/LykkeBusiness/MT/compare/v2.20.2...v2.21.1
+    """
+    Build change log url.
+
+    :param revision_from: The revision from. Should be less than revision to.
+    :param revision_to: The revision to. Should be greater than revision from.
+    :param repo_url: The repository url.
+    :return: The change log url. GitHub format:
+        https://github.com/LykkeBusiness/MT/compare/v2.20.2...v2.21.1
     """
     if revision_from is None or revision_to is None or repo_url is None:
         return ""
