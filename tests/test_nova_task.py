@@ -58,11 +58,18 @@ def test_get_release_notes(key, summary, expected):
     assert release_notes == expected
 
 
-def test_get_release_notes_asterisk_when_instruction_is_defined():
+def test_get_release_notes_asterisk_when_preview():
     task = NovaTask("task", Status.IN_DEVELOPMENT, "summary", "deployment")
-    release_notes = task.get_release_notes()
+    release_notes = task.get_release_notes(preview=True)
 
     assert NovaTask.deployment_asterisk in release_notes
+
+
+def test_get_release_notes_no_asterisk_when_not_a_preview():
+    task = NovaTask("task", Status.IN_DEVELOPMENT, "summary", "deployment")
+    release_notes = task.get_release_notes(preview=False)
+
+    assert NovaTask.deployment_asterisk not in release_notes
 
 
 def test_create_task_with_empty_name_raises_exception():

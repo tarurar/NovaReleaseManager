@@ -70,8 +70,14 @@ class NovaTask:
         """Task deployment instructions"""
         return self.__deployment
 
-    def get_release_notes(self) -> str:
-        """Returns release notes for task"""
+    def get_release_notes(self, preview=False) -> str:
+        """
+        Returns release notes for task
+
+        :param preview: if True, returns preview release notes which
+            includes asterisk if task has deployment instructions
+        :return: release notes
+        """
         key = self.__name.strip().upper()
         summary = (
             self.__summary.split("]")[-1]
@@ -83,7 +89,9 @@ class NovaTask:
         )
         ending = "" if summary.endswith(".") else "."
         asterisk_or_not = (
-            NovaTask.deployment_asterisk if self.__deployment else ""
+            (NovaTask.deployment_asterisk if self.__deployment else "")
+            if preview
+            else ""
         )
 
         return f"{key}{asterisk_or_not}: {summary}{ending}"
