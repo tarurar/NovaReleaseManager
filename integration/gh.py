@@ -3,6 +3,7 @@ The module describes the component release flow for the
 GitHub hosted repositories.
 """
 
+import time
 from typing import Optional
 from github import Github
 from github.Repository import Repository
@@ -55,6 +56,7 @@ class GitHubIntegration:
         """
         Creates a Tag object in the repository which points to the
         latest commit.
+        In case of failure, raises IOError but retries 3 times before.
 
         :param repo_url: repository url
         :param message: tag message
@@ -68,8 +70,14 @@ class GitHubIntegration:
         )
         repo.create_git_ref(f"refs/tags/{new_git_tag.tag}", new_git_tag.sha)
 
-        tags_dict = {tag.name: tag for tag in repo.get_tags()}
-        tag = tags_dict.get(tag_name)
+        # retry here since it takes some time for the tag to appear
+        tag = None
+        for _ in range(3):
+            tags_dict = {tag.name: tag for tag in repo.get_tags()}
+            tag = tags_dict.get(tag_name)
+            if tag:
+                break
+            time.sleep(3)
 
         if tag is None:
             raise IOError(f"Could not create tag [{tag_name}]")
