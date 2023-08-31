@@ -4,6 +4,7 @@ Nova component module
 
 from packaging.version import parse
 from core.nova_task import NovaTask
+from git_utils import sanitize_git_url
 from .cvs import CodeRepository, GitCloudService
 from .nova_status import Status
 from .nova_component_type import NovaComponentType
@@ -78,6 +79,7 @@ def get_changelog_url(
     revision_from = revision_from.strip().lower()
     revision_to = revision_to.strip().lower()
     repo_url = repo_url.strip().lower().rstrip("/")
+    repo_url = sanitize_git_url(repo_url)
 
     if not revision_from or not revision_to:
         return ""
