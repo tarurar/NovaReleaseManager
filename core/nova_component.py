@@ -4,7 +4,6 @@ Nova component module
 
 from packaging.version import parse
 from core.nova_task import NovaTask
-from git_utils import sanitize_git_url
 from .cvs import CodeRepository, GitCloudService
 from .nova_status import Status
 from .nova_component_type import NovaComponentType
@@ -79,7 +78,6 @@ def get_changelog_url(
     revision_from = revision_from.strip().lower()
     revision_to = revision_to.strip().lower()
     repo_url = repo_url.strip().lower().rstrip("/")
-    repo_url = sanitize_git_url(repo_url)
 
     if not revision_from or not revision_to:
         return ""
@@ -193,7 +191,10 @@ class NovaComponent:
 
         if self.repo.git_cloud == GitCloudService.GITHUB:
             return get_release_notes_github(
-                revision_from, revision_to, self.repo.url, self.__tasks
+                revision_from,
+                revision_to,
+                self.repo.sanitized_url,
+                self.__tasks,
             )
         if self.repo.git_cloud == GitCloudService.BITBUCKET:
             return get_release_notes_bitbucket(self.__tasks)

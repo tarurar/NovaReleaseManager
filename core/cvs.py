@@ -2,6 +2,7 @@
 from enum import Enum
 
 from config import Config
+from git_utils import sanitize_git_url
 
 
 class GitCloudService(Enum):
@@ -44,6 +45,11 @@ class CodeRepository:
     def url(self):
         """Repository url"""
         return self.__url
+
+    @property
+    def sanitized_url(self):
+        """Repository url without credentials"""
+        return sanitize_git_url(self.__url)
 
     @property
     def git_cloud(self):

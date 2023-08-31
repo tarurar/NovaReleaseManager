@@ -9,7 +9,7 @@ from core.nova_component_release import NovaComponentRelease
 from core.cvs import GitCloudService
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
-from git_utils import get_git_tag_url, sanitize_git_url
+from git_utils import get_git_tag_url
 from integration.git import GitIntegration
 from workers.release_worker import ReleaseWorker
 import fs_utils as fs
@@ -71,11 +71,12 @@ class BitbucketReleaseWorker(ReleaseWorker):
             tag_name = f"nova-{str(new_version)}"
             self.__gi.tag(sources_dir, tag_name, f"Version {tag_name} release")
 
-            sanitized_url = sanitize_git_url(component.repo.url)
             return NovaComponentRelease(
                 tag_name,
                 get_git_tag_url(
-                    GitCloudService.BITBUCKET, sanitized_url, tag_name
+                    GitCloudService.BITBUCKET,
+                    component.repo.sanitized_url,
+                    tag_name,
                 ),
             )
 
