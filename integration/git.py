@@ -88,7 +88,8 @@ class GitIntegration:
 
         :param url: repository url
         :param since: date in the format YYYY-MM-DD
-        :param retry_times: number of times to retry `git clone` operation if it fails
+        :param retry_times: number of times to retry `git clone` operation
+            if it fails
         :param retry_interval_sec: interval between retries in seconds
         :return: list of tags
         """
