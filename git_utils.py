@@ -35,31 +35,3 @@ def get_git_tag_url(
         return f"{base_url}/src/{tag_name}"
 
     raise ValueError(f"Unsupported Git cloud service: {git_cloud}")
-
-
-def sanitize_git_url(url: str) -> str:
-    """
-    Removes username and password from Git URL.
-
-    :param url: Git URL.
-    :return: sanitized Git URL.
-    """
-    if not url:
-        return ""
-
-    # The presence of "@" in the URL indicates that the URL contains
-    # username and password.
-    if "@" not in url:
-        return url
-
-    # The URL contains username and password. Remove them.
-    url_parts = url.split("@")
-    if len(url_parts) != 2 or not url_parts[1]:
-        raise ValueError(f"Invalid URL format: {url}")
-
-    schema = ""
-    if url.startswith("http"):
-        schema = url_parts[0].split("://")[0]
-
-    url = f"{schema}://{url_parts[1]}" if schema else url_parts[1]
-    return url

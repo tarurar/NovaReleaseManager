@@ -2,7 +2,6 @@
 from enum import Enum
 
 from config import Config
-from git_utils import sanitize_git_url
 
 
 class GitCloudService(Enum):
@@ -49,9 +48,37 @@ class CodeRepository:
     @property
     def sanitized_url(self):
         """Repository url without credentials"""
-        return sanitize_git_url(self.__url)
+        return CodeRepository.sanitize_git_url(self.__url)
 
     @property
     def git_cloud(self):
         """Git cloud service"""
         return self.__git_cloud
+
+    @staticmethod
+    def sanitize_git_url(url: str) -> str:
+        """
+        Removes username and password from Git URL.
+
+        :param url: Git URL.
+        :return: sanitized Git URL.
+        """
+        if not url:
+            return ""
+
+        # The presence of "@" in the URL indicates that the URL contains
+        # username and password.
+        if "@" not in url:
+            return url
+
+        # The URL contains username and password. Remove them.
+        url_parts = url.split("@")
+        if len(url_parts) != 2 or not url_parts[1]:
+            raise ValueError(f"Invalid URL format: {url}")
+
+        schema = ""
+        if url.startswith("http"):
+            schema = url_parts[0].split("://")[0]
+
+        url = f"{schema}://{url_parts[1]}" if schema else url_parts[1]
+        return url
