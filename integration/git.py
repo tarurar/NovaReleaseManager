@@ -111,7 +111,7 @@ class GitIntegration:
                 time.sleep(retry_interval_sec)
 
         if not repo:
-            raise ValueError("Failed to clone the repository")
+            raise ValueError(f"Failed to clone the repository ({url})")
 
         if since:
             since_date = datetime.strptime(since, "%Y-%m-%d").date()
