@@ -41,7 +41,11 @@ def is_package_tag(package: NovaComponent, tag: TagReference) -> bool:
     tag_name = tag.name.lower()
     # there are packages which are libraries but do not follow the rule
     # and have client-... or contract-... prefix due to historical reasons
-    if tag_name.startswith("client") or tag_name.startswith("contract"):
+    if (
+        tag_name.startswith("client")
+        or tag_name.startswith("contract")
+        or tag_name.startswith("domain")
+    ):
         return True
 
     # however, if package is infrastructure library then it should follow the
