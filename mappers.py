@@ -33,14 +33,21 @@ def is_package_tag(package: NovaComponent, tag: TagReference) -> bool:
     releases. This function detects if tag is package tag or not.
     Here is the rule:
         - if tag name starts with "client" or "contract" then it is package tag
-        - if tag name starts with "v" then it is package tag
+            (client library)
+        - if tag name starts with "v" then it is package tag (infrastucture
+            library)
     """
 
     tag_name = tag.name.lower()
+    # there are packages which are libraries but do not follow the rule
+    # and have client-... or contract-... prefix due to historical reasons
     if tag_name.startswith("client") or tag_name.startswith("contract"):
-        return package.ctype == NovaComponentType.PACKAGE
+        return True
 
-    if tag_name.startswith("v"):
-        return package.ctype == NovaComponentType.PACKAGE_LIBRARY
+    # however, if package is infrastructure library then it should follow the
+    # rule and have "v" prefix. Still while migrating to new rules we still
+    # might have tags which do not follow the rule. This is temporary solution
+    if package.ctype == NovaComponentType.PACKAGE_LIBRARY:
+        return True
 
     return False
