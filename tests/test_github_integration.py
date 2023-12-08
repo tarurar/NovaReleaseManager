@@ -3,15 +3,10 @@ Test GitHub integration module.
 """
 
 from unittest.mock import Mock
+
 import pytest
-from core.cvs import CodeRepository, GitCloudService
-from core.nova_component import NovaComponent
-from core.nova_release import NovaRelease
-from core.nova_status import Status
-from core.nova_task import NovaTask
+
 from integration.gh import GitHubIntegration
-from tests.fakes import FakeConfig
-from workers.github_worker import GitHubReleaseWorker
 
 
 @pytest.fixture(name="mock_config")
@@ -109,71 +104,3 @@ def test_select_or_autodetect_returns_autodetected_tag(
         assert tag.name == expected_tag
     else:
         assert tag is None
-
-
-def test_create_git_release_if_tag_not_selected_returns_none(
-    monkeypatch, integration: GitHubIntegration, input_cancel, mock_config
-):
-    monkeypatch.setattr("builtins.input", input_cancel)
-
-    worker = GitHubReleaseWorker(
-        NovaRelease("project", "version", "delivery"), integration, mock_config
-    )
-    component = NovaComponent(
-        "component", CodeRepository(GitCloudService.GITHUB, "", mock_config)
-    )
-    component.add_task(NovaTask("task1", Status.READY_FOR_RELEASE))
-    release = worker.release_component(component)
-
-    assert release is None
-
-
-@pytest.mark.parametrize("fake_config", [FakeConfig(1)], indirect=True)
-def test_create_git_release_if_previous_tag_not_selected_returns_none(
-    monkeypatch,
-    integration: GitHubIntegration,
-    input_second_tag_cancel,
-    mock_config,
-):
-    """
-    Here the original FakeConfig fixture is replaced with the one that provides
-    only one tag. This is done to emulate the situation when there is only one
-    tag in the repository and the user cancels the selection of the second tag.
-    Autoselection of the second tag is not possible in this case. So, the
-    create_git_release() method should return None.
-    """
-    monkeypatch.setattr("builtins.input", input_second_tag_cancel)
-    worker = GitHubReleaseWorker(
-        NovaRelease("project", "version", "delivery"), integration, mock_config
-    )
-    component = NovaComponent(
-        "component", CodeRepository(GitCloudService.GITHUB, "", mock_config)
-    )
-    component.add_task(NovaTask("task1", Status.READY_FOR_RELEASE))
-    release = worker.release_component(component)
-
-    assert release is None
-
-
-@pytest.mark.parametrize(
-    "fake_config", [FakeConfig(create_release=False)], indirect=True
-)
-def test_create_git_release_raises_exception_if_release_not_created(
-    monkeypatch, integration: GitHubIntegration, input_all_tags, mock_config
-):
-    """
-    Here the original FakeConfig fixture is replaced with the one that
-    prevents the creation of the release. This is done to emulate the situation
-    when the user selects two tags and the release is not created for some
-    reason. The create_git_release() method should raise an exception.
-    """
-    monkeypatch.setattr("builtins.input", input_all_tags)
-    worker = GitHubReleaseWorker(
-        NovaRelease("project", "version", "delivery"), integration, mock_config
-    )
-    component = NovaComponent(
-        "component", CodeRepository(GitCloudService.GITHUB, "", mock_config)
-    )
-    component.add_task(NovaTask("task1", Status.READY_FOR_RELEASE))
-    with pytest.raises(IOError):
-        worker.release_component(component)

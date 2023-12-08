@@ -31,7 +31,7 @@ class ReleaseWorkerFactory:  # pylint: disable=too-few-public-methods
             gh_client = Github(config.data["github"]["accessToken"])
 
             return GitHubReleaseWorker(
-                release, GitHubIntegration(gh_client), config
+                release, GitHubIntegration(gh_client), GitIntegration(), config
             )
 
         raise ValueError(f"Unknown release worker type: {worker_type}")

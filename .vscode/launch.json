@@ -13,7 +13,7 @@
             "justMyCode": false,
             "args": [
                 "--command",
-                "list-packages",
+                "release",
                 "--since",
                 "2023-07-12",
                 "--csv-output",
