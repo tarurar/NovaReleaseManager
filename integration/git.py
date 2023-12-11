@@ -79,6 +79,21 @@ class GitIntegration:
         repo.create_tag(tag_name, message=tag_message)
         repo.git.push("origin", tag_name)
 
+    def checkout(self, repo_dir: str, tag_name: str):
+        """
+        Checkout the given tag in the repository
+        :param repo_dir: path to the repository
+        :param tag_name: tag name
+        """
+        if not repo_dir:
+            raise ValueError("Repository directory is not specified")
+
+        if not tag_name:
+            raise ValueError("Tag name is not specified")
+
+        repo = Repo(repo_dir)
+        repo.git.checkout(tag_name)
+
     @staticmethod
     def list_tags(
         url: str, since: str = "", retry_times=3, retry_interval_sec=5
@@ -124,3 +139,34 @@ class GitIntegration:
             tags = list(repo.tags)
 
         return tags
+
+    def list_tags_with_annotation(
+        self, repo_dir: str, annotation: str
+    ) -> list[TagReference]:
+        """
+        Finds tags by annotation applying `contains` operator.
+        Returns tags sorted by date in descending order.
+
+        :param repo_dir: path to the repository.
+        :param annotation: annotation to search for.
+        :return: list of tags.
+        """
+        if not repo_dir:
+            raise ValueError("Repository directory is not specified")
+
+        if not annotation:
+            raise ValueError("Annotation is not specified")
+
+        repo = Repo(repo_dir)
+        filtered_tags = filter(
+            lambda tag: annotation in tag.tag.message
+            if tag.tag
+            else annotation in tag.commit.message,
+            repo.tags,
+        )
+
+        return sorted(
+            filtered_tags,
+            key=lambda tag: tag.commit.committed_datetime,
+            reverse=True,
+        )

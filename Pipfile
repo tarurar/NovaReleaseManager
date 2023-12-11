@@ -12,6 +12,9 @@ packaging = "*"
 pytest-cov = "*"
 argparse = "*"
 pygithub = "*"
+markdown = "*"
+pdfkit = "*"
+wkhtmltopdf = "*"
 
 [dev-packages]
 pylint = "*"

@@ -260,3 +260,17 @@ def test_sanitize_filename_string_with_only_restricted_chars():
 
 def test_sanitize_filename_string_with_mixed_characters():
     assert fs.sanitize_filename("file<name>: 123") == "file_name___123"
+
+
+def test_generate_release_notes_file_name_removes_v_prefix():
+    assert (
+        fs.generate_release_notes_file_name("component1", "v1.0.0")
+        == "component1-1.0.0"
+    )
+
+
+def test_generate_release_notes_file_name_removes_nova_prefix():
+    assert (
+        fs.generate_release_notes_file_name("component1", "nova-1.0.0")
+        == "component1-1.0.0"
+    )

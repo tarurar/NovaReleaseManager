@@ -5,8 +5,11 @@ File system helper functions.
 import os
 import re
 import shutil
-from typing import Optional
 from enum import Enum
+from typing import Optional
+
+import markdown
+import pdfkit
 
 import text_utils as txt
 
@@ -165,3 +168,37 @@ def sanitize_filename(filename: str) -> str:
     # finally, remove all characters except alphanumeric, underscore,
     # dot and dash
     return "".join(c for c in filename if c.isalnum() or c in "._- ")
+
+
+def generate_release_notes_file_name(component_name: str, tag_name: str) -> str:
+    """
+    Generates a release notes file name.
+    :param component_name: component name
+    :param tag_name: tag name
+    :return: release notes file name
+    """
+    tag_name = re.sub(r"^v|nova-", "", tag_name)
+    file_name = f"{component_name.lower()}-{tag_name}"
+    return sanitize_filename(file_name)
+
+
+def markdown_to_pdf(markdown_file_path: str, pdf_file_path: str):
+    """
+    Converts markdown file to pdf.
+    :param markdown_file_path: path to markdown file
+    :param pdf_file_path: path to pdf file, if file exists, it will be
+    overwritten
+    """
+    if not os.path.isfile(markdown_file_path):
+        raise FileNotFoundError(f"File {markdown_file_path} does not exist")
+
+    if not markdown_file_path.endswith(".md"):
+        raise ValueError(f"File {markdown_file_path} is not a markdown file")
+
+    if not pdf_file_path:
+        raise ValueError("PDF file path cannot be empty")
+
+    with open(markdown_file_path, "r", encoding="utf-8") as file_handle:
+        markdown_content = file_handle.read()
+    html_content = markdown.markdown(markdown_content)
+    pdfkit.from_string(html_content, pdf_file_path)

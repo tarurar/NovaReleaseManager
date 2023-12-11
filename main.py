@@ -2,18 +2,25 @@
 Start module
 """
 
+import argparse
+import os
 import sys
 from typing import Optional
-import argparse
+
+import markdown
+import pdfkit
+
+import fs_utils as fs
 from config import Config
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
+from core.nova_status import Status
 from csv_utils import export_packages_to_csv
-from integration.jira import JiraIntegration
 from integration.git import GitIntegration
+from integration.jira import JiraIntegration
 from mappers import is_package_tag, map_to_tag_info
-from release_manager import ReleaseManager
 from nova_release_repository import NovaReleaseRepository
+from release_manager import ReleaseManager
 from ui.console import preview_component_release
 
 
@@ -43,7 +50,7 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="The mode release manager will operate in",
-        choices=["list-packages", "release"],
+        choices=["list-packages", "release", "generate-notes"],
         default="release",
     )
 
@@ -64,6 +71,16 @@ if __name__ == "__main__":
         help="""
         The path to CSV file to output the result. 
         Applicable only for 'list-packages' command.
+        """,
+    )
+
+    parser.add_argument(
+        "--notes-output",
+        type=str,
+        required=False,
+        help="""
+        The path to put generated release notes files to.
+        Applicable only for 'generate-notes' command. Only pdf format is supported so far.
         """,
     )
 
@@ -182,3 +199,75 @@ if __name__ == "__main__":
             print(f"CSV file has been created: {path}")
         else:
             print("No tags found")
+
+    if args.command == "generate-notes":
+        version = input("Please, enter version (or 'q' for quit): ")
+        if version == "q":
+            sys.exit()
+        delivery = input("Please, enter delivery (or 'q' for quit): ")
+        if delivery == "q":
+            sys.exit()
+
+        manager = ReleaseManager()
+        release = release_repository.get(
+            config.data["jira"]["project"], version, delivery
+        )
+        print(release.describe_status())
+        if release.get_status() != Status.DONE:
+            print(
+                "Release is not ready to generate notes. Should be in DONE status"
+            )
+            sys.exit()
+        # ensure --notes-output is specified
+        notes_output_folder = args.notes_output
+        if notes_output_folder is None:
+            notes_output_folder = fs.sanitize_filename(release.title)
+        # ensure the folder exists or create it if not
+        if not os.path.exists(notes_output_folder):
+            os.makedirs(notes_output_folder)
+        notes_output_folder = os.path.abspath(notes_output_folder)
+        # print the release notes folder
+        print(f"Release notes folder: [{notes_output_folder}]")
+        gi = GitIntegration()
+        # iterate over every component
+        for component in release:
+            print(f"Processing component [{component.name}]")
+            if component.status != Status.DONE:
+                print(
+                    f"Skipping component [{component.name}] as it is not in DONE status"
+                )
+                continue
+            # try to find delivery tag automatically
+            sources_dir = gi.clone(component.repo.url)
+            annotated_tags = gi.list_tags_with_annotation(
+                sources_dir, release.title
+            )
+            # get the latest tag if any
+            if annotated_tags:
+                latest_tag = annotated_tags[0]
+                print(
+                    f"Found tag [{latest_tag.name}] for component [{component.name}] with corresponding annotation"
+                )
+                # get changelog upon tag
+                gi.checkout(sources_dir, latest_tag.name)
+                # get changelog file related to tag
+                changelog_path = fs.search_changelog(sources_dir)
+                if changelog_path is None:
+                    print(
+                        f"Changelog file not found for component [{component.name}]"
+                    )
+                    continue
+                # get pdf file name
+                pdf_file_name = f"{fs.generate_release_notes_file_name(component.name, latest_tag.name)}.pdf"
+                fs.markdown_to_pdf(
+                    changelog_path, f"{notes_output_folder}/{pdf_file_name}"
+                )
+                print(
+                    f"Release notes for component [{component.name}] have been generated to [{notes_output_folder}/{pdf_file_name}]"
+                )
+            else:
+                # todo: ask user to enter the tag name
+                print(
+                    f"There are no tag annotated for delivery [{release.title}] for component [{component.name}]"
+                )
+            print(f"Finished processing component [{component.name}]")
