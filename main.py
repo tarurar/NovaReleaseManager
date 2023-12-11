@@ -248,22 +248,23 @@ if __name__ == "__main__":
                 print(
                     f"Found tag [{latest_tag.name}] for component [{component.name}] with corresponding annotation"
                 )
-                # get changelog upon tag
                 gi.checkout(sources_dir, latest_tag.name)
-                # get changelog file related to tag
                 changelog_path = fs.search_changelog(sources_dir)
                 if changelog_path is None:
                     print(
                         f"Changelog file not found for component [{component.name}]"
                     )
                     continue
-                # get pdf file name
-                pdf_file_name = f"{fs.generate_release_notes_file_name(component.name, latest_tag.name)}.pdf"
-                fs.markdown_to_pdf(
-                    changelog_path, f"{notes_output_folder}/{pdf_file_name}"
+                pdf_filename = fs.add_extension(
+                    fs.gen_release_notes_filename(
+                        component.name, latest_tag.name
+                    ),
+                    ".pdf",
                 )
+                pdf_file_path = f"{notes_output_folder}/{pdf_filename}"
+                fs.markdown_to_pdf(changelog_path, pdf_file_path)
                 print(
-                    f"Release notes for component [{component.name}] have been generated to [{notes_output_folder}/{pdf_file_name}]"
+                    f"Release notes for component [{component.name}] have been generated to [{notes_output_folder}/{pdf_filename}]"
                 )
             else:
                 # todo: ask user to enter the tag name

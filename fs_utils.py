@@ -170,7 +170,7 @@ def sanitize_filename(filename: str) -> str:
     return "".join(c for c in filename if c.isalnum() or c in "._- ")
 
 
-def generate_release_notes_file_name(component_name: str, tag_name: str) -> str:
+def gen_release_notes_filename(component_name: str, tag_name: str) -> str:
     """
     Generates a release notes file name.
     :param component_name: component name
@@ -192,9 +192,6 @@ def markdown_to_pdf(markdown_file_path: str, pdf_file_path: str):
     if not os.path.isfile(markdown_file_path):
         raise FileNotFoundError(f"File {markdown_file_path} does not exist")
 
-    if not markdown_file_path.endswith(".md"):
-        raise ValueError(f"File {markdown_file_path} is not a markdown file")
-
     if not pdf_file_path:
         raise ValueError("PDF file path cannot be empty")
 
@@ -202,3 +199,15 @@ def markdown_to_pdf(markdown_file_path: str, pdf_file_path: str):
         markdown_content = file_handle.read()
     html_content = markdown.markdown(markdown_content)
     pdfkit.from_string(html_content, pdf_file_path)
+
+
+def add_extension(file_path: str, extension: str) -> str:
+    """
+    Adds an extension to a file path if it does not have one.
+    :param file_path: file path
+    :param extension: extension to add
+    :return: file path with extension
+    """
+    if not file_path.endswith(extension):
+        file_path += extension
+    return file_path

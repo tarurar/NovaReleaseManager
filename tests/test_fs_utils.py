@@ -262,15 +262,23 @@ def test_sanitize_filename_string_with_mixed_characters():
     assert fs.sanitize_filename("file<name>: 123") == "file_name___123"
 
 
-def test_generate_release_notes_file_name_removes_v_prefix():
+def test_gen_release_notes_filename_removes_v_prefix():
     assert (
-        fs.generate_release_notes_file_name("component1", "v1.0.0")
+        fs.gen_release_notes_filename("component1", "v1.0.0")
         == "component1-1.0.0"
     )
 
 
-def test_generate_release_notes_file_name_removes_nova_prefix():
+def test_gen_release_notes_filename_removes_nova_prefix():
     assert (
-        fs.generate_release_notes_file_name("component1", "nova-1.0.0")
+        fs.gen_release_notes_filename("component1", "nova-1.0.0")
         == "component1-1.0.0"
     )
+
+
+def test_add_extension_adds_extension():
+    assert fs.add_extension("test", ".txt") == "test.txt"
+
+
+def test_add_extension_does_not_add_extension_if_already_present():
+    assert fs.add_extension("test.txt", ".txt") == "test.txt"
