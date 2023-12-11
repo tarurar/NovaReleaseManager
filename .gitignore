@@ -254,3 +254,6 @@ config.json
 *.xlsx
 *.xls
 *.csv
+
+# PDF files
+*.pdf
