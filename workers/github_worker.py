@@ -95,7 +95,7 @@ class GitHubReleaseWorker(ReleaseWorker):
 
             tag_name = f"v{str(new_version)}"
             self.__gi.commit(sources_dir, f"Version {str(new_version)}")
-            self.__gi.tag(sources_dir, tag_name, f"Version {tag_name} release")
+            self.__gi.tag(sources_dir, tag_name, self._release.title)
 
         finally:
             fs.remove_dir(sources_dir)
