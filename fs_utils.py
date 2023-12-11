@@ -148,3 +148,20 @@ def replace_in_file(
     file_content = re.sub(search_string, replace_string, file_content)
     with open(file_path, "w", encoding="utf-8") as file_handle:
         file_handle.write(file_content)
+
+
+def sanitize_filename(filename: str) -> str:
+    """
+    Sanitizes a file name to make it safe for file system.
+    :param filename: file name or folder name to sanitize
+    :return: sanitized file or folder name
+    """
+    restricted_chars = r'<>:"/\|?*'
+
+    # replace restricted characters with underscore
+    filename = re.sub(r"[" + restricted_chars + "]", "_", filename)
+    # replace spaces with underscore
+    filename = re.sub(r"\s+", "_", filename)
+    # finally, remove all characters except alphanumeric, underscore,
+    # dot and dash
+    return "".join(c for c in filename if c.isalnum() or c in "._- ")
