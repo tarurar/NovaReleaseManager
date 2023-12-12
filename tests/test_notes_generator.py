@@ -15,6 +15,13 @@ from integration.git import GitIntegration
 from notes_generator import ReleaseNotesGenerator
 
 
+@pytest.fixture(name="mock_config")
+def fixture_mock_config():
+    mock_config = Mock()
+    mock_config.get_notes_folder_path.return_value = "path_to_notes_folder"
+    return mock_config
+
+
 @pytest.fixture(name="release_not_ready_for_notes")
 def fixture_release_not_ready_for_notes():
     release_mock = Mock(spec=NovaRelease)
@@ -90,20 +97,22 @@ def fixture_git_integration_no_annotated_tags():
 
 
 def test_can_generate_returns_false_when_release_not_ready(
-    release_not_ready_for_notes, git_integration
+    release_not_ready_for_notes, git_integration, mock_config
 ):
     generator = ReleaseNotesGenerator(
-        release_not_ready_for_notes, git_integration
+        release_not_ready_for_notes, git_integration, mock_config
     )
     assert not generator.can_generate()
 
 
 def test_generate_nothing_when_component_not_ready(
-    release_with_component_not_ready_for_notes, git_integration
+    release_with_component_not_ready_for_notes, git_integration, mock_config
 ):
     with patch("os.path.exists", return_value=True):
         generator = ReleaseNotesGenerator(
-            release_with_component_not_ready_for_notes, git_integration
+            release_with_component_not_ready_for_notes,
+            git_integration,
+            mock_config,
         )
         notes = generator.generate()
         assert len(notes) == 1
@@ -112,12 +121,15 @@ def test_generate_nothing_when_component_not_ready(
 
 
 def test_generate_nothing_when_no_annotated_tag(
-    release_with_component_ready_for_notes, git_integration_no_annotated_tags
+    release_with_component_ready_for_notes,
+    git_integration_no_annotated_tags,
+    mock_config,
 ):
     with patch("os.path.exists", return_value=True):
         generator = ReleaseNotesGenerator(
             release_with_component_ready_for_notes,
             git_integration_no_annotated_tags,
+            mock_config,
         )
         notes = generator.generate()
         assert len(notes) == 1
@@ -126,13 +138,13 @@ def test_generate_nothing_when_no_annotated_tag(
 
 
 def test_generate_nothing_when_no_changelog(
-    release_with_component_ready_for_notes, git_integration
+    release_with_component_ready_for_notes, git_integration, mock_config
 ):
     with patch("os.path.exists", return_value=True), patch(
         "fs_utils.search_changelog", return_value=None
     ):
         generator = ReleaseNotesGenerator(
-            release_with_component_ready_for_notes, git_integration
+            release_with_component_ready_for_notes, git_integration, mock_config
         )
         notes = generator.generate()
         assert len(notes) == 1
@@ -141,7 +153,7 @@ def test_generate_nothing_when_no_changelog(
 
 
 def test_generate_happy_path(
-    release_with_component_ready_for_notes, git_integration
+    release_with_component_ready_for_notes, git_integration, mock_config
 ):
     with patch("os.path.exists", return_value=True), patch(
         "fs_utils.search_changelog", return_value="path_to_changelog"
@@ -154,7 +166,7 @@ def test_generate_happy_path(
         "os.path.abspath", return_value="absolute_path_to_pdf"
     ):
         generator = ReleaseNotesGenerator(
-            release_with_component_ready_for_notes, git_integration
+            release_with_component_ready_for_notes, git_integration, mock_config
         )
         notes = generator.generate()
         assert len(notes) == 1
