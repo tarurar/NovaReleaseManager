@@ -142,14 +142,14 @@ class GitIntegration:
 
     def list_tags_with_annotation(
         self, repo_dir: str, annotation: str
-    ) -> list[TagReference]:
+    ) -> list[str]:
         """
         Finds tags by annotation applying `contains` operator.
-        Returns tags sorted by date in descending order.
+        Returns tag names sorted by date in descending order.
 
         :param repo_dir: path to the repository.
         :param annotation: annotation to search for.
-        :return: list of tags.
+        :return: list of tag names.
         """
         if not repo_dir:
             raise ValueError("Repository directory is not specified")
@@ -165,8 +165,13 @@ class GitIntegration:
             repo.tags,
         )
 
-        return sorted(
-            filtered_tags,
-            key=lambda tag: tag.commit.committed_datetime,
-            reverse=True,
+        return list(
+            map(
+                lambda tag: tag.name,
+                sorted(
+                    filtered_tags,
+                    key=lambda tag: tag.commit.committed_datetime,
+                    reverse=True,
+                ),
+            )
         )
