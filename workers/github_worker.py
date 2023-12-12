@@ -57,7 +57,6 @@ class GitHubReleaseWorker(ReleaseWorker):
         )  # assure Pylance that component.repo is not None
 
         # CHANGELOG.md update
-        # TODO: flow is similar to bitbucket worker, refactor
         sources_dir = self.__gi.clone(component.repo.url)
         try:
             changelog_path = fs.search_changelog(sources_dir)
@@ -66,11 +65,9 @@ class GitHubReleaseWorker(ReleaseWorker):
             parsed_version = changelog.parse_version(changelog_path)
             new_version = txt.next_version(parsed_version)
             print(f"New suggested version: {str(new_version)}")
-            print(
-                "If you want to change it, please enter new version in the same format"
-            )
+            print("To change it, please enter new version in the same format")
             entered_version = console.input_value("new version")
-            # TODO: since the new tag will be created using this version,
+            # since the new tag will be created using this version,
             # it should be validated first
             if entered_version is not None:
                 new_version = Version(entered_version)
