@@ -3,7 +3,7 @@ Configuration file for the application
 """
 
 import json
-from typing import Any
+from typing import Any, Optional
 
 
 class Config:  # pylint: disable=too-few-public-methods
@@ -25,3 +25,17 @@ class Config:  # pylint: disable=too-few-public-methods
             with open(config_path, encoding="utf-8") as file:
                 cls._instance.data = json.load(file)
         return cls._instance
+
+    def get_notes_folder_path(
+        self, nova_version: str, delivery: str, hotfix: Optional[str] = None
+    ):
+        template = self.data["release"]["notesFolderPathTemplate"]
+        if not template:
+            raise ValueError(
+                "notesFolderPathTemplate is not specified in config"
+            )
+        return template.format(
+            nova=f"Nova {nova_version}.",
+            delivery=f"Delivery {delivery}.",
+            hotfix=f" Hotfix {hotfix}" if hotfix else "",
+        )

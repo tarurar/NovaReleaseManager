@@ -5,8 +5,11 @@ File system helper functions.
 import os
 import re
 import shutil
-from typing import Optional
 from enum import Enum
+from typing import Optional
+
+import markdown
+import pdfkit
 
 import text_utils as txt
 
@@ -148,3 +151,63 @@ def replace_in_file(
     file_content = re.sub(search_string, replace_string, file_content)
     with open(file_path, "w", encoding="utf-8") as file_handle:
         file_handle.write(file_content)
+
+
+def sanitize_filename(filename: str) -> str:
+    """
+    Sanitizes a file name to make it safe for file system.
+    :param filename: file name or folder name to sanitize
+    :return: sanitized file or folder name
+    """
+    restricted_chars = r'<>:"/\|?*'
+
+    # replace restricted characters with underscore
+    filename = re.sub(r"[" + restricted_chars + "]", "_", filename)
+    # replace spaces with underscore
+    filename = re.sub(r"\s+", "_", filename)
+    # finally, remove all characters except alphanumeric, underscore,
+    # dot and dash
+    return "".join(c for c in filename if c.isalnum() or c in "._- ")
+
+
+def gen_release_notes_filename(component_name: str, tag_name: str) -> str:
+    """
+    Generates a release notes file name.
+    :param component_name: component name
+    :param tag_name: tag name
+    :return: release notes file name
+    """
+    tag_name = re.sub(r"^v|nova-", "", tag_name)
+    file_name = f"{component_name.lower()}-{tag_name}"
+    return sanitize_filename(file_name)
+
+
+def markdown_to_pdf(markdown_file_path: str, pdf_file_path: str):
+    """
+    Converts markdown file to pdf.
+    :param markdown_file_path: path to markdown file
+    :param pdf_file_path: path to pdf file, if file exists, it will be
+    overwritten
+    """
+    if not os.path.isfile(markdown_file_path):
+        raise FileNotFoundError(f"File {markdown_file_path} does not exist")
+
+    if not pdf_file_path:
+        raise ValueError("PDF file path cannot be empty")
+
+    with open(markdown_file_path, "r", encoding="utf-8") as file_handle:
+        markdown_content = file_handle.read()
+    html_content = markdown.markdown(markdown_content)
+    pdfkit.from_string(html_content, pdf_file_path)
+
+
+def add_extension(file_path: str, extension: str) -> str:
+    """
+    Adds an extension to a file path if it does not have one.
+    :param file_path: file path
+    :param extension: extension to add
+    :return: file path with extension
+    """
+    if not file_path.endswith(extension):
+        file_path += extension
+    return file_path

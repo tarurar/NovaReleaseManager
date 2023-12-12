@@ -2,18 +2,20 @@
 Start module
 """
 
+import argparse
 import sys
 from typing import Optional
-import argparse
+
 from config import Config
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from csv_utils import export_packages_to_csv
-from integration.jira import JiraIntegration
 from integration.git import GitIntegration
+from integration.jira import JiraIntegration
 from mappers import is_package_tag, map_to_tag_info
-from release_manager import ReleaseManager
+from notes_generator import ReleaseNotesGenerator
 from nova_release_repository import NovaReleaseRepository
+from release_manager import ReleaseManager
 from ui.console import preview_component_release
 
 
@@ -43,7 +45,7 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="The mode release manager will operate in",
-        choices=["list-packages", "release"],
+        choices=["list-packages", "release", "generate-notes"],
         default="release",
     )
 
@@ -182,3 +184,33 @@ if __name__ == "__main__":
             print(f"CSV file has been created: {path}")
         else:
             print("No tags found")
+
+    if args.command == "generate-notes":
+        version = input("Please, enter version (or 'q' for quit): ")
+        if version == "q":
+            sys.exit()
+        delivery = input("Please, enter delivery (or 'q' for quit): ")
+        if delivery == "q":
+            sys.exit()
+
+        manager = ReleaseManager()
+        release = release_repository.get(
+            config.data["jira"]["project"], version, delivery
+        )
+        print(release.describe_status())
+        notes_generator = ReleaseNotesGenerator(release, GitIntegration())
+        if not notes_generator.can_generate():
+            print(
+                "Release is not ready to generate notes. Please, check the status of the release."
+            )
+            sys.exit()
+        notes = notes_generator.generate()
+        print("Release notes generated: ")
+        for component_name, path in notes.items():
+            if path:
+                print(f"    [{component_name}]: [{path}]")
+        print("Release notes were not generated for the following components:")
+        for component_name, path in notes.items():
+            if path:
+                continue
+            print(f"    [{component_name}]")

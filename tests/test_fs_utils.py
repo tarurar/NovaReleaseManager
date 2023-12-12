@@ -232,3 +232,53 @@ def test_replace_in_file_replaces_text(create_test_file_for_replacement):
     fs.replace_in_file(file_path, "text to replace", "replacement")
     content = read_file(file_path)
     assert content == "replacement"
+
+
+def test_sanitize_filename_remove_restricted_characters():
+    assert fs.sanitize_filename("test<file>name?*") == "test_file_name__"
+
+
+def test_sanitize_filename_replace_spaces_with_underscore():
+    assert fs.sanitize_filename("test file name") == "test_file_name"
+
+
+def test_sanitize_filename_preserve_alphanumeric_underscore_dot_dash():
+    assert fs.sanitize_filename("test-file_name.123") == "test-file_name.123"
+
+
+def test_sanitize_filename_remove_leading_and_trailing_spaces():
+    assert fs.sanitize_filename("  testfile  ") == "_testfile_"
+
+
+def test_sanitize_filename_empty_string():
+    assert fs.sanitize_filename("") == ""
+
+
+def test_sanitize_filename_string_with_only_restricted_chars():
+    assert fs.sanitize_filename('<>:"/\\|?*') == "________"
+
+
+def test_sanitize_filename_string_with_mixed_characters():
+    assert fs.sanitize_filename("file<name>: 123") == "file_name___123"
+
+
+def test_gen_release_notes_filename_removes_v_prefix():
+    assert (
+        fs.gen_release_notes_filename("component1", "v1.0.0")
+        == "component1-1.0.0"
+    )
+
+
+def test_gen_release_notes_filename_removes_nova_prefix():
+    assert (
+        fs.gen_release_notes_filename("component1", "nova-1.0.0")
+        == "component1-1.0.0"
+    )
+
+
+def test_add_extension_adds_extension():
+    assert fs.add_extension("test", ".txt") == "test.txt"
+
+
+def test_add_extension_does_not_add_extension_if_already_present():
+    assert fs.add_extension("test.txt", ".txt") == "test.txt"

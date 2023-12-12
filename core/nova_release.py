@@ -28,6 +28,9 @@ class NovaRelease:
     def __repr__(self):
         return self.__str__()
 
+    def __iter__(self):
+        return iter(self.__components)
+
     @property
     def version(self):
         """Returns release version"""
