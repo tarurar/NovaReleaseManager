@@ -24,7 +24,7 @@ def update_project_version(file_path: str, version: Version):
 def update_solution_version(sources_dir: str, version: Version):
     """
     Searches for *.csproj files in sources_dir and updates
-    version tag in each file.
+    version tag in each file. Quiet if no *.csproj files found.
     """
 
     if not sources_dir:
@@ -35,9 +35,7 @@ def update_solution_version(sources_dir: str, version: Version):
 
     csproj_file_paths = fs.search_files_with_ext(sources_dir, "csproj")
     if not csproj_file_paths:
-        raise FileNotFoundError(
-            "Could not find any *.csproj files in " + f"{sources_dir}"
-        )
+        return
 
     for csproj_file_path in csproj_file_paths:
         update_project_version(csproj_file_path, version)
