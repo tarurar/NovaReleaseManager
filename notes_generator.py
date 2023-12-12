@@ -22,8 +22,11 @@ class ReleaseNotesGenerator:
     should be overridden.
     """
 
-    def __init__(self, release: NovaRelease, gi: GitIntegration) -> None:
-        config = Config()
+    def __init__(
+        self, release: NovaRelease, gi: GitIntegration, config=None
+    ) -> None:
+        if config is None:
+            config = Config()
 
         self.__release = release
         self.__gi = gi
