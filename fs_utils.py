@@ -159,6 +159,9 @@ def sanitize_filename(filename: str) -> str:
     :param filename: file name or folder name to sanitize
     :return: sanitized file or folder name
     """
+    if not filename:
+        raise ValueError("File name cannot be empty")
+
     restricted_chars = r'<>:"/\|?*'
 
     # replace restricted characters with underscore
@@ -168,6 +171,22 @@ def sanitize_filename(filename: str) -> str:
     # finally, remove all characters except alphanumeric, underscore,
     # dot and dash
     return "".join(c for c in filename if c.isalnum() or c in "._- ")
+
+
+def sanitize_path(path: str) -> str:
+    """
+    Sanitizes a path to make it safe for file system.
+    :param path: path to sanitize
+    :return: sanitized path
+    """
+    if not path:
+        raise ValueError("Path cannot be empty")
+
+    parts = path.split(os.path.sep)
+    # sanitize each part of the path
+    sanitized_parts = [sanitize_filename(part) for part in parts]
+    # join sanitized parts back
+    return os.path.sep.join(sanitized_parts)
 
 
 def gen_release_notes_filename(component_name: str, tag_name: str) -> str:

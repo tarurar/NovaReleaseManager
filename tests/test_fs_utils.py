@@ -234,6 +234,11 @@ def test_replace_in_file_replaces_text(create_test_file_for_replacement):
     assert content == "replacement"
 
 
+def test_sanitize_filename_raises_exception_when_filename_is_empty():
+    with pytest.raises(ValueError):
+        fs.sanitize_filename("")
+
+
 def test_sanitize_filename_remove_restricted_characters():
     assert fs.sanitize_filename("test<file>name?*") == "test_file_name__"
 
@@ -248,10 +253,6 @@ def test_sanitize_filename_preserve_alphanumeric_underscore_dot_dash():
 
 def test_sanitize_filename_remove_leading_and_trailing_spaces():
     assert fs.sanitize_filename("  testfile  ") == "_testfile_"
-
-
-def test_sanitize_filename_empty_string():
-    assert fs.sanitize_filename("") == ""
 
 
 def test_sanitize_filename_string_with_only_restricted_chars():
@@ -282,3 +283,16 @@ def test_add_extension_adds_extension():
 
 def test_add_extension_does_not_add_extension_if_already_present():
     assert fs.add_extension("test.txt", ".txt") == "test.txt"
+
+
+def test_sanitize_path_raises_exception_when_path_is_empty():
+    with pytest.raises(ValueError):
+        fs.sanitize_path("")
+
+
+def test_sanitize_path():
+    assert fs.sanitize_path("test/path") == "test/path"
+
+
+def test_sanotize_path_removes_restricted_characters():
+    assert fs.sanitize_path("test/path1<>/path2*") == "test/path1__/path2_"

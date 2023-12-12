@@ -34,7 +34,7 @@ class ReleaseNotesGenerator:
         output_path = config.get_notes_folder_path(
             self.__release.version, self.__release.delivery, ""
         )
-        self.__output_path = fs.sanitize_filename(output_path)
+        self.__output_path = fs.sanitize_path(output_path)
 
     def __ensure_output_folder_exists(self) -> None:
         """
