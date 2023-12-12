@@ -17,74 +17,76 @@ from notes_generator import ReleaseNotesGenerator
 
 @pytest.fixture(name="release_not_ready_for_notes")
 def fixture_release_not_ready_for_notes():
-    release = Mock(spec=NovaRelease)
-    release.get_status.return_value = Status.IN_DEVELOPMENT
-    return release
+    release_mock = Mock(spec=NovaRelease)
+    release_mock.get_status.return_value = Status.IN_DEVELOPMENT
+    return release_mock
 
 
 @pytest.fixture(name="component_not_ready_for_notes")
 def fixture_component_not_ready_for_notes():
-    component = Mock(spec=NovaComponent)
-    type(component).name = PropertyMock(
+    component_mock = Mock(spec=NovaComponent)
+    type(component_mock).name = PropertyMock(
         return_value=f"component_{random.randint(1, 1000)}"
     )
-    type(component).status = PropertyMock(return_value=Status.IN_DEVELOPMENT)
-    return component
+    type(component_mock).status = PropertyMock(
+        return_value=Status.IN_DEVELOPMENT
+    )
+    return component_mock
 
 
 @pytest.fixture(name="component_ready_for_notes")
 def fixture_component_ready_for_notes():
-    component = Mock(spec=NovaComponent)
-    component.repo = Mock(spec=CodeRepository)
-    type(component).name = PropertyMock(
+    component_mock = Mock(spec=NovaComponent)
+    component_mock.repo = Mock(spec=CodeRepository)
+    type(component_mock).name = PropertyMock(
         return_value=f"component_{random.randint(1, 1000)}"
     )
-    type(component).status = PropertyMock(return_value=Status.DONE)
-    return component
+    type(component_mock).status = PropertyMock(return_value=Status.DONE)
+    return component_mock
 
 
 @pytest.fixture(name="release_with_component_not_ready_for_notes")
 def fixture_release_with_component_not_ready_for_notes(
     component_not_ready_for_notes,
 ):
-    release = MagicMock(
+    release_mock = MagicMock(
         spec=NovaRelease, name="release_with_component_not_ready_for_notes_mock"
     )
-    type(release).version = PropertyMock(return_value="7")
-    type(release).delivery = PropertyMock(return_value="77")
-    release.get_status.return_value = Status.DONE
-    release.__iter__.return_value = [component_not_ready_for_notes]
-    return release
+    type(release_mock).version = PropertyMock(return_value="7")
+    type(release_mock).delivery = PropertyMock(return_value="77")
+    release_mock.get_status.return_value = Status.DONE
+    release_mock.__iter__.return_value = [component_not_ready_for_notes]
+    return release_mock
 
 
 @pytest.fixture(name="release_with_component_ready_for_notes")
 def fixture_release_with_component_ready_for_notes(
     component_ready_for_notes,
 ):
-    release = MagicMock(spec=NovaRelease)
-    type(release).version = PropertyMock(return_value="7")
-    type(release).delivery = PropertyMock(return_value="77")
-    release.get_status.return_value = Status.DONE
-    release.__iter__.return_value = [component_ready_for_notes]
-    return release
+    release_mock = MagicMock(spec=NovaRelease)
+    type(release_mock).version = PropertyMock(return_value="7")
+    type(release_mock).delivery = PropertyMock(return_value="77")
+    release_mock.get_status.return_value = Status.DONE
+    release_mock.__iter__.return_value = [component_ready_for_notes]
+    return release_mock
 
 
 @pytest.fixture(name="git_integration")
 def fixture_git_integration():
-    gi = Mock(spec=GitIntegration)
-    gi.clone.return_value = "path_to_repo"
-    gi.list_tags_with_annotation.return_value = ["1.0.0", "2.0.0"]
-    gi.checkout = MagicMock()
-    return gi
+    gi_mock = Mock(spec=GitIntegration)
+    gi_mock.clone.return_value = "path_to_repo"
+    gi_mock.list_tags_with_annotation.return_value = ["1.0.0", "2.0.0"]
+    gi_mock.checkout = MagicMock()
+    return gi_mock
 
 
 @pytest.fixture(name="git_integration_no_annotated_tags")
 def fixture_git_integration_no_annotated_tags():
-    gi = Mock(spec=GitIntegration)
-    gi.clone.return_value = "path_to_repo"
-    gi.list_tags_with_annotation.return_value = []
-    gi.checkout = MagicMock()
-    return gi
+    gi_mock = Mock(spec=GitIntegration)
+    gi_mock.clone.return_value = "path_to_repo"
+    gi_mock.list_tags_with_annotation.return_value = []
+    gi_mock.checkout = MagicMock()
+    return gi_mock
 
 
 def test_can_generate_returns_false_when_release_not_ready(
