@@ -44,12 +44,10 @@ def get_release_notes_github(
 
     change_log_url = get_changelog_url(revision_from, revision_to, repo_url)
     # change log is optional
-    if change_log_url:
-        change_log = f"**Full change log**: {change_log_url}"
-    else:
-        change_log = ""
-
-    result = [header, *task_notes, change_log]
+    change_log = (
+        f"**Full change log**: {change_log_url}" if change_log_url else ""
+    )
+    result = [header, *task_notes, "\n", change_log]
 
     return "\n".join(result)
 
