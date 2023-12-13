@@ -39,6 +39,7 @@ class BitbucketReleaseWorker(ReleaseWorker):
         super().__init__(release, config)
         self.__gi = gi
 
+    # pylint: disable=too-many-statements
     def release_component(
         self, component: NovaComponent
     ) -> Optional[NovaComponentRelease]:
