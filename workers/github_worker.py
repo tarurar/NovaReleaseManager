@@ -65,8 +65,9 @@ class GitHubReleaseWorker(ReleaseWorker):
                 raise FileNotFoundError("Change log file not found")
             parsed_version = changelog.parse_version(changelog_path)
             new_version = txt.next_version(parsed_version)
+            print(f"Current version: {str(parsed_version)}")
             print(f"New suggested version: {str(new_version)}")
-            print("To change it, please enter new version in the same format")
+            print("Please enter new version or quit to accept suggestion")
             entered_version = console.input_value("new version")
             # since the new tag will be created using this version,
             # it should be validated first

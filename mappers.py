@@ -31,11 +31,11 @@ def is_package_tag(package: NovaComponent, tag: TagReference) -> bool:
     Taking into account that git repositories can host not only nuget packages
     but services as well, there might be tags related to packages and services
     releases. This function detects if tag is package tag or not.
-    Here is the rule:
-        - if tag name starts with "client" or "contract" then it is package tag
-            (client library)
+    Here are the rules:
+        - if tag name starts with "client", "contract" or "domain" then it is
+        package tag (client library)
         - if tag name starts with "v" then it is package tag (infrastucture
-            library)
+        library)
     """
 
     tag_name = tag.name.lower()
