@@ -3,10 +3,12 @@ Git integration layer module.
 """
 
 
-from datetime import datetime
 import tempfile
 import time
+from datetime import datetime
+from operator import attrgetter
 from typing import Optional
+
 from git import TagReference
 from git.exc import GitCommandError
 from git.repo import Repo
@@ -93,6 +95,21 @@ class GitIntegration:
 
         repo = Repo(repo_dir)
         repo.git.checkout(tag_name)
+
+    @staticmethod
+    def get_latest_tag(repo_dir: str) -> str:
+        """
+        Get the latest tag in the repository
+        :param repo_dir: path to the repository
+        :return: latest tag name
+        """
+        if not repo_dir:
+            raise ValueError("Repository directory is not specified")
+
+        repo = Repo(repo_dir)
+        tags = sorted(repo.tags, key=attrgetter("commit.committed_datetime"))
+
+        return str(tags[-1])
 
     @staticmethod
     def list_tags(

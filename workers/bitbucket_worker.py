@@ -4,18 +4,22 @@ Release workflow for Bitbucket hosted components
 
 from subprocess import call
 from typing import Optional
+
+from packaging.version import Version
+
+import changelog
+import fs_utils as fs
+import msbuild
+import text_utils as txt
 from config import Config
-from core.nova_component_release import NovaComponentRelease
 from core.cvs import GitCloudService
 from core.nova_component import NovaComponent
+from core.nova_component_release import NovaComponentRelease
 from core.nova_release import NovaRelease
 from git_utils import get_git_tag_url
 from integration.git import GitIntegration
+from ui import console
 from workers.release_worker import ReleaseWorker
-import fs_utils as fs
-import text_utils as txt
-import changelog
-import msbuild
 
 
 class BitbucketReleaseWorker(ReleaseWorker):
@@ -51,6 +55,16 @@ class BitbucketReleaseWorker(ReleaseWorker):
                 raise FileNotFoundError("Change log file not found")
             parsed_version = changelog.parse_version(changelog_path)
             new_version = txt.next_version(parsed_version)
+            latest_tag = self.__gi.get_latest_tag(sources_dir)
+            print(f"Current version from changelog: {str(parsed_version)}")
+            print(f"Latest known tag from repository: {latest_tag}")
+            print(f"New suggested version: {str(new_version)}")
+            print("Please enter new version or quit to accept suggestion")
+            entered_version = console.input_value("new version")
+            # since the new tag will be created using this version,
+            # it should be validated first
+            if entered_version is not None:
+                new_version = Version(entered_version)
 
             release_notes_title = txt.build_release_title_md(
                 self._release.title, str(new_version)
