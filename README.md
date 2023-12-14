@@ -135,6 +135,7 @@ Here is configuration file example:
 <!-- USAGE EXAMPLES -->
 ## Usage
 
+The application has three modes of operation:
 - `release`: This mode is used to create a release for every component. It supposes that there is already release created in JIRA with tasks assigned and ready for release. When running in this mode it first asks for the `NOVA` version, which is 2 as of December 14, 2023 and delivery number. Based on these values it fetches the information from JIRA and suggests to go throw release steps for every component, which includes:
   - Generating new CHANGELOG entry based on JIRA tasks. Before committing the CHANGELOG entry, it opens it in the text editor specified in the `textEditor` configuration option.
   - Optionally updating versions in .csproj files.
