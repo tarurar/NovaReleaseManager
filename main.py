@@ -149,12 +149,25 @@ if __name__ == "__main__":
 
             repo_all_tags = gi.list_tags(package.repo.url, args.since)
 
+            # filter out tags which are not related to packages, common rules
             package_tags = list(
                 filter(
                     lambda tag, pkg=package: is_package_tag(pkg, tag),
                     repo_all_tags,
                 )
             )
+
+            # if exception is specified for package, filter out tags which
+            # do not match the exception
+            tag_exception = config.get_package_tag_exception(package.name)
+            if tag_exception:
+                package_tags = list(
+                    filter(
+                        lambda tag, e=tag_exception: e.tag_template
+                        in tag.name.lower(),
+                        package_tags,
+                    )
+                )
 
             # skip packages with no tags
             if len(package_tags) == 0:
@@ -176,7 +189,7 @@ if __name__ == "__main__":
 
             percents_done = round(counter / len(packages) * 100)
             print(
-                f"{package.name:<50} processed, {len(package_tags):<3} tags discovered, ({percents_done:<3}% done)"
+                f"{package.name:<50} processed, {len(package_tags):<3} tags discovered {'with exceptions' if tag_exception else ''}, ({percents_done:<3}% done)"
             )
 
         if all_tags_info:
