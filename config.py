@@ -2,11 +2,22 @@
 Configuration file for the application
 """
 
+from dataclasses import dataclass
 import json
 from typing import Any, Optional
 
 
-class Config:  # pylint: disable=too-few-public-methods
+@dataclass
+class PackageTagException:
+    """
+    Represents an exception for package tag
+    """
+
+    package: str
+    tag_template: str
+
+
+class Config:
     """
     Configuration for the application
     """
@@ -29,6 +40,14 @@ class Config:  # pylint: disable=too-few-public-methods
     def get_notes_folder_path(
         self, nova_version: str, delivery: str, hotfix: Optional[str] = None
     ):
+        """
+        Returns path to the folder where release notes should be stored
+
+        :param nova_version: nova version
+        :param delivery: delivery number
+        :param hotfix: hotfix number
+        :return: path to the folder where release notes should be stored
+        """
         template = self.data["release"]["notesFolderPathTemplate"]
         if not template:
             raise ValueError(
@@ -39,3 +58,33 @@ class Config:  # pylint: disable=too-few-public-methods
             delivery=f"Delivery {delivery}.",
             hotfix=f" Hotfix {hotfix}" if hotfix else "",
         )
+
+    def get_package_tag_exceptions(self) -> list[PackageTagException]:
+        """
+        Reads a list of package tag exceptions from configuration file
+        """
+        try:
+            tag_exceptions = self.data["release"]["packageTags"]["exceptions"]
+            return list(
+                map(
+                    lambda e: PackageTagException(e["name"], e["tagTemplate"]),
+                    tag_exceptions,
+                )
+            )
+        except KeyError:
+            return list[PackageTagException]()
+
+    def get_package_tag_exception(
+        self, package_name: str
+    ) -> Optional[PackageTagException]:
+        """
+        Returns package tag exception for specified package name
+
+        :param package_name: package name
+        :return: package tag exception or None if not found
+        """
+        exceptions = self.get_package_tag_exceptions()
+        for exception in exceptions:
+            if exception.package == package_name:
+                return exception
+        return None

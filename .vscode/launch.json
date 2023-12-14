@@ -13,9 +13,9 @@
             "justMyCode": false,
             "args": [
                 "--command",
-                "generate-notes",
+                "list-packages",
                 "--since",
-                "2023-07-12",
+                "2023-10-18",
                 "--csv-output",
                 "package-only-output.csv"
             ]
