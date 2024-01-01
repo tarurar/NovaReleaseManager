@@ -43,6 +43,13 @@ class BitbucketReleaseWorker(ReleaseWorker):
     def release_component(
         self, component: NovaComponent
     ) -> Optional[NovaComponentRelease]:
+        """
+        Bitbucket release workflow implementation
+
+        :param component: component to release
+        :return: release information
+        """
+
         super().release_component(component)
 
         assert (
