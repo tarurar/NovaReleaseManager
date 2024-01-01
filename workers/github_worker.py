@@ -49,7 +49,10 @@ class GitHubReleaseWorker(ReleaseWorker):
         self, component: NovaComponent
     ) -> Optional[NovaComponentRelease]:
         """
-        Creates a tag in the repository and publishes github release
+        GitHub release workflow implementation
+
+        :param component: component to release
+        :return: release information
         """
         super().release_component(component)
 
