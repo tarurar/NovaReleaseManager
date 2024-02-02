@@ -13,7 +13,7 @@ from csv_utils import export_packages_to_csv
 from integration.git import GitIntegration
 from integration.jira import JiraIntegration
 from mappers import is_package_tag, map_to_tag_info
-from notes_generator import ReleaseNotesGenerator
+from notes_generator import NotesGenerator
 from nova_release_repository import NovaReleaseRepository
 from release_manager import ReleaseManager
 from ui.console import preview_component_release
@@ -211,7 +211,7 @@ if __name__ == "__main__":
             config.data["jira"]["project"], version, delivery
         )
         print(release.describe_status())
-        notes_generator = ReleaseNotesGenerator(release, GitIntegration())
+        notes_generator = NotesGenerator(release, GitIntegration())
         if not notes_generator.can_generate():
             print(
                 "Release is not ready to generate notes. Please, check the status of the release."
@@ -219,11 +219,10 @@ if __name__ == "__main__":
             sys.exit()
         notes = notes_generator.generate()
         print("Release notes generated: ")
-        for component_name, path in notes.items():
-            if path:
-                print(f"    [{component_name}]: [{path}]")
+        for component_name, result in notes.items():
+            if result.path:
+                print(f"    [{component_name}]: [{result.path}]")
         print("Release notes were not generated for the following components:")
-        for component_name, path in notes.items():
-            if path:
-                continue
-            print(f"    [{component_name}]")
+        for component_name, result in notes.items():
+            if result.error:
+                print(f"    [{component_name}]: [{result.error}]")
