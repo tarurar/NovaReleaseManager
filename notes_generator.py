@@ -81,7 +81,7 @@ class NotesGenerator:
 
     def __generate_single_component_notes(
         self, component: NovaComponent
-    ) -> Optional[str]:
+    ) -> str:
         """
         Generates release notes for a single component.
 
@@ -96,12 +96,13 @@ class NotesGenerator:
             sources_dir, annotation
         )
         if not annotated_tags:
-            return None
+            raise ValueError("No annotated tags found")
+
         tag_name = annotated_tags[0]
         self.__gi.checkout(sources_dir, tag_name)
         changelog_path = fs.search_changelog(sources_dir)
         if not changelog_path:
-            return None
+            raise ValueError("CHANGELOG.md file not found")
         filename = fs.gen_release_notes_filename(component.name, tag_name)
         filepath = f"{self.__output_path}/{filename}"
         return self.__convert(changelog_path, filepath)
@@ -122,14 +123,11 @@ class NotesGenerator:
     def can_generate(self) -> bool:
         """
         Checks if the generator can generate release notes
-        for a given release.
-
-        :return: True if the generator can generate release
-        notes for a given release
+        for a given release based on its status.
         """
         return self.__release.get_status() == Status.DONE
 
-    def try_generate(
+    def generate(
         self,
     ) -> dict[str, Result]:
         """
@@ -142,27 +140,12 @@ class NotesGenerator:
 
         result = {}
         for component in self.__release:
-            if component.status != Status.DONE:
-                result[component.name] = NotesGenerator.Result.from_error(
-                    "Component should be in DONE status to generate release notes"
-                )
-                continue
-
             filepath = None
             try:
                 filepath = self.__generate_single_component_notes(component)
-                if "bookkeeper" in component.name.lower():
-                    raise Exception("bookkeeper is not supported")
             except Exception as e:
-                result[component.name] = NotesGenerator.Result.from_error(
-                    "Notes generation failed: " + str(e)
-                )
+                result[component.name] = NotesGenerator.Result.from_exception(e)
                 continue
-
-            if not filepath:
-                raise ValueError(
-                    "Notes generation failed: no release notes file has been created"
-                )
 
             result[component.name] = NotesGenerator.Result.from_path(
                 os.path.abspath(filepath)

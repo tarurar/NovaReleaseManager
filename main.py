@@ -217,7 +217,7 @@ if __name__ == "__main__":
                 "Release is not ready to generate notes. Please, check the status of the release."
             )
             sys.exit()
-        notes = notes_generator.try_generate()
+        notes = notes_generator.generate()
         print("Release notes generated: ")
         for component_name, result in notes.items():
             if result.path:
