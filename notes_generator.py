@@ -94,7 +94,7 @@ class NotesGenerator:
         annotated_tags = self.__gi.list_tags_with_annotation(
             sources_dir, annotation
         )
-        if not annotated_tags or len(annotated_tags) == 0:
+        if not annotated_tags:
             raise ValueError("No annotated tags found")
 
         tag_name = annotated_tags[0]
