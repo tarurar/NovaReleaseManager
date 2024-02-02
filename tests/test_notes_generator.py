@@ -12,7 +12,7 @@ from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
 from integration.git import GitIntegration
-from notes_generator import ReleaseNotesGenerator
+from notes_generator import NotesGenerator
 
 
 @pytest.fixture(name="mock_config")
@@ -99,7 +99,7 @@ def fixture_git_integration_no_annotated_tags():
 def test_can_generate_returns_false_when_release_not_ready(
     release_not_ready_for_notes, git_integration, mock_config
 ):
-    generator = ReleaseNotesGenerator(
+    generator = NotesGenerator(
         release_not_ready_for_notes, git_integration, mock_config
     )
     assert not generator.can_generate()
@@ -109,7 +109,7 @@ def test_generate_nothing_when_component_not_ready(
     release_with_component_not_ready_for_notes, git_integration, mock_config
 ):
     with patch("os.path.exists", return_value=True):
-        generator = ReleaseNotesGenerator(
+        generator = NotesGenerator(
             release_with_component_not_ready_for_notes,
             git_integration,
             mock_config,
@@ -126,7 +126,7 @@ def test_generate_nothing_when_no_annotated_tag(
     mock_config,
 ):
     with patch("os.path.exists", return_value=True):
-        generator = ReleaseNotesGenerator(
+        generator = NotesGenerator(
             release_with_component_ready_for_notes,
             git_integration_no_annotated_tags,
             mock_config,
@@ -143,7 +143,7 @@ def test_generate_nothing_when_no_changelog(
     with patch("os.path.exists", return_value=True), patch(
         "fs_utils.search_changelog", return_value=None
     ):
-        generator = ReleaseNotesGenerator(
+        generator = NotesGenerator(
             release_with_component_ready_for_notes, git_integration, mock_config
         )
         notes = generator.try_generate()
@@ -165,7 +165,7 @@ def test_generate_happy_path(
     ), patch(
         "os.path.abspath", return_value="absolute_path_to_pdf"
     ):
-        generator = ReleaseNotesGenerator(
+        generator = NotesGenerator(
             release_with_component_ready_for_notes, git_integration, mock_config
         )
         notes = generator.try_generate()

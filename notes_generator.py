@@ -13,7 +13,7 @@ import fs_utils as fs
 from integration.git import GitIntegration
 
 
-class ReleaseNotesGenerator:
+class NotesGenerator:
     """
     Responsible for generating release notes for a given release.
     Can be reused to generate release notes in different formats, for this
@@ -21,7 +21,7 @@ class ReleaseNotesGenerator:
     should be overridden.
     """
 
-    class NotesGenerationResult:
+    class Result:
         """
         Represents the result of release notes generation
         for a single component.
@@ -29,13 +29,14 @@ class ReleaseNotesGenerator:
         """
 
         def __init__(self, path=None, error=None):
-            if (path is None) ^ (error is None):
-                self._path = path
-                self._error = error
-            else:
+            if (path is None) and (error is None):
+                raise ValueError("Either path or error should be set")
+            if path and error:
                 raise ValueError(
                     "Either path or error should be set, but not both"
                 )
+            self._path = path
+            self._error = error
 
         @property
         def path(self):
@@ -47,11 +48,15 @@ class ReleaseNotesGenerator:
 
         @staticmethod
         def from_path(path: str):
-            return ReleaseNotesGenerator.NotesGenerationResult(path=path)
+            return NotesGenerator.Result(path=path)
 
         @staticmethod
         def from_error(error: str):
-            return ReleaseNotesGenerator.NotesGenerationResult(error=error)
+            return NotesGenerator.Result(error=error)
+
+        @staticmethod
+        def from_exception(e: Exception):
+            return NotesGenerator.Result.from_error(str(e))
 
     def __init__(
         self, release: NovaRelease, gi: GitIntegration, config=None
@@ -126,7 +131,7 @@ class ReleaseNotesGenerator:
 
     def try_generate(
         self,
-    ) -> dict[str, NotesGenerationResult]:
+    ) -> dict[str, Result]:
         """
         Generates release notes for a given release.
 
@@ -138,10 +143,8 @@ class ReleaseNotesGenerator:
         result = {}
         for component in self.__release:
             if component.status != Status.DONE:
-                result[component.name] = (
-                    ReleaseNotesGenerator.NotesGenerationResult.from_error(
-                        "Component should be in DONE status to generate release notes"
-                    )
+                result[component.name] = NotesGenerator.Result.from_error(
+                    "Component should be in DONE status to generate release notes"
                 )
                 continue
 
@@ -151,10 +154,8 @@ class ReleaseNotesGenerator:
                 if "bookkeeper" in component.name.lower():
                     raise Exception("bookkeeper is not supported")
             except Exception as e:
-                result[component.name] = (
-                    ReleaseNotesGenerator.NotesGenerationResult.from_error(
-                        "Notes generation failed: " + str(e)
-                    )
+                result[component.name] = NotesGenerator.Result.from_error(
+                    "Notes generation failed: " + str(e)
                 )
                 continue
 
@@ -163,10 +164,8 @@ class ReleaseNotesGenerator:
                     "Notes generation failed: no release notes file has been created"
                 )
 
-            result[component.name] = (
-                ReleaseNotesGenerator.NotesGenerationResult.from_path(
-                    os.path.abspath(filepath)
-                )
+            result[component.name] = NotesGenerator.Result.from_path(
+                os.path.abspath(filepath)
             )
 
         return result
