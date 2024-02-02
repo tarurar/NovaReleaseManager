@@ -116,8 +116,8 @@ def test_generate_nothing_when_component_not_ready(
         )
         notes = generator.generate()
         assert len(notes) == 1
-        for _, path in notes.items():
-            assert not path
+        for _, result in notes.items():
+            assert result.error
 
 
 def test_generate_nothing_when_no_annotated_tag(
@@ -133,8 +133,8 @@ def test_generate_nothing_when_no_annotated_tag(
         )
         notes = generator.generate()
         assert len(notes) == 1
-        for _, path in notes.items():
-            assert not path
+        for _, result in notes.items():
+            assert result.error
 
 
 def test_generate_nothing_when_no_changelog(
@@ -148,8 +148,8 @@ def test_generate_nothing_when_no_changelog(
         )
         notes = generator.generate()
         assert len(notes) == 1
-        for _, path in notes.items():
-            assert not path
+        for _, result in notes.items():
+            assert result.error
 
 
 def test_generate_happy_path(

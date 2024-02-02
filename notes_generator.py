@@ -3,7 +3,6 @@ Notes Generator Module
 """
 
 import os
-from typing import Optional
 from config import Config
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
@@ -95,7 +94,7 @@ class NotesGenerator:
         annotated_tags = self.__gi.list_tags_with_annotation(
             sources_dir, annotation
         )
-        if not annotated_tags:
+        if not annotated_tags or len(annotated_tags) == 0:
             raise ValueError("No annotated tags found")
 
         tag_name = annotated_tags[0]
