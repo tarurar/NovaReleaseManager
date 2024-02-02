@@ -114,7 +114,7 @@ def test_generate_nothing_when_component_not_ready(
             git_integration,
             mock_config,
         )
-        notes = generator.generate()
+        notes = generator.try_generate()
         assert len(notes) == 1
         for _, path in notes.items():
             assert not path
@@ -131,7 +131,7 @@ def test_generate_nothing_when_no_annotated_tag(
             git_integration_no_annotated_tags,
             mock_config,
         )
-        notes = generator.generate()
+        notes = generator.try_generate()
         assert len(notes) == 1
         for _, path in notes.items():
             assert not path
@@ -146,7 +146,7 @@ def test_generate_nothing_when_no_changelog(
         generator = ReleaseNotesGenerator(
             release_with_component_ready_for_notes, git_integration, mock_config
         )
-        notes = generator.generate()
+        notes = generator.try_generate()
         assert len(notes) == 1
         for _, path in notes.items():
             assert not path
@@ -168,7 +168,7 @@ def test_generate_happy_path(
         generator = ReleaseNotesGenerator(
             release_with_component_ready_for_notes, git_integration, mock_config
         )
-        notes = generator.generate()
+        notes = generator.try_generate()
         assert len(notes) == 1
         for _, path in notes.items():
             assert path

@@ -2,7 +2,6 @@
 Notes Generator Module
 """
 
-
 import os
 from typing import Optional
 from config import Config
@@ -21,6 +20,38 @@ class ReleaseNotesGenerator:
     purpose, the generator should be subclassed and the __convert method
     should be overridden.
     """
+
+    class NotesGenerationResult:
+        """
+        Represents the result of release notes generation
+        for a single component.
+        Either path or error should be set, but not both.
+        """
+
+        def __init__(self, path=None, error=None):
+            if (path is None) ^ (error is None):
+                self._path = path
+                self._error = error
+            else:
+                raise ValueError(
+                    "Either path or error should be set, but not both"
+                )
+
+        @property
+        def path(self):
+            return self._path
+
+        @property
+        def error(self):
+            return self._error
+
+        @staticmethod
+        def from_path(path: str):
+            return ReleaseNotesGenerator.NotesGenerationResult(path=path)
+
+        @staticmethod
+        def from_error(error: str):
+            return ReleaseNotesGenerator.NotesGenerationResult(error=error)
 
     def __init__(
         self, release: NovaRelease, gi: GitIntegration, config=None
@@ -93,23 +124,49 @@ class ReleaseNotesGenerator:
         """
         return self.__release.get_status() == Status.DONE
 
-    def generate(self) -> dict[str, str]:
+    def try_generate(
+        self,
+    ) -> dict[str, NotesGenerationResult]:
         """
         Generates release notes for a given release.
 
-        :return: dictionary with component name as a key and
-        absolute path to the release notes file as a value
+        :return: dictionary with component name as a key and result
+        object as a value
         """
         self.__ensure_output_folder_exists()
 
         result = {}
         for component in self.__release:
             if component.status != Status.DONE:
-                result[component.name] = None
+                result[component.name] = (
+                    ReleaseNotesGenerator.NotesGenerationResult.from_error(
+                        "Component should be in DONE status to generate release notes"
+                    )
+                )
                 continue
-            filepath = self.__generate_single_component_notes(component)
+
+            filepath = None
+            try:
+                filepath = self.__generate_single_component_notes(component)
+                if "bookkeeper" in component.name.lower():
+                    raise Exception("bookkeeper is not supported")
+            except Exception as e:
+                result[component.name] = (
+                    ReleaseNotesGenerator.NotesGenerationResult.from_error(
+                        "Notes generation failed: " + str(e)
+                    )
+                )
+                continue
+
+            if not filepath:
+                raise ValueError(
+                    "Notes generation failed: no release notes file has been created"
+                )
+
             result[component.name] = (
-                os.path.abspath(filepath) if filepath else None
+                ReleaseNotesGenerator.NotesGenerationResult.from_path(
+                    os.path.abspath(filepath)
+                )
             )
 
         return result
