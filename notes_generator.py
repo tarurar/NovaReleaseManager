@@ -3,6 +3,7 @@ Notes Generator Module
 """
 
 import os
+from typing import Optional
 from config import Config
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
@@ -18,6 +19,9 @@ class NotesGenerator:
     Can be reused to generate release notes in different formats, for this
     purpose, the generator should be subclassed and the __convert method
     should be overridden.
+    Release notes are taken from the CHANGELOG.md file in the component's
+    repository. The tag to generate release notes for is determined by the
+    release title.
     """
 
     class Result:
@@ -78,9 +82,7 @@ class NotesGenerator:
         if not os.path.exists(self.__output_path):
             os.makedirs(self.__output_path)
 
-    def __generate_single_component_notes(
-        self, component: NovaComponent
-    ) -> str:
+    def __convert_changelog_to_notes(self, component: NovaComponent) -> str:
         """
         Generates release notes for a single component.
 
@@ -90,21 +92,55 @@ class NotesGenerator:
         assert component.repo is not None
 
         sources_dir = self.__gi.clone(component.repo.url)
-        annotation = self.__release.title
-        annotated_tags = self.__gi.list_tags_with_annotation(
-            sources_dir, annotation
-        )
-        if not annotated_tags:
-            raise ValueError("No annotated tags found")
+        release_tag = self.__find_release_tag(sources_dir)
+        if release_tag is None:
+            raise ValueError("No tag found for the release")
 
-        tag_name = annotated_tags[0]
-        self.__gi.checkout(sources_dir, tag_name)
-        changelog_path = fs.search_changelog(sources_dir)
+        changelog_path = self.__find_changelog_at_tag(sources_dir, release_tag)
         if not changelog_path:
-            raise ValueError("CHANGELOG.md file not found")
+            raise ValueError(f"CHANGELOG.md not found at the tag {release_tag}")
+
+        notes_file_path = self.__gen_notes_file_path(component, release_tag)
+        return self.__convert(changelog_path, notes_file_path)
+
+    def __gen_notes_file_path(
+        self, component: NovaComponent, tag_name: str
+    ) -> str:
+        """
+        Generates the file name for the release notes file.
+
+        :param component: component to generate release notes for
+        :param tag_name: tag name
+        :return: path to the release notes file
+        """
         filename = fs.gen_release_notes_filename(component.name, tag_name)
-        filepath = f"{self.__output_path}/{filename}"
-        return self.__convert(changelog_path, filepath)
+        return f"{self.__output_path}/{filename}"
+
+    def __find_changelog_at_tag(
+        self, sources_dir: str, tag_name: str
+    ) -> Optional[str]:
+        """
+        Finds the changelog file at the specified tag.
+
+        :param sources_dir: path to the sources directory
+        :param tag_name: tag name
+        :return: path to the changelog file or None if not found
+        """
+        self.__gi.checkout(sources_dir, tag_name)
+        return fs.search_changelog(sources_dir)
+
+    def __find_release_tag(self, sources_dir: str) -> Optional[str]:
+        """
+        Finds the tag name with the annotation after
+        the release title.
+
+        :param sources_dir: path to the sources directory
+        :return: tag name or None if not found
+        """
+        annotated_tags = self.__gi.list_tags_with_annotation(
+            sources_dir, self.__release.title
+        )
+        return None if not annotated_tags else annotated_tags[0]
 
     def __convert(self, markdown_path: str, output_path: str) -> str:
         """
@@ -133,21 +169,23 @@ class NotesGenerator:
         Generates release notes for a given release.
 
         :return: dictionary with component name as a key and result
-        object as a value
+        object as a value for each component with absolute path to the
+        release notes file
         """
         self.__ensure_output_folder_exists()
 
         result = {}
         for component in self.__release:
-            filepath = None
+            notes_file_path = None
             try:
-                filepath = self.__generate_single_component_notes(component)
+                notes_file_path = self.__convert_changelog_to_notes(component)
             except Exception as e:
                 result[component.name] = NotesGenerator.Result.from_exception(e)
                 continue
 
+            absolute_path = os.path.abspath(notes_file_path)
             result[component.name] = NotesGenerator.Result.from_path(
-                os.path.abspath(filepath)
+                absolute_path
             )
 
         return result
