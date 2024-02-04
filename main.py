@@ -132,7 +132,13 @@ if __name__ == "__main__":
                 break
             if release_component_decision == "n":
                 continue
-            component_release = manager.release_component(release, component)
+            try:
+                component_release = manager.release_component(
+                    release, component
+                )
+            except Exception as e:
+                print(f"Error occurred: {e}")
+                continue
             print(
                 f"[{component.name}] released, tag: [{component_release.tag_name}], url: [{component_release.url}]"
             )
