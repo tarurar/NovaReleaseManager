@@ -90,7 +90,9 @@ class BitbucketReleaseWorker(ReleaseWorker):
             msbuild.update_solution_version(sources_dir, new_version)
 
             tag_name = f"nova-{str(new_version)}"
-            self.__gi.commit(sources_dir, f"Version {str(new_version)}")
+            self.__gi.commit_changelogs_and_csproj(
+                sources_dir, f"Version {str(new_version)}"
+            )
             self.__gi.tag(sources_dir, tag_name, self._release.title)
 
             return NovaComponentRelease(

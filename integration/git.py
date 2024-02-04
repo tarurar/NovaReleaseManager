@@ -2,7 +2,6 @@
 Git integration layer module.
 """
 
-
 import tempfile
 import time
 from datetime import datetime
@@ -43,9 +42,12 @@ class GitIntegration:
 
         return sources_dir
 
-    def commit(self, repo_dir: str, commit_message: str) -> None:
+    def commit_changelogs_and_csproj(
+        self, repo_dir: str, commit_message: str
+    ) -> None:
         """
-        Commit changes in the repository
+        Commit changes in the repository made to only .csproj and
+        CHANGELOG.md files at any level of the repository.
 
         :param repo_dir: path to the repository
         :param commit_message: commit message
@@ -57,7 +59,8 @@ class GitIntegration:
             raise ValueError("Commit message is not specified")
 
         repo = Repo(repo_dir)
-        repo.git.add("--all")
+        repo.git.add("**/*.csproj")
+        repo.git.add("**/CHANGELOG.md")
         repo.git.commit("-m", commit_message)
         repo.git.push()
 
@@ -176,9 +179,11 @@ class GitIntegration:
 
         repo = Repo(repo_dir)
         filtered_tags = filter(
-            lambda tag: annotation in tag.tag.message
-            if tag.tag
-            else annotation in tag.commit.message,
+            lambda tag: (
+                annotation in tag.tag.message
+                if tag.tag
+                else annotation in tag.commit.message
+            ),
             repo.tags,
         )
 
