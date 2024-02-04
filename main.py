@@ -37,7 +37,7 @@ def choose_component_from_release(rel: NovaRelease) -> Optional[NovaComponent]:
 
 
 if __name__ == "__main__":
-    print("Nova Release Manager, version 1.0")
+    print("Nova Release Manager, version 1.3")
 
     parser = argparse.ArgumentParser(description="Nova Release Manager")
     parser.add_argument(
@@ -47,6 +47,27 @@ if __name__ == "__main__":
         help="The mode release manager will operate in",
         choices=["list-packages", "release", "generate-notes"],
         default="release",
+    )
+
+    parser.add_argument(
+        "--version",
+        type=str,
+        required=False,
+        help="""
+        NOVA version number. Default is 2.
+        Applicable only for 'release' and 'generate-notes' commands.
+        """,
+        default=2,
+    )
+
+    parser.add_argument(
+        "--delivery",
+        type=str,
+        required=True,
+        help="""
+        NOVA delivery number.
+        Applicable only for 'release' and 'generate-notes' commands.
+        """,
     )
 
     parser.add_argument(
@@ -91,13 +112,8 @@ if __name__ == "__main__":
     release_repository = NovaReleaseRepository(ji)
 
     if args.command == "release":
-        version = input("Please, enter version (or 'q' for quit): ")
-        if version == "q":
-            sys.exit()
-        delivery = input("Please, enter delivery (or 'q' for quit): ")
-        if delivery == "q":
-            sys.exit()
-
+        version = args.version
+        delivery = args.delivery
         manager = ReleaseManager()
         release = release_repository.get(
             config.data["jira"]["project"], version, delivery
@@ -199,13 +215,8 @@ if __name__ == "__main__":
             print("No tags found")
 
     if args.command == "generate-notes":
-        version = input("Please, enter version (or 'q' for quit): ")
-        if version == "q":
-            sys.exit()
-        delivery = input("Please, enter delivery (or 'q' for quit): ")
-        if delivery == "q":
-            sys.exit()
-
+        version = args.version
+        delivery = args.delivery
         manager = ReleaseManager()
         release = release_repository.get(
             config.data["jira"]["project"], version, delivery
