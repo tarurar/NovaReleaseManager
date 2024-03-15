@@ -93,9 +93,6 @@ class BitbucketReleaseWorker(ReleaseWorker):
             self.__gi.commit_changelogs_and_csproj(
                 sources_dir, f"Version {str(new_version)}"
             )
-            self.__gi.tag(
-                sources_dir, f"nova-{str(new_version)}", self._release.title
-            )
             self.__gi.tag(sources_dir, tag_name, self._release.title)
 
             return NovaComponentRelease(
