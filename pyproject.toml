@@ -2,4 +2,7 @@
 source = ["."]
 
 [tool.pytest.ini_options]
+# Debugger might not work due to this configuration
+# Link: https://pytest-cov.readthedocs.io/en/latest/debuggers.html.
+# Fast solution: simply add `--no-cov` option to the end of options.
 addopts = "--cov --cov-report=lcov:lcov.info --cov-report=term"

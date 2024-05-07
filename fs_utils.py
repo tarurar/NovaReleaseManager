@@ -216,7 +216,9 @@ def markdown_to_pdf(markdown_file_path: str, pdf_file_path: str):
 
     with open(markdown_file_path, "r", encoding="utf-8") as file_handle:
         markdown_content = file_handle.read()
-    html_content = markdown.markdown(markdown_content)
+    html_content = markdown.markdown(
+        markdown_content, extensions=["fenced_code"]
+    )
     pdfkit.from_string(html_content, pdf_file_path)
 
 
