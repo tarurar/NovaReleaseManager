@@ -37,7 +37,9 @@ def choose_component_from_release(rel: NovaRelease) -> Optional[NovaComponent]:
 
 
 if __name__ == "__main__":
+    print("#" * 33)
     print("Nova Release Manager, version 1.3")
+    print("#" * 33 + "\n")
 
     parser = argparse.ArgumentParser(description="Nova Release Manager")
     parser.add_argument(
@@ -115,12 +117,14 @@ if __name__ == "__main__":
         version = args.version
         delivery = args.delivery
         manager = ReleaseManager()
-        release = release_repository.get(
-            config.data["jira"]["project"], version, delivery
-        )
-        print(release.describe_status())
 
         while True:
+            print("Getting release information..." + "\n")
+            release = release_repository.get(
+                config.data["jira"]["project"], version, delivery
+            )
+            print(release.describe_status())
+
             component = choose_component_from_release(release)
             if component is None:
                 break
