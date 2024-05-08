@@ -1,4 +1,6 @@
 """
+This module contains tests for the is_jira_hotfix_version 
+function in the jira_utils module.
 """
 
 from unittest.mock import Mock
