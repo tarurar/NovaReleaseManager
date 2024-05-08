@@ -7,6 +7,7 @@ from typing import cast
 from jira import JIRA, JIRAError
 from jira.resources import Component, Issue
 from jira.client import ResultList
+from jira.resources import Version
 
 import jira_utils as ju
 
@@ -97,6 +98,29 @@ class JiraIntegration:
         if version.released:
             return False
         return True
+
+    def get_latest_released_version(self, project_code: str) -> Version:
+        """
+        Get the latest version of a project been released.
+        Hotfixes are excluded.
+
+        :param project_code: project code
+        :return: latest version
+        """
+        versions = sorted(
+            filter(
+                lambda v: not ju.is_jira_hotfix_version(v)
+                and ju.is_jira_released_version(v),
+                self.__j.project_versions(project_code),
+            ),
+            key=lambda v: v.releaseDate,
+            reverse=True,
+        )
+
+        if len(versions) == 0:
+            raise ValueError("No versions found")
+
+        return versions[0]
 
     def transition_issue(
         self, task_name: str, status: str, comment: str = ""
