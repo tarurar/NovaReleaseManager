@@ -164,6 +164,22 @@ if __name__ == "__main__":
         packages = release_repository.get_packages(
             config.data["jira"]["project"]
         )
+
+        if args.since:
+            print("Since date is specified as an argument.")
+            since = args.since
+        else:
+            print(
+                f"Since date is not specified, using latest released version date."
+            )
+            print(f"If you want to specify since date, use --since argument.")
+            latest_version = ji.get_latest_released_version(
+                config.data["jira"]["project"]
+            )
+            print(f"Latest released version detected: {latest_version.name}.")
+            since = latest_version.releaseDate
+        print(f"'Since' date to be used: {since}")
+
         gi = GitIntegration()
         all_tags_info: list[dict[str, str]] = []
         counter = 0
@@ -173,7 +189,7 @@ if __name__ == "__main__":
             if package.repo is None:
                 continue
 
-            repo_all_tags = gi.list_tags(package.repo.url, args.since)
+            repo_all_tags = gi.list_tags(package.repo.url, since)
 
             # filter out tags which are not related to packages, common rules
             package_tags = list(
