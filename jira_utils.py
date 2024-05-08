@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 from validators.url import url
 from jira.resources import Issue
+from jira.resources import Version
 
 from core.cvs import CodeRepository, GitCloudService
 from core.nova_component import NovaComponent, NovaEmptyComponent
@@ -147,3 +148,23 @@ def filter_jira_issue(jira_issue, component_name) -> bool:
     nova_name = component_name.strip().lower()
 
     return jira_name == nova_name
+
+
+def is_jira_released_version(version: Version) -> bool:
+    """
+    Filter Jira version by release status.
+
+    :param version: Jira version.
+    :return: True if version was released, False otherwise.
+    """
+    return version.released
+
+
+def is_jira_hotfix_version(version: Version) -> bool:
+    """
+    Filter Jira version by hotfix status.
+
+    :param version: Jira version.
+    :return: True if version is a hotfix, False otherwise.
+    """
+    return "hotfix" in version.name.lower()
