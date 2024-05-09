@@ -37,21 +37,21 @@ class Config:
                 cls._instance.data = json.load(file)
         return cls._instance
 
-    def get_notes_folder_path(
+    def get_artifacts_folder_path(
         self, nova_version: str, delivery: str, hotfix: Optional[str] = None
     ):
         """
-        Returns path to the folder where release notes should be stored
+        Returns path to the folder where release artifacts should be stored
 
         :param nova_version: nova version
         :param delivery: delivery number
         :param hotfix: hotfix number
-        :return: path to the folder where release notes should be stored
+        :return: path to the folder where release artifacts should be stored
         """
-        template = self.data["release"]["notesFolderPathTemplate"]
+        template = self.data["release"]["artifactsFolderPathTemplate"]
         if not template:
             raise ValueError(
-                "notesFolderPathTemplate is not specified in config"
+                "artifactsFolderPathTemplate is not specified in config"
             )
         return template.format(
             nova=f"Nova {nova_version}.",
