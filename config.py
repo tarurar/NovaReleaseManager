@@ -56,9 +56,9 @@ class Config:
                 "artifactsFolderPathTemplate is not specified in config"
             )
         formatted = template.format(
-            nova=f"Nova {nova_version}.",
-            delivery=f"Delivery {delivery}.",
-            hotfix=f" Hotfix {hotfix}" if hotfix else "",
+            nova=f"Nova {nova_version}",
+            delivery=f"Delivery {delivery}",
+            hotfix=f"Hotfix {hotfix}" if hotfix else "",
         )
 
         return fs.sanitize_path(formatted)
