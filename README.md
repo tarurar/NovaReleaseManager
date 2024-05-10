@@ -83,7 +83,7 @@ This section is used to configure the connection to Bitbucket.
 This section is used to configure the release process.
 
 - `branch`: The branch to release from.
-- `notesFolderPathTemplate`: The template for the path where release notes should be stored. `{nova}` and `{delivery}{hotfix}` are placeholders that will be replaced with actual values during the release process.
+- `artifactsFolderPathTemplate`: The template for the path where release artifacts should be stored. `{nova}` and `{delivery}{hotfix}` are placeholders that will be replaced with actual values during the release process.
 - `packageTags`: This section is used to configure the tagging of packages.
   - `exceptions`: An array of exceptions for package tagging. Each exception has:
     - `name`: The name of the package.
@@ -112,7 +112,7 @@ Here is configuration file example:
   },
   "release": {
     "branch": "<RELEASE_BRANCH>",
-    "notesFolderPathTemplate": "{nova}{delivery}{hotfix}",
+    "artifactsFolderPathTemplate": "{nova}{delivery}{hotfix}",
     "packageTags": {
       "exceptions": [
         {
@@ -141,8 +141,8 @@ The application has three modes of operation:
   - Optionally updating versions in .csproj files.
   - Tagging the repository.
   - Moving tasks to the next status (`DONE`).
-- `list-packages`: This mode is used to list the package versions created since the date specified. Option `--since` is used to specify the date. The date should be in the format `YYYY-MM-DD`. Option is not mandatory. If it is not specified, the application will try to detect the latest release date and list the packages created since that date. If neither the date is specified nor the latest release date is detected, the application will raise an error.
-- `generate-notes`: This mode is used to generate release notes for the specified delivery. It created a .pdf file for every component which has CHANGELOG.md file in the root folder. The .pdf file is created in the folder specified in the `notesFolderPathTemplate` configuration option.
+- `list-packages`: This mode is used to list the package versions created since the date specified. Option `--since` is used to specify the date. The date should be in the format `YYYY-MM-DD`. Option is not mandatory. If it is not specified, the application will try to detect the latest release date and list the packages created since that date. If neither the date is specified nor the latest release date is detected, the application will raise an error. The .csv file is created in the folder specified in the `artifactsFolderPathTemplate` configuration option.
+- `generate-notes`: This mode is used to generate release notes for the specified delivery. It created a .pdf file for every component which has CHANGELOG.md file in the root folder. The .pdf file is created in the folder specified in the `artifactsFolderPathTemplate` configuration option.
 
 Please note, the application heavily depends on the JIRA's `Components` feature. It is assumed that every component has its own `Component` in JIRA and every task is assigned to the corresponding `Component`. The `Component` name is used as the name of the component in the application. It means the registry of components in JIRA is the single source of truth for the application and should be managed with care.
 

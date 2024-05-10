@@ -83,16 +83,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--csv-output",
-        type=str,
-        required=False,
-        help="""
-        The path to CSV file to output the result. 
-        Applicable only for 'list-packages' command.
-        """,
-    )
-
-    parser.add_argument(
         "--config-path",
         type=str,
         required=False,
@@ -235,8 +225,11 @@ if __name__ == "__main__":
             )
 
         if all_tags_info:
-            path = export_packages_to_csv(all_tags_info, args.csv_output)
-            print(f"CSV file has been created: {path}")
+            output_path = config.get_artifacts_folder_path(
+                args.version, args.delivery, ""
+            )
+            csv_file_path = export_packages_to_csv(all_tags_info, output_path)
+            print(f"CSV file has been created: {csv_file_path}")
         else:
             print("No tags found")
 

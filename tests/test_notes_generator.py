@@ -18,7 +18,9 @@ from notes_generator import NotesGenerator
 @pytest.fixture(name="mock_config")
 def fixture_mock_config():
     mock_config = Mock()
-    mock_config.get_notes_folder_path.return_value = "path_to_notes_folder"
+    mock_config.get_artifacts_folder_path.return_value = (
+        "path_to_artifacts_folder"
+    )
     return mock_config
 
 
