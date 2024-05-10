@@ -70,13 +70,9 @@ class NotesGenerator:
         self.__release = release
         self.__gi = gi
 
-        # todo: probably, path sanitization should be moved inside
-        # the Config class because the path can be used by other
-        # classes as well
-        output_path = config.get_artifacts_folder_path(
+        self.__output_path = config.get_artifacts_folder_path(
             self.__release.version, self.__release.delivery, ""
         )
-        self.__output_path = fs.sanitize_path(output_path)
 
     def __ensure_output_folder_exists(self) -> None:
         """

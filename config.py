@@ -5,6 +5,7 @@ Configuration file for the application
 from dataclasses import dataclass
 import json
 from typing import Any, Optional
+import fs_utils as fs
 
 
 @dataclass
@@ -41,7 +42,8 @@ class Config:
         self, nova_version: str, delivery: str, hotfix: Optional[str] = None
     ):
         """
-        Returns path to the folder where release artifacts should be stored
+        Returns path to the folder where release artifacts should be stored.
+        Path is sanitized which guarantees the folder can be created if required.
 
         :param nova_version: nova version
         :param delivery: delivery number
@@ -53,11 +55,13 @@ class Config:
             raise ValueError(
                 "artifactsFolderPathTemplate is not specified in config"
             )
-        return template.format(
+        formatted = template.format(
             nova=f"Nova {nova_version}.",
             delivery=f"Delivery {delivery}.",
             hotfix=f" Hotfix {hotfix}" if hotfix else "",
         )
+
+        return fs.sanitize_path(formatted)
 
     def get_package_tag_exceptions(self) -> list[PackageTagException]:
         """
