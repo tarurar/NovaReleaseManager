@@ -257,3 +257,6 @@ config.json
 
 # PDF files
 *.pdf
+
+# Project specific
+**/artifacts

@@ -6,6 +6,7 @@ from git import TagReference
 from core.nova_component import NovaComponent
 from core.nova_component_type import NovaComponentType
 from git_utils import get_git_tag_url
+from notes_generator import NotesGenerator
 
 
 def map_to_tag_info(package: NovaComponent, tag: TagReference):
@@ -55,3 +56,12 @@ def is_package_tag(package: NovaComponent, tag: TagReference) -> bool:
         return True
 
     return False
+
+
+def only_succeeded_notes(
+    notes: dict[str, NotesGenerator.Result]
+) -> dict[str, str]:
+    """
+    Filters out notes which were not generated successfully
+    """
+    return {k: v.path for k, v in notes.items() if v.path and not v.error}

@@ -4,6 +4,7 @@ Start module
 
 import argparse
 import sys
+import os
 from typing import Optional
 
 from config import Config
@@ -12,11 +13,12 @@ from core.nova_release import NovaRelease
 from csv_utils import export_packages_to_csv
 from integration.git import GitIntegration
 from integration.jira import JiraIntegration
-from mappers import is_package_tag, map_to_tag_info
+import mappers
 from notes_generator import NotesGenerator
 from nova_release_repository import NovaReleaseRepository
 from release_manager import ReleaseManager
 from ui.console import preview_component_release
+from zipper import Zipper
 
 
 def choose_component_from_release(rel: NovaRelease) -> Optional[NovaComponent]:
@@ -184,7 +186,7 @@ if __name__ == "__main__":
             # filter out tags which are not related to packages, common rules
             package_tags = list(
                 filter(
-                    lambda tag, pkg=package: is_package_tag(pkg, tag),
+                    lambda tag, pkg=package: mappers.is_package_tag(pkg, tag),
                     repo_all_tags,
                 )
             )
@@ -207,7 +209,7 @@ if __name__ == "__main__":
 
             package_tags_info = list(
                 map(
-                    lambda tag, pkg=package: map_to_tag_info(pkg, tag),
+                    lambda tag, pkg=package: mappers.map_to_tag_info(pkg, tag),
                     package_tags,
                 )
             )
@@ -248,11 +250,20 @@ if __name__ == "__main__":
             )
             sys.exit()
         notes = notes_generator.generate()
-        print("Release notes generated: ")
-        for component_name, result in notes.items():
+        succeeded_notes = mappers.only_succeeded_notes(notes)
+        zipper = Zipper(version, delivery, config=config)
+        zip_path = zipper.zip_notes(succeeded_notes)
+        # remove original files
+        for _, result in notes.items():
             if result.path:
-                print(f"    [{component_name}]: [{result.path}]")
-        print("Release notes were not generated for the following components:")
-        for component_name, result in notes.items():
-            if result.error:
-                print(f"    [{component_name}]: [{result.error}]")
+                os.remove(result.path)
+        print(f"Release notes zipped: {zip_path}")
+        err_components = [
+            (component, result.error)
+            for component, result in notes.items()
+            if result.error
+        ]
+        for component, error in err_components:
+            print(
+                f"Error occurred while generating notes for component [{component}]: {error}"
+            )
