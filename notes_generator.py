@@ -31,22 +31,38 @@ class NotesGenerator:
         Either path or error should be set, but not both.
         """
 
-        def __init__(self, path=None, error=None):
-            if (path is None) and (error is None):
+        def __init__(self, path: str = "", error: str = ""):
+            path_normalized = self.normalize_string_param(path)
+            error_normalized = self.normalize_string_param(error)
+
+            if (path_normalized is None) and (error_normalized is None):
                 raise ValueError("Either path or error should be set")
-            if path and error:
+            if path_normalized and error_normalized:
                 raise ValueError(
                     "Either path or error should be set, but not both"
                 )
-            self._path = path
-            self._error = error
+            self._path = path_normalized
+            self._error = error_normalized
+
+        @classmethod
+        def normalize_string_param(cls, param: Optional[str]) -> Optional[str]:
+            if isinstance(param, str):
+                if param:
+                    param_stripped = param.strip()
+                    normalized_param = (
+                        param_stripped if param_stripped else None
+                    )
+                else:
+                    normalized_param = None
+                return normalized_param
+            raise ValueError("Parameter should be a string")
 
         @property
-        def path(self):
+        def path(self) -> Optional[str]:
             return self._path
 
         @property
-        def error(self):
+        def error(self) -> Optional[str]:
             return self._error
 
         @staticmethod
