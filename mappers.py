@@ -26,6 +26,22 @@ def map_to_tag_info(package: NovaComponent, tag: TagReference):
     }
 
 
+def is_service_tag(service: NovaComponent, tag: TagReference) -> bool:
+    """
+    Detects if tag is service tag.
+    """
+
+    tag_name = tag.name.lower()
+
+    if service.ctype != NovaComponentType.SERVICE:
+        return False
+
+    if tag_name.startswith("v") or tag_name.startswith("nova"):
+        return True
+
+    return False
+
+
 def is_package_tag(package: NovaComponent, tag: TagReference) -> bool:
     """
     Detects if tag is package tag.

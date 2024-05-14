@@ -34,6 +34,22 @@ class NovaReleaseRepository:
 
         return packages
 
+    def get_services(self, project_code: str) -> list[NovaComponent]:
+        """
+        Loads a list of services for a project
+
+        :param project_code: project code
+        :return: list of services
+        """
+        services = [
+            svc
+            for cmp in self.__ji.get_components(project_code)
+            if (svc := ju.parse_jira_component(cmp))
+            and svc.ctype == NovaComponentType.SERVICE
+        ]
+
+        return services
+
     def get(
         self, project_code: str, version: str, delivery: str
     ) -> NovaRelease:

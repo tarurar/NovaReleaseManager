@@ -49,7 +49,12 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="The mode release manager will operate in",
-        choices=["list-packages", "release", "generate-notes"],
+        choices=[
+            "list-packages",
+            "release",
+            "generate-notes",
+            "list-services",
+        ],
         default="release",
     )
 
@@ -105,6 +110,13 @@ if __name__ == "__main__":
     )
     release_repository = NovaReleaseRepository(ji)
 
+    since = (
+        args.since
+        or ji.get_latest_released_version(
+            config.data["jira"]["project"]
+        ).releaseDate
+    )
+
     if args.command == "release":
         version = args.version
         delivery = args.delivery
@@ -152,26 +164,66 @@ if __name__ == "__main__":
                         break
                     print(f"[{release.title}] has not been released")
 
+    if args.command == "list-services":
+        print(f"'Since' date to be used: {since}")
+        services = release_repository.get_services(
+            config.data["jira"]["project"]
+        )
+        gi = GitIntegration()
+        all_tags_info: list[dict[str, str]] = []
+        counter = 0
+        for service in services:
+            counter += 1
+
+            if service.repo is None:
+                continue
+
+            repo_all_tags = gi.list_tags(service.repo.url, since)
+
+            service_tags = list(
+                filter(
+                    lambda tag, svc=service: mappers.is_service_tag(svc, tag),
+                    repo_all_tags,
+                )
+            )
+
+            if len(service_tags) == 0:
+                continue
+
+            service_tag_info = list(
+                map(
+                    lambda tag, svc=service: mappers.map_to_tag_info(svc, tag),
+                    service_tags,
+                )
+            )
+            service_tags_info_sorted = sorted(
+                service_tag_info,
+                key=lambda tag_info: tag_info["date"],
+                reverse=True,
+            )
+            all_tags_info.extend(service_tags_info_sorted)
+
+            percents_done = round(counter / len(services) * 100)
+            print(
+                f"{service.name:<50} processed, {len(service_tags):<3} tags discovered, ({percents_done:<3}% done)"
+            )
+
+        if all_tags_info:
+            output_path = config.get_artifacts_folder_path(
+                args.version, args.delivery, ""
+            )
+            csv_file_path = export_packages_to_csv(
+                all_tags_info, output_path, "services-output.csv"
+            )
+            print(f"CSV file has been created: {csv_file_path}")
+        else:
+            print("No tags found")
+
     if args.command == "list-packages":
+        print(f"'Since' date to be used: {since}")
         packages = release_repository.get_packages(
             config.data["jira"]["project"]
         )
-
-        if args.since:
-            print("Since date is specified as an argument.")
-            since = args.since
-        else:
-            print(
-                f"Since date is not specified, using latest released version date."
-            )
-            print(f"If you want to specify since date, use --since argument.")
-            latest_version = ji.get_latest_released_version(
-                config.data["jira"]["project"]
-            )
-            print(f"Latest released version detected: {latest_version.name}.")
-            since = latest_version.releaseDate
-        print(f"'Since' date to be used: {since}")
-
         gi = GitIntegration()
         all_tags_info: list[dict[str, str]] = []
         counter = 0
