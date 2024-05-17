@@ -28,6 +28,13 @@ class NovaTagList:
     def __len__(self):
         return len(self._list)
 
+    @property
+    def component(self) -> NovaComponent:
+        """
+        Returns associated component
+        """
+        return self._component
+
     def try_add_tag(self, tag: TagReference) -> bool:
         """
         Try to add tag to the list if only it matches the
