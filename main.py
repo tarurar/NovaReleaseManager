@@ -10,6 +10,7 @@ from typing import Optional
 from config import Config
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
+from core.nova_tag_list import NovaTagList
 from csv_utils import export_packages_to_csv
 from integration.git import GitIntegration
 from integration.jira import JiraIntegration
@@ -179,13 +180,7 @@ if __name__ == "__main__":
                 continue
 
             repo_all_tags = gi.list_tags(service.repo.url, since)
-
-            service_tags = list(
-                filter(
-                    lambda tag, svc=service: mappers.is_service_tag(svc, tag),
-                    repo_all_tags,
-                )
-            )
+            service_tags = NovaTagList.from_list(service, repo_all_tags)
 
             if len(service_tags) == 0:
                 continue
@@ -234,14 +229,7 @@ if __name__ == "__main__":
                 continue
 
             repo_all_tags = gi.list_tags(package.repo.url, since)
-
-            # filter out tags which are not related to packages, common rules
-            package_tags = list(
-                filter(
-                    lambda tag, pkg=package: mappers.is_package_tag(pkg, tag),
-                    repo_all_tags,
-                )
-            )
+            package_tags = NovaTagList.from_list(package, repo_all_tags)
 
             # if exception is specified for package, filter out tags which
             # do not match the exception
