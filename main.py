@@ -175,12 +175,7 @@ if __name__ == "__main__":
         counter = 0
         for service in services:
             counter += 1
-
-            if service.repo is None:
-                continue
-
-            repo_all_tags = gi.list_tags(service.repo.url, since)
-            service_tags = NovaTagList.from_list(service, repo_all_tags)
+            service_tags = NovaTagList.from_component(service, since, gi)
 
             if len(service_tags) == 0:
                 continue
@@ -224,12 +219,7 @@ if __name__ == "__main__":
         counter = 0
         for package in packages:
             counter += 1
-
-            if package.repo is None:
-                continue
-
-            repo_all_tags = gi.list_tags(package.repo.url, since)
-            package_tags = NovaTagList.from_list(package, repo_all_tags)
+            package_tags = NovaTagList.from_component(package, since, gi)
 
             # if exception is specified for package, filter out tags which
             # do not match the exception
