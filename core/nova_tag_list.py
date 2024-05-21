@@ -5,21 +5,24 @@ The list is associated with a NovaComponent object.
 """
 
 from __future__ import annotations
-from typing import Sequence
 from git import TagReference
 
 from core.nova_component import NovaComponent
 from core.nova_component_type import NovaComponentType
+from integration.git import GitIntegration
 import mappers
 
 
 class NovaTagList:
     """
-    List of TagReference objects
+    List of TagReference objects. Essetially filters
+    the tags that are relevant to the associated component
+    starting from a given date.
     """
 
-    def __init__(self, component: NovaComponent):
+    def __init__(self, component: NovaComponent, since: str):
         self._component: NovaComponent = component
+        self._since: str = since
         self._list: list[TagReference] = []
 
     def __iter__(self):
@@ -62,14 +65,20 @@ class NovaTagList:
         return False
 
     @staticmethod
-    def from_list(
-        component: NovaComponent, tags: Sequence[TagReference]
+    def from_component(
+        component: NovaComponent, since: str, gi: GitIntegration
     ) -> NovaTagList:
         """
-        Create a new instance of NovaTagList from the list of tags
+        Create a new instance of NovaTagList for the given component
+        starting from a given date.
+        It essentially maps the NovaComponent to a NovaTagList.
         """
-        result = NovaTagList(component)
-        for tag in tags:
+        if component.repo is None:
+            return NovaTagList(component, since)
+
+        all_tags = gi.list_tags(component.repo.url, since)
+        result = NovaTagList(component, since)
+        for tag in all_tags:
             result.try_add_tag(tag)
 
         return result
