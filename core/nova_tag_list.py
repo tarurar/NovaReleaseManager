@@ -66,7 +66,7 @@ class NovaTagList:
 
     @staticmethod
     def from_component(
-        component: NovaComponent, since: str, gi: GitIntegration
+        component: NovaComponent, since: str, git_integration: GitIntegration
     ) -> NovaTagList:
         """
         Create a new instance of NovaTagList for the given component
@@ -76,7 +76,7 @@ class NovaTagList:
         if component.repo is None:
             return NovaTagList(component, since)
 
-        all_tags = gi.list_tags(component.repo.url, since)
+        all_tags = git_integration.list_tags(component.repo.url, since)
         result = NovaTagList(component, since)
         for tag in all_tags:
             result.try_add_tag(tag)
