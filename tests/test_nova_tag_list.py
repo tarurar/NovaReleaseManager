@@ -3,15 +3,25 @@ Nova Tag List tests
 """
 
 from unittest.mock import Mock
+from git import TagReference
 import pytest
 from core.nova_component_type import NovaComponentType
 from core.nova_tag_list import NovaTagList
+from integration.git import GitIntegration
 
 
 @pytest.fixture(name="mock_service")
 def fixture_mock_service():
     component = Mock()
     component.ctype = NovaComponentType.SERVICE
+    return component
+
+
+@pytest.fixture(name="mock_service_no_repo")
+def fixture_mock_service_no_repo():
+    component = Mock()
+    component.ctype = NovaComponentType.SERVICE
+    component.repo = None
     return component
 
 
@@ -55,33 +65,48 @@ def fixture_mock_tag(request):
     return tag
 
 
+@pytest.fixture(name="mock_git_integration")
+def fixture_mock_git_integration():
+    """
+    Mock GitIntegration object with list_tags method
+    returning service and package tags
+    """
+    gi_mock = Mock(spec=GitIntegration)
+    service_tag_mock = Mock(spec=TagReference)
+    service_tag_mock.name = "v1.0.0"
+    package_tag_mock = Mock(spec=TagReference)
+    package_tag_mock.name = "client-1.0.0"
+    gi_mock.list_tags.return_value = [service_tag_mock, package_tag_mock]
+    return gi_mock
+
+
 @pytest.mark.parametrize("mock_tag", package_tag_names(), indirect=True)
 def test_try_add_package_tag_to_service(mock_tag, mock_service):
-    nova_tag_list = NovaTagList(mock_service)
+    nova_tag_list = NovaTagList(mock_service, "")
     assert not nova_tag_list.try_add_tag(mock_tag)
 
 
 @pytest.mark.parametrize("mock_tag", package_tag_names(), indirect=True)
 def test_try_add_package_tag_to_package(mock_tag, mock_package):
-    nova_tag_list = NovaTagList(mock_package)
+    nova_tag_list = NovaTagList(mock_package, "")
     assert nova_tag_list.try_add_tag(mock_tag)
 
 
 @pytest.mark.parametrize("mock_tag", package_tag_names(), indirect=True)
 def test_try_add_package_tag_to_package_library(mock_tag, mock_package_library):
-    nova_tag_list = NovaTagList(mock_package_library)
+    nova_tag_list = NovaTagList(mock_package_library, "")
     assert nova_tag_list.try_add_tag(mock_tag)
 
 
 @pytest.mark.parametrize("mock_tag", service_tag_names(), indirect=True)
 def test_try_add_service_tag_to_service(mock_tag, mock_service):
-    nova_tag_list = NovaTagList(mock_service)
+    nova_tag_list = NovaTagList(mock_service, "")
     assert nova_tag_list.try_add_tag(mock_tag)
 
 
 @pytest.mark.parametrize("mock_tag", service_tag_names(), indirect=True)
 def test_try_add_service_tag_to_package(mock_tag, mock_package):
-    nova_tag_list = NovaTagList(mock_package)
+    nova_tag_list = NovaTagList(mock_package, "")
     assert not nova_tag_list.try_add_tag(mock_tag)
 
 
@@ -90,26 +115,41 @@ def test_try_add_service_tag_to_package(mock_tag, mock_package):
 def test_try_add_package_library_tag_to_package_library(
     mock_tag, mock_package_library
 ):
-    nova_tag_list = NovaTagList(mock_package_library)
+    nova_tag_list = NovaTagList(mock_package_library, "")
     assert nova_tag_list.try_add_tag(mock_tag)
 
 
 @pytest.mark.parametrize("mock_tag", service_tag_names(), indirect=True)
 def test_try_add_tag_which_already_added(mock_tag, mock_service):
-    nova_tag_list = NovaTagList(mock_service)
+    nova_tag_list = NovaTagList(mock_service, "")
     assert nova_tag_list.try_add_tag(mock_tag)
     assert not nova_tag_list.try_add_tag(mock_tag)
 
 
 @pytest.mark.parametrize("mock_tag", library_tag_names(), indirect=True)
 def test_try_add_any_tag_to_unknown_component(mock_tag, mock_unknown_component):
-    nova_tag_list = NovaTagList(mock_unknown_component)
+    nova_tag_list = NovaTagList(mock_unknown_component, "")
     assert nova_tag_list.try_add_tag(mock_tag)
 
 
-def test_from_list_for_service(mock_service):
-    original_tags = list(
-        map(lambda tag_name: Mock(name=tag_name), service_tag_names())
+def test_from_component_no_repo_no_tags(
+    mock_service_no_repo, mock_git_integration
+):
+    nova_tag_list = NovaTagList.from_component(
+        mock_service_no_repo, "doesn't matter", mock_git_integration
     )
-    nova_tag_list = NovaTagList.from_list(mock_service, original_tags)
-    assert len(nova_tag_list) == len(original_tags)
+    assert len(nova_tag_list) == 0
+
+
+def test_from_component_for_service(mock_service, mock_git_integration):
+    nova_tag_list = NovaTagList.from_component(
+        mock_service, "doesn't matter", mock_git_integration
+    )
+    assert len(nova_tag_list) == 1
+
+
+def test_from_component_for_package(mock_package, mock_git_integration):
+    nova_tag_list = NovaTagList.from_component(
+        mock_package, "doesn't matter", mock_git_integration
+    )
+    assert len(nova_tag_list) == 1
