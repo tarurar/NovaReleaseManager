@@ -15,9 +15,12 @@ from core.nova_status import Status
 from core.nova_task import NovaTask
 
 
+JiraComponentGitUrl = tuple[Optional[GitCloudService], Optional[str]]
+
+
 def parse_jira_cmp_descr(
     descr: str,
-) -> tuple[Optional[GitCloudService], Optional[str]]:
+) -> JiraComponentGitUrl:
     """
     Parse Jira component description and return cloud service and
     repository URL. It is expected that JIRA component description
