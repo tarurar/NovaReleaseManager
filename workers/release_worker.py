@@ -65,3 +65,5 @@ class ReleaseWorker(ABC):
             raise ValueError(
                 f"Component [{component.name}] is not ready for release"
             )
+
+        return None

@@ -2,6 +2,7 @@
 Release repository module
 """
 
+from jira import Issue
 from core.nova_component import NovaComponent, NovaEmptyComponent
 from core.nova_component_type import NovaComponentType
 from core.nova_release import NovaRelease
@@ -74,9 +75,13 @@ class NovaReleaseRepository:
             if isinstance(component, NovaEmptyComponent):
                 continue
 
-            component_jira_issues = filter(
-                lambda i, cname=component.name: ju.filter_jira_issue(i, cname),
-                release_jira_issues,
+            component_jira_issues: list[Issue] = list(
+                filter(
+                    lambda i, cname=component.name: ju.filter_jira_issue(
+                        i, cname
+                    ),
+                    release_jira_issues,
+                )
             )
             component_tasks = [
                 ju.parse_jira_issue(issue) for issue in component_jira_issues

@@ -9,7 +9,7 @@ from enum import Enum
 from typing import Optional
 
 import markdown
-import pdfkit
+import pdfkit  # type: ignore
 
 import text_utils as txt
 
@@ -93,6 +93,7 @@ def extract_latest_version_from_changelog(changelog_path: str) -> Optional[str]:
             if version is not None:
                 return version
             return None
+        return None
 
 
 def remove_dir(dir_path) -> None:

@@ -122,7 +122,7 @@ class NovaComponent:
     def __init__(self, name: str, repo: CodeRepository | None):
         self.__name = name
         self.__ctype = parse_component_type(name)
-        self.__tasks = []
+        self.__tasks: list[NovaTask] = []
         self.repo = repo
         if len(self.__name) > NovaComponent.longest_component_name:
             NovaComponent.longest_component_name = len(self.__name)

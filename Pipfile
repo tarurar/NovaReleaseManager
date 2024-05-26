@@ -15,6 +15,7 @@ pygithub = "*"
 markdown = "*"
 pdfkit = "*"
 wkhtmltopdf = "*"
+types-markdown = "*"
 
 [dev-packages]
 pylint = "*"

@@ -5,7 +5,7 @@ Jira utility helper function module.
 from typing import Optional
 from urllib.parse import urlparse
 
-from validators.url import url
+from validators.url import url  # type: ignore
 from jira.resources import Issue
 from jira.resources import Version
 
