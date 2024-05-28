@@ -40,9 +40,6 @@ class ReleaseWorker(ABC):
             )
 
     @abstractmethod
-    # TODO: here the method should be implemented in another way cause
-    # having method just for validation is not that right.
-    # Also it forces to mute the type checker
     def release_component(  # type: ignore[return]
         self, component: NovaComponent
     ) -> Optional[NovaComponentRelease]:
