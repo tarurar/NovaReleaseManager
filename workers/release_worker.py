@@ -40,7 +40,10 @@ class ReleaseWorker(ABC):
             )
 
     @abstractmethod
-    def release_component(
+    # TODO: here the method should be implemented in another way cause
+    # having method just for validation is not that right.
+    # Also it forces to mute the type checker
+    def release_component(  # type: ignore[return]
         self, component: NovaComponent
     ) -> Optional[NovaComponentRelease]:
         if component is None:
@@ -65,5 +68,3 @@ class ReleaseWorker(ABC):
             raise ValueError(
                 f"Component [{component.name}] is not ready for release"
             )
-
-        return None
