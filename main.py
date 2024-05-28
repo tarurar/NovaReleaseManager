@@ -3,6 +3,7 @@ Start module
 """
 
 import argparse
+from functools import partial
 import sys
 import os
 from typing import Optional
@@ -171,7 +172,7 @@ if __name__ == "__main__":
             config.data["jira"]["project"]
         )
         gi = GitIntegration()
-        all_tags_info: list[dict[str, str]] = []
+        all_tags_info_services: list[dict[str, str]] = []
         counter = 0
         for service in services:
             counter += 1
@@ -180,30 +181,26 @@ if __name__ == "__main__":
             if len(service_tags) == 0:
                 continue
 
-            service_tag_info = list(
-                map(
-                    lambda tag, svc=service: mappers.map_to_tag_info(svc, tag),
-                    service_tags,
-                )
-            )
+            map_func = partial(mappers.map_to_tag_info, package=service)
+            service_tag_info = list(map(map_func, service_tags))
             service_tags_info_sorted = sorted(
                 service_tag_info,
                 key=lambda tag_info: tag_info["date"],
                 reverse=True,
             )
-            all_tags_info.extend(service_tags_info_sorted)
+            all_tags_info_services.extend(service_tags_info_sorted)
 
             percents_done = round(counter / len(services) * 100)
             print(
                 f"{service.name:<50} processed, {len(service_tags):<3} tags discovered, ({percents_done:<3}% done)"
             )
 
-        if all_tags_info:
+        if all_tags_info_services:
             output_path = config.get_artifacts_folder_path(
                 args.version, args.delivery, ""
             )
             csv_file_path = export_packages_to_csv(
-                all_tags_info, output_path, "services-output.csv"
+                all_tags_info_services, output_path, "services-output.csv"
             )
             print(f"CSV file has been created: {csv_file_path}")
         else:
@@ -237,13 +234,8 @@ if __name__ == "__main__":
             if len(package_tags) == 0:
                 continue
 
-            package_tags_info = list(
-                map(
-                    lambda tag, pkg=package: mappers.map_to_tag_info(pkg, tag),
-                    package_tags,
-                )
-            )
-
+            map_func = partial(mappers.map_to_tag_info, package=package)
+            package_tags_info = list(map(map_func, package_tags))
             package_tags_info_sorted = sorted(
                 package_tags_info,
                 key=lambda tag_info: tag_info["date"],
