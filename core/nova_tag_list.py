@@ -64,6 +64,17 @@ class NovaTagList:
 
         return False
 
+    def filter(self, tag_template: str) -> NovaTagList:
+        """
+        Filter the list of tags by the given tag template.
+        """
+        result = NovaTagList(self._component, self._since)
+        for tag in self._list:
+            if tag_template in tag.name.lower():
+                result.try_add_tag(tag)
+
+        return result
+
     @staticmethod
     def from_component(
         component: NovaComponent, since: str, git_integration: GitIntegration

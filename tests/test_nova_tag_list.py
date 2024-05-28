@@ -153,3 +153,13 @@ def test_from_component_for_package(mock_package, mock_git_integration):
         mock_package, "doesn't matter", mock_git_integration
     )
     assert len(nova_tag_list) == 1
+
+
+def test_filter(mock_package, mock_git_integration):
+    nova_tag_list = NovaTagList.from_component(
+        mock_package, "doesn't matter", mock_git_integration
+    )
+    filtered_client = nova_tag_list.filter("client")
+    assert len(filtered_client) == 1
+    filtered_contract = nova_tag_list.filter("contract")
+    assert len(filtered_contract) == 0

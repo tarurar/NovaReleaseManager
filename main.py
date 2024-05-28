@@ -222,13 +222,7 @@ if __name__ == "__main__":
             # do not match the exception
             tag_exception = config.get_package_tag_exception(package.name)
             if tag_exception:
-                package_tags = list(
-                    filter(
-                        lambda tag, e=tag_exception: e.tag_template
-                        in tag.name.lower(),
-                        package_tags,
-                    )
-                )
+                package_tags = package_tags.filter(tag_exception.tag_template)
 
             # skip packages with no tags
             if len(package_tags) == 0:
