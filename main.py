@@ -275,11 +275,11 @@ if __name__ == "__main__":
                 os.remove(result.path)
         print(f"Release notes zipped: {zip_path}")
         err_components = [
-            (component, result.error)
-            for component, result in notes.items()
+            (c_name, result.error)
+            for c_name, result in notes.items()
             if result.error
         ]
-        for component, error in err_components:
+        for c_name, error in err_components:
             print(
-                f"Error occurred while generating notes for component [{component}]: {error}"
+                f"Error occurred while generating notes for component [{c_name}]: {error}"
             )

@@ -1,6 +1,7 @@
 """
 Nova release component module
 """
+
 from typing import Optional
 from .nova_status import Status
 from .nova_component import NovaComponent

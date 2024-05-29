@@ -1,6 +1,6 @@
 .PHONY: typehint
 typehint:
-	mypy .
+	mypy . --config-file pyproject.toml
 
 .PHONY: test
 test:

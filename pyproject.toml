@@ -6,3 +6,6 @@ source = ["."]
 # Link: https://pytest-cov.readthedocs.io/en/latest/debuggers.html.
 # Fast solution: simply add `--no-cov` option to the end of options.
 addopts = "--cov --cov-report=lcov:lcov.info --cov-report=term"
+
+[tool.mypy]
+check_untyped_defs = true
