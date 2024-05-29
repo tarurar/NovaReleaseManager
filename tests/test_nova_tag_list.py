@@ -155,11 +155,25 @@ def test_from_component_for_package(mock_package, mock_git_integration):
     assert len(nova_tag_list) == 1
 
 
-def test_filter(mock_package, mock_git_integration):
-    nova_tag_list = NovaTagList.from_component(
-        mock_package, "doesn't matter", mock_git_integration
-    )
-    filtered_client = nova_tag_list.filter("client")
-    assert len(filtered_client) == 1
-    filtered_contract = nova_tag_list.filter("contract")
-    assert len(filtered_contract) == 0
+@pytest.mark.parametrize(
+    "source_tags, filter_value, expected_count",
+    [
+        (package_tag_names(), "client", 1),
+        (package_tag_names(), "ClIeNt", 1),
+        (package_tag_names(), "whatever", 0),
+        (["client-1", "client-2"], "client", 2),
+        ([], "", 0),
+        ([], "client", 0),
+    ],
+)
+def test_filter_package_tags(
+    mock_package, source_tags, filter_value, expected_count
+):
+    nova_tag_list = NovaTagList(mock_package, "")
+    for tag_name in source_tags:
+        tag = Mock()
+        tag.name = tag_name
+        nova_tag_list.try_add_tag(tag)
+
+    filtered = nova_tag_list.filter(filter_value)
+    assert len(filtered) == expected_count

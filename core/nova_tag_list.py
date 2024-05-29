@@ -68,9 +68,10 @@ class NovaTagList:
         """
         Filter the list of tags by the given tag template.
         """
+        filter_value = tag_template.lower()
         result = NovaTagList(self._component, self._since)
         for tag in self._list:
-            if tag_template in tag.name.lower():
+            if filter_value in tag.name.lower():
                 result.try_add_tag(tag)
 
         return result
