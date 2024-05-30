@@ -5,6 +5,7 @@ Data mapping and filtering functions
 from git import TagReference
 from core.nova_component import NovaComponent
 from core.nova_component_type import NovaComponentType
+
 from git_utils import get_git_tag_url
 from notes_generator import NotesGenerator
 
@@ -17,7 +18,7 @@ def map_to_tag_info(package: NovaComponent, tag: TagReference):
         raise ValueError("Package repository is not specified")
 
     return {
-        "package": package.name,
+        "component": package.name,
         "tag": tag.name,
         "date": tag.commit.committed_datetime.strftime("%Y-%m-%d"),
         "url": get_git_tag_url(
