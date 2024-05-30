@@ -32,6 +32,7 @@ class NovaReleaseRepository:
             if (pkg := ju.parse_jira_component(cmp))
             and pkg.ctype
             in (NovaComponentType.PACKAGE, NovaComponentType.PACKAGE_LIBRARY)
+            and not isinstance(pkg, NovaEmptyComponent)
         ]
 
         return packages
@@ -48,6 +49,7 @@ class NovaReleaseRepository:
             for cmp in self.__ji.get_components(project_code)
             if (svc := ju.parse_jira_component(cmp))
             and svc.ctype == NovaComponentType.SERVICE
+            and not isinstance(svc, NovaEmptyComponent)
         ]
 
         return services

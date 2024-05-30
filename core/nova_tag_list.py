@@ -67,6 +67,9 @@ class NovaTagList:
     def filter(self, tag_template: str) -> NovaTagList:
         """
         Filter the list of tags by the given tag template.
+
+        :param tag_template: Tag template to filter by
+        :return: New instance of NovaTagList with filtered tags
         """
         filter_value = tag_template.lower()
         result = NovaTagList(self._component, self._since)
@@ -84,6 +87,11 @@ class NovaTagList:
         Create a new instance of NovaTagList for the given component
         starting from a given date.
         It essentially maps the NovaComponent to a NovaTagList.
+
+        :param component: Component to map
+        :param since: Date to count tags from
+        :param git_integration: GitIntegration instance
+        :return: New instance of NovaTagList
         """
         if component.repo is None:
             return NovaTagList(component, since)
