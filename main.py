@@ -4,6 +4,7 @@ Start module
 
 import argparse
 from functools import partial
+from itertools import chain
 import sys
 import os
 from typing import Optional
@@ -12,10 +13,15 @@ from config import Config
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_tag_list import NovaTagList
-from csv_utils import export_packages_to_csv
+from csv_utils import (
+    export_tags_to_csv,
+    map_tag_csv_row_to_dict,
+    map_to_csv_rows,
+    sort_tag_csv_rows_by_date,
+)
 from integration.git import GitIntegration
 from integration.jira import JiraIntegration
-import mappers
+import mappers as m
 from notes_generator import NotesGenerator
 from nova_release_repository import NovaReleaseRepository
 from release_manager import ReleaseManager
@@ -173,38 +179,26 @@ if __name__ == "__main__":
         )
         gi = GitIntegration()
         all_tags_info_services: list[dict[str, str]] = []
-        counter = 0
-        for service in services:
-            counter += 1
-            service_tags = NovaTagList.from_component(service, since, gi)
 
-            if len(service_tags) == 0:
-                continue
-
-            map_func = partial(mappers.map_to_tag_info, package=service)
-            service_tag_info = list(map(map_func, service_tags))
-            service_tags_info_sorted = sorted(
-                service_tag_info,
-                key=lambda tag_info: tag_info["date"],
-                reverse=True,
+        csv_rows = [
+            map_tag_csv_row_to_dict(row)
+            for row in chain.from_iterable(
+                list(
+                    sort_tag_csv_rows_by_date(map_to_csv_rows(nova_tag_list))
+                    for nova_tag_list in (
+                        NovaTagList.from_component(service, since, gi)
+                        for service in services
+                    )
+                )
             )
-            all_tags_info_services.extend(service_tags_info_sorted)
-
-            percents_done = round(counter / len(services) * 100)
-            print(
-                f"{service.name:<50} processed, {len(service_tags):<3} tags discovered, ({percents_done:<3}% done)"
-            )
-
-        if all_tags_info_services:
-            output_path = config.get_artifacts_folder_path(
-                args.version, args.delivery, ""
-            )
-            csv_file_path = export_packages_to_csv(
-                all_tags_info_services, output_path, "services-output.csv"
-            )
-            print(f"CSV file has been created: {csv_file_path}")
-        else:
-            print("No tags found")
+        ]
+        output_path = config.get_artifacts_folder_path(
+            args.version, args.delivery, ""
+        )
+        csv_file_path = export_tags_to_csv(
+            csv_rows, output_path, "services-output.csv"
+        )
+        print(f"CSV file has been created: {csv_file_path}")
 
     if args.command == "list-packages":
         print(f"'Since' date to be used: {since}")
@@ -228,7 +222,7 @@ if __name__ == "__main__":
             if len(package_tags) == 0:
                 continue
 
-            map_func = partial(mappers.map_to_tag_info, package=package)
+            map_func = partial(m.map_to_tag_info, package=package)
             package_tags_info = list(map(map_func, package_tags))
             package_tags_info_sorted = sorted(
                 package_tags_info,
@@ -246,7 +240,7 @@ if __name__ == "__main__":
             output_path = config.get_artifacts_folder_path(
                 args.version, args.delivery, ""
             )
-            csv_file_path = export_packages_to_csv(all_tags_info, output_path)
+            csv_file_path = export_tags_to_csv(all_tags_info, output_path)
             print(f"CSV file has been created: {csv_file_path}")
         else:
             print("No tags found")
@@ -266,7 +260,7 @@ if __name__ == "__main__":
             )
             sys.exit()
         notes = notes_generator.generate()
-        succeeded_notes = mappers.only_succeeded_notes(notes)
+        succeeded_notes = m.only_succeeded_notes(notes)
         zipper = Zipper(version, delivery, config=config)
         zip_path = zipper.zip_notes(succeeded_notes)
         # remove original files
