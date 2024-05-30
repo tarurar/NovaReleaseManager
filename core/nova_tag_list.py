@@ -5,6 +5,7 @@ The list is associated with a NovaComponent object.
 """
 
 from __future__ import annotations
+from collections.abc import Sequence
 from git import TagReference
 
 from core.nova_component import NovaComponent
@@ -13,7 +14,7 @@ from integration.git import GitIntegration
 import mappers
 
 
-class NovaTagList:
+class NovaTagList(Sequence):
     """
     List of TagReference objects. Essetially filters
     the tags that are relevant to the associated component
@@ -30,6 +31,9 @@ class NovaTagList:
 
     def __len__(self):
         return len(self._list)
+
+    def __getitem__(self, item):
+        return self._list.__getitem__(item)
 
     @property
     def component(self) -> NovaComponent:
