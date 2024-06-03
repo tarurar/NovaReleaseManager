@@ -61,6 +61,16 @@ def search_changelog_first(root_dir) -> str | None:
     return search_file_first(root_dir, "CHANGELOG.md")
 
 
+def search_changelog_files(root_dir) -> list[str]:
+    """
+    Searches for changelog files in a directory tree.
+    :param root_dir: root directory to start search from
+    :return: list of full paths to the changelog files if found, empty list
+    otherwise
+    """
+    return search_files(root_dir, "CHANGELOG.md")
+
+
 def search_files_with_ext(root_dir, extension):
     """
     Searches for files with a given extension in a directory tree.
