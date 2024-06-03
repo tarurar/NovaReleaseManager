@@ -124,8 +124,9 @@ class NovaComponent:
         self.__ctype = parse_component_type(name)
         self.__tasks: list[NovaTask] = []
         self.repo = repo
-        if len(self.__name) > NovaComponent.longest_component_name:
-            NovaComponent.longest_component_name = len(self.__name)
+        NovaComponent.longest_component_name = max(
+            NovaComponent.longest_component_name, len(self.__name)
+        )
 
     def __str__(self):
         return self.__name
