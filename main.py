@@ -216,14 +216,25 @@ if __name__ == "__main__":
             # do not match the exception
             tag_exception = config.get_package_tag_exception(package.name)
             if tag_exception:
-                package_tags = package_tags.filter(tag_exception.tag_template)
+                package_tags = list(
+                    filter(
+                        lambda tag, e=tag_exception: e.tag_template
+                        in tag.name.lower(),
+                        package_tags,
+                    )
+                )
 
             # skip packages with no tags
             if len(package_tags) == 0:
                 continue
 
-            map_func = partial(m.map_to_tag_info, package=package)
-            package_tags_info = list(map(map_func, package_tags))
+            package_tags_info = list(
+                map(
+                    lambda tag, pkg=package: m.map_to_tag_info(pkg, tag),
+                    package_tags,
+                )
+            )
+
             package_tags_info_sorted = sorted(
                 package_tags_info,
                 key=lambda tag_info: tag_info["date"],
