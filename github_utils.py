@@ -2,7 +2,6 @@
 GitHub utility helper function module.
 """
 
-
 from github.Tag import Tag
 
 
@@ -16,6 +15,8 @@ def get_github_compatible_repo_address(full_url: str) -> str:
     normalized = full_url.strip().lower()
     if normalized.startswith("http"):
         normalized = normalized.replace("http://", "").replace("https://", "")
+    if normalized.endswith(".git"):
+        normalized = normalized[:-4]
 
     chunks = normalized.split("/")
     return "/".join(chunks[1:])
