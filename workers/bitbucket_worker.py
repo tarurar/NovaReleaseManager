@@ -58,7 +58,7 @@ class BitbucketReleaseWorker(ReleaseWorker):
 
         sources_dir = self.__gi.clone(component.repo.url)
         try:
-            changelog_path = fs.search_changelog(sources_dir)
+            changelog_path = fs.search_changelog_first(sources_dir)
             if changelog_path is None:
                 raise FileNotFoundError("Change log file not found")
             parsed_version = changelog.parse_version(changelog_path)

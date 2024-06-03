@@ -59,8 +59,8 @@ class GitIntegration:
             raise ValueError("Commit message is not specified")
 
         repo = Repo(repo_dir)
-        repo.git.add("**/*.csproj")
-        repo.git.add("**/CHANGELOG.md")
+        repo.git.add(r"./\*.csproj")
+        repo.git.add(r"./\CHANGELOG.md")
         repo.git.commit("-m", commit_message)
         repo.git.push()
 

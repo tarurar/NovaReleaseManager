@@ -23,7 +23,7 @@ class FilePosition(Enum):
     END = 1
 
 
-def search_file(root_dir, filename):
+def search_file_first(root_dir, filename) -> str | None:
     """
     Searches for a file in a directory tree.
     :param root_dir: root directory to start search from
@@ -37,13 +37,28 @@ def search_file(root_dir, filename):
     return None
 
 
-def search_changelog(root_dir):
+def search_files(root_dir, filename) -> list[str]:
+    """
+    Searches for a file in a directory tree.
+    :param root_dir: root directory to start search from
+    :param filename: file name to search for
+    :return: list of full paths to the files if found, empty list otherwise
+    """
+    result = []
+    for dirpath, _, filenames in os.walk(root_dir):
+        for file in filenames:
+            if file == filename:
+                result.append(os.path.join(dirpath, file))
+    return result
+
+
+def search_changelog_first(root_dir) -> str | None:
     """
     Searches for a changelog file in a directory tree.
     :param root_dir: root directory to start search from
     :return: full path to the first changelog file if found, None otherwise
     """
-    return search_file(root_dir, "CHANGELOG.md")
+    return search_file_first(root_dir, "CHANGELOG.md")
 
 
 def search_files_with_ext(root_dir, extension):

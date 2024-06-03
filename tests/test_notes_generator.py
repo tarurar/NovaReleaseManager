@@ -143,7 +143,7 @@ def test_generate_nothing_when_no_changelog(
     release_with_component_ready_for_notes, git_integration, mock_config
 ):
     with patch("os.path.exists", return_value=True), patch(
-        "fs_utils.search_changelog", return_value=None
+        "fs_utils.search_changelog_first", return_value=None
     ):
         generator = NotesGenerator(
             release_with_component_ready_for_notes, git_integration, mock_config
@@ -158,7 +158,7 @@ def test_generate_happy_path(
     release_with_component_ready_for_notes, git_integration, mock_config
 ):
     with patch("os.path.exists", return_value=True), patch(
-        "fs_utils.search_changelog", return_value="path_to_changelog"
+        "fs_utils.search_changelog_first", return_value="path_to_changelog"
     ), patch(
         "fs_utils.gen_release_notes_filename",
         return_value="release_notes_filename",

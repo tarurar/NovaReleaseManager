@@ -19,10 +19,13 @@ def fixture_create_test_files():
     with tempfile.TemporaryDirectory() as root_dir:
         sub_dir = os.path.join(root_dir, "subdir")
         os.mkdir(sub_dir)
-        file_path = os.path.join(sub_dir, "test_file.txt")
-        with open(file_path, "w", encoding="utf-8") as file_handle:
+        file_path_1 = os.path.join(sub_dir, "test_file_1.txt")
+        with open(file_path_1, "w", encoding="utf-8") as file_handle:
             file_handle.write("test")
-        yield root_dir, sub_dir, file_path
+        file_path_2 = os.path.join(sub_dir, "test_file_2.txt")
+        with open(file_path_2, "w", encoding="utf-8") as file_handle:
+            file_handle.write("test")
+        yield root_dir, sub_dir, file_path_1, file_path_2
         shutil.rmtree(root_dir)
 
 
@@ -90,19 +93,36 @@ def fixture_create_test_file_for_replacement():
         yield file_handle.name
 
 
-def test_search_file_found(create_test_files):
-    root_dir, _, file_path = create_test_files
-    assert fs.search_file(root_dir, "test_file.txt") == file_path
+def test_search_file_first_found(create_test_files):
+    root_dir, _, file_path_1, _ = create_test_files
+    assert fs.search_file_first(root_dir, "test_file_1.txt") == file_path_1
 
 
-def test_search_file_not_found(create_test_files):
-    root_dir, _, _ = create_test_files
-    assert fs.search_file(root_dir, "nonexistent_file.txt") is None
+def test_search_file_first_not_found(create_test_files):
+    root_dir, _, _, _ = create_test_files
+    assert fs.search_file_first(root_dir, "nonexistent_file.txt") is None
 
 
-def test_search_file_ignore_directories(create_test_files):
-    root_dir, sub_dir, _ = create_test_files
-    assert fs.search_file(root_dir, "subdir") != sub_dir
+def test_search_file_first_ignore_directories(create_test_files):
+    root_dir, sub_dir, _, _ = create_test_files
+    assert fs.search_file_first(root_dir, "subdir") != sub_dir
+
+
+def test_search_files_found(create_test_files):
+    root_dir, _, file_path_1, _ = create_test_files
+    result = fs.search_files(root_dir, "test_file_1.txt")
+    assert len(result) == 1
+    assert result[0] == file_path_1
+
+
+def test_search_files_not_found(create_test_files):
+    root_dir, _, _, _ = create_test_files
+    assert not fs.search_files(root_dir, "nonexistent_file.txt")
+
+
+def test_search_files_ignore_directories(create_test_files):
+    root_dir, sub_dir, _, _ = create_test_files
+    assert not fs.search_files(root_dir, "subdir")
 
 
 def test_search_files_with_ext(create_test_files_ext):

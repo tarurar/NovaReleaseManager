@@ -142,7 +142,7 @@ class NotesGenerator:
         :return: path to the changelog file or None if not found
         """
         self.__gi.checkout(sources_dir, tag_name)
-        return fs.search_changelog(sources_dir)
+        return fs.search_changelog_first(sources_dir)
 
     def __find_release_tag(self, sources_dir: str) -> Optional[str]:
         """
