@@ -121,7 +121,7 @@ def test_search_files_not_found(create_test_files):
 
 
 def test_search_files_ignore_directories(create_test_files):
-    root_dir, sub_dir, _, _ = create_test_files
+    root_dir, _, _, _ = create_test_files
     assert not fs.search_files(root_dir, "subdir")
 
 
