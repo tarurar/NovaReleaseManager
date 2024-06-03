@@ -251,7 +251,9 @@ if __name__ == "__main__":
             output_path = config.get_artifacts_folder_path(
                 args.version, args.delivery, ""
             )
-            csv_file_path = export_tags_to_csv(all_tags_info, output_path)
+            csv_file_path = export_tags_to_csv(
+                all_tags_info, output_path, "packages-output.csv"
+            )
             print(f"CSV file has been created: {csv_file_path}")
         else:
             print("No tags found")
