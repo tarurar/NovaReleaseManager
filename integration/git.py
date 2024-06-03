@@ -12,6 +12,8 @@ from git import TagReference
 from git.exc import GitCommandError
 from git.repo import Repo
 
+from fs_utils import search_files_with_ext, search_changelog_files
+
 
 class GitIntegration:
     """
@@ -58,9 +60,12 @@ class GitIntegration:
         if not commit_message:
             raise ValueError("Commit message is not specified")
 
+        csproj_files = search_files_with_ext(repo_dir, ".csproj")
+        changelog_files = search_changelog_files(repo_dir)
+
         repo = Repo(repo_dir)
-        repo.git.add(r"./\*.csproj")
-        repo.git.add(r"./\CHANGELOG.md")
+        repo.git.add(csproj_files)
+        repo.git.add(changelog_files)
         repo.git.commit("-m", commit_message)
         repo.git.push()
 
