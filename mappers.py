@@ -10,9 +10,15 @@ from git_utils import get_git_tag_url
 from notes_generator import NotesGenerator
 
 
-def map_to_tag_info(package: NovaComponent, tag: TagReference):
+def map_to_tag_info(
+    package: NovaComponent, tag: TagReference
+) -> dict[str, str]:
     """
     Map package and tag to tag info
+
+    :param package: Package
+    :param tag: Tag
+    :return: Tag info dictionary
     """
     if package.repo is None:
         raise ValueError("Package repository is not specified")
