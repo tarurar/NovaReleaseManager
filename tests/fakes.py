@@ -2,7 +2,6 @@
 Module for fake classes used in tests.
 """
 
-
 from datetime import date
 from dataclasses import dataclass
 
@@ -93,8 +92,8 @@ class FakeRepository:
     """
 
     def __init__(self, config: FakeConfig):
-        self.__config = config
-        self.__tags = [
+        self._config = config
+        self._tags = [
             FakeTag(
                 str(i),
                 FakeCommit(
@@ -104,11 +103,11 @@ class FakeRepository:
                     )
                 ),
             )
-            for i in range(1, self.__config.tags_count + 1)
+            for i in range(1, self._config.tags_count + 1)
         ]
 
     def get_tags(self) -> list[FakeTag]:
-        return self.__tags
+        return self._tags
 
     def get_branch(self, branch) -> FakeBranch:
         return FakeBranch(
@@ -117,7 +116,7 @@ class FakeRepository:
 
     # pylint: disable=unused-argument
     def create_git_tag(self, tag_name, message, sha, tag_type) -> FakeGitTag:
-        self.__tags.append(
+        self._tags.append(
             FakeTag(tag_name, FakeCommit(FakeGitCommit("", FakeGitAuthor(""))))
         )
         return FakeGitTag(tag_name, sha)
@@ -128,6 +127,6 @@ class FakeRepository:
     def create_git_release(self, tag, name, message) -> FakeGitRelease | None:
         return (
             FakeGitRelease(tag, name, message)
-            if self.__config.create_release
+            if self._config.create_release
             else None
         )

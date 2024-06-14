@@ -17,7 +17,7 @@ class NovaReleaseRepository:
     """
 
     def __init__(self, jira: JiraIntegration) -> None:
-        self.__ji = jira
+        self._ji = jira
 
     def get_packages(self, project_code: str) -> list[NovaComponent]:
         """
@@ -28,7 +28,7 @@ class NovaReleaseRepository:
         """
         packages = [
             pkg
-            for cmp in self.__ji.get_components(project_code)
+            for cmp in self._ji.get_components(project_code)
             if (pkg := ju.parse_jira_component(cmp))
             and pkg.ctype
             in (NovaComponentType.PACKAGE, NovaComponentType.PACKAGE_LIBRARY)
@@ -46,7 +46,7 @@ class NovaReleaseRepository:
         """
         services = [
             svc
-            for cmp in self.__ji.get_components(project_code)
+            for cmp in self._ji.get_components(project_code)
             if (svc := ju.parse_jira_component(cmp))
             and svc.ctype == NovaComponentType.SERVICE
             and not isinstance(svc, NovaEmptyComponent)
@@ -69,10 +69,10 @@ class NovaReleaseRepository:
 
         components = [
             ju.parse_jira_component(cmp)
-            for cmp in self.__ji.get_components(project_code)
+            for cmp in self._ji.get_components(project_code)
         ]
 
-        release_jira_issues = self.__ji.get_issues(project_code, str(release))
+        release_jira_issues = self._ji.get_issues(project_code, str(release))
 
         for component in components:
             if isinstance(component, NovaEmptyComponent):
@@ -105,9 +105,9 @@ class NovaReleaseRepository:
             return False
 
         # check external state of JIRA release
-        if not self.__ji.can_release_version(rel.project, rel.title):
+        if not self._ji.can_release_version(rel.project, rel.title):
             return False
 
         # update JIRA release state
-        self.__ji.mark_version_as_released(rel.project, rel.title)
+        self._ji.mark_version_as_released(rel.project, rel.title)
         return True

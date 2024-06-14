@@ -41,8 +41,8 @@ class GitHubReleaseWorker(ReleaseWorker):
         if config is None:
             config = Config()
         super().__init__(release, config)
-        self.__gh = gh
-        self.__gi = gi
+        self._gh = gh
+        self._gi = gi
 
     # pylint: disable=too-many-statements,too-many-locals
     def release_component(
@@ -61,14 +61,14 @@ class GitHubReleaseWorker(ReleaseWorker):
         )  # assure Pylance that component.repo is not None
 
         # CHANGELOG.md update
-        sources_dir = self.__gi.clone(component.repo.url)
+        sources_dir = self._gi.clone(component.repo.url)
         try:
             changelog_path = fs.search_changelog_first(sources_dir)
             if changelog_path is None:
                 raise FileNotFoundError("Change log file not found")
             parsed_version = changelog.parse_version(changelog_path)
             new_version = txt.next_version(parsed_version)
-            latest_tag = self.__gi.get_latest_tag(sources_dir)
+            latest_tag = self._gi.get_latest_tag(sources_dir)
             print(f"Current version from changelog: {str(parsed_version)}")
             print(f"Latest known tag from repository: {latest_tag}")
             print(f"New suggested version: {str(new_version)}")
@@ -98,23 +98,23 @@ class GitHubReleaseWorker(ReleaseWorker):
             msbuild.update_solution_version(sources_dir, new_version)
 
             tag_name = f"v{str(new_version)}"
-            self.__gi.commit_changelogs_and_csproj(
+            self._gi.commit_changelogs_and_csproj(
                 sources_dir, f"Version {str(new_version)}"
             )
-            self.__gi.tag(sources_dir, tag_name, self._release.title)
+            self._gi.tag(sources_dir, tag_name, self._release.title)
 
         finally:
             fs.remove_dir(sources_dir)
 
         # get a tag for previous git release to build diff url
-        previous_tag = self.__gh.select_or_autodetect_tag(
+        previous_tag = self._gh.select_or_autodetect_tag(
             component.repo.url, exclude=list(tag_name)
         )
         if previous_tag is None:
             return None
 
         # create github release
-        repo = self.__gh.get_repository(component.repo.url)
+        repo = self._gh.get_repository(component.repo.url)
         github_release_notes = component.get_release_notes(
             previous_tag.name, tag_name
         )

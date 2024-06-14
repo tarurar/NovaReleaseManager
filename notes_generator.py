@@ -83,21 +83,21 @@ class NotesGenerator:
         if config is None:
             config = Config()
 
-        self.__release = release
-        self.__gi = gi
+        self._release = release
+        self._gi = gi
 
-        self.__output_path = config.get_artifacts_folder_path(
-            self.__release.version, self.__release.delivery, ""
+        self._output_path = config.get_artifacts_folder_path(
+            self._release.version, self._release.delivery, ""
         )
 
-    def __ensure_output_folder_exists(self) -> None:
+    def _ensure_output_folder_exists(self) -> None:
         """
         Ensures the output folder exists or creates it if not.
         """
-        if not os.path.exists(self.__output_path):
-            os.makedirs(self.__output_path)
+        if not os.path.exists(self._output_path):
+            os.makedirs(self._output_path)
 
-    def __convert_changelog_to_notes(self, component: NovaComponent) -> str:
+    def _convert_changelog_to_notes(self, component: NovaComponent) -> str:
         """
         Generates release notes for a single component.
 
@@ -106,19 +106,19 @@ class NotesGenerator:
         """
         assert component.repo is not None
 
-        sources_dir = self.__gi.clone(component.repo.url)
-        release_tag = self.__find_release_tag(sources_dir)
+        sources_dir = self._gi.clone(component.repo.url)
+        release_tag = self._find_release_tag(sources_dir)
         if release_tag is None:
             raise ValueError("No tag found for the release")
 
-        changelog_path = self.__find_changelog_at_tag(sources_dir, release_tag)
+        changelog_path = self._find_changelog_at_tag(sources_dir, release_tag)
         if not changelog_path:
             raise ValueError(f"CHANGELOG.md not found at the tag {release_tag}")
 
-        notes_file_path = self.__gen_notes_file_path(component, release_tag)
-        return self.__convert(changelog_path, notes_file_path)
+        notes_file_path = self._gen_notes_file_path(component, release_tag)
+        return self._convert(changelog_path, notes_file_path)
 
-    def __gen_notes_file_path(
+    def _gen_notes_file_path(
         self, component: NovaComponent, tag_name: str
     ) -> str:
         """
@@ -129,9 +129,9 @@ class NotesGenerator:
         :return: path to the release notes file
         """
         filename = fs.gen_release_notes_filename(component.name, tag_name)
-        return f"{self.__output_path}/{filename}"
+        return f"{self._output_path}/{filename}"
 
-    def __find_changelog_at_tag(
+    def _find_changelog_at_tag(
         self, sources_dir: str, tag_name: str
     ) -> Optional[str]:
         """
@@ -141,10 +141,10 @@ class NotesGenerator:
         :param tag_name: tag name
         :return: path to the changelog file or None if not found
         """
-        self.__gi.checkout(sources_dir, tag_name)
+        self._gi.checkout(sources_dir, tag_name)
         return fs.search_changelog_first(sources_dir)
 
-    def __find_release_tag(self, sources_dir: str) -> Optional[str]:
+    def _find_release_tag(self, sources_dir: str) -> Optional[str]:
         """
         Finds the tag name with the annotation after
         the release title.
@@ -152,12 +152,12 @@ class NotesGenerator:
         :param sources_dir: path to the sources directory
         :return: tag name or None if not found
         """
-        annotated_tags = self.__gi.list_tags_with_annotation(
-            sources_dir, self.__release.title
+        annotated_tags = self._gi.list_tags_with_annotation(
+            sources_dir, self._release.title
         )
         return None if not annotated_tags else annotated_tags[0]
 
-    def __convert(self, markdown_path: str, output_path: str) -> str:
+    def _convert(self, markdown_path: str, output_path: str) -> str:
         """
         Converts markdown to PDF.
 
@@ -175,7 +175,7 @@ class NotesGenerator:
         Checks if the generator can generate release notes
         for a given release based on its status.
         """
-        return self.__release.get_status() == Status.DONE
+        return self._release.get_status() == Status.DONE
 
     def generate(
         self,
@@ -187,13 +187,13 @@ class NotesGenerator:
         object as a value for each component with absolute path to the
         release notes file
         """
-        self.__ensure_output_folder_exists()
+        self._ensure_output_folder_exists()
 
         result = {}
-        for component in self.__release:
+        for component in self._release:
             notes_file_path = None
             try:
-                notes_file_path = self.__convert_changelog_to_notes(component)
+                notes_file_path = self._convert_changelog_to_notes(component)
             except Exception as e:
                 result[component.name] = NotesGenerator.Result.from_exception(e)
                 continue

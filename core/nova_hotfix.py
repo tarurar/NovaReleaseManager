@@ -1,6 +1,7 @@
 """
 Nova hotfix component module
 """
+
 from core.nova_release import NovaRelease
 
 
@@ -14,7 +15,7 @@ class NovaHotfix(NovaRelease):
     def __str__(self):
         return f"""
             Nova {self.version}. 
-            Delivery {self.__delivery}. 
+            Delivery {self._delivery}. 
             Hotfix {self.hotfix}"""
 
     def __repr__(self):

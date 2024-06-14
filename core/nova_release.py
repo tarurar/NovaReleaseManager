@@ -18,10 +18,10 @@ class NovaRelease:
     """Nova release component, readonly model"""
 
     def __init__(self, project, version, delivery):
-        self.__version = version
-        self.__delivery = delivery
-        self.__project = project
-        self.__components: list[NovaComponent] = []
+        self._version = version
+        self._delivery = delivery
+        self._project = project
+        self._components: list[NovaComponent] = []
 
     def __str__(self):
         return "Nova " + str(self.version) + ". Delivery " + str(self.delivery)
@@ -30,22 +30,22 @@ class NovaRelease:
         return self.__str__()
 
     def __iter__(self):
-        return iter(self.__components)
+        return iter(self._components)
 
     @property
     def version(self):
         """Returns release version"""
-        return self.__version
+        return self._version
 
     @property
     def delivery(self):
         """Returns release delivery"""
-        return self.__delivery
+        return self._delivery
 
     @property
     def project(self):
         """Returns release project"""
-        return self.__project
+        return self._project
 
     @property
     def title(self) -> str:
@@ -54,23 +54,23 @@ class NovaRelease:
 
     def add_component(self, component: NovaComponent):
         """Adds component to release model"""
-        self.__components.append(component)
+        self._components.append(component)
 
     def get_status(self) -> Status:
         """Returns release status"""
-        statuses = list({component.status for component in self.__components})
+        statuses = list({component.status for component in self._components})
         return get_release_status(statuses)
 
     def describe_status(self) -> str:
         """Returns release status description"""
         text = [str(self), "*" * len(str(self))]
-        for component in self.__components:
+        for component in self._components:
             text.append(component.describe_status())
         text.append("*" * len(str(self)))
-        text.append("Total: " + str(len(self.__components)) + " component(s)")
+        text.append("Total: " + str(len(self._components)) + " component(s)")
         text.append(
             "Total: "
-            + str(sum(len(component.tasks) for component in self.__components))
+            + str(sum(len(component.tasks) for component in self._components))
             + " task(s)"
         )
         text.append("Status: " + str(self.get_status()))
@@ -88,11 +88,11 @@ class NovaRelease:
             if not name:
                 return None
             target_components = [
-                c for c in self.__components if name.lower() == c.name.lower()
+                c for c in self._components if name.lower() == c.name.lower()
             ]
         else:
             target_components = [
-                c for c in self.__components if name.lower() in c.name.lower()
+                c for c in self._components if name.lower() in c.name.lower()
             ]
         if not target_components:
             return None

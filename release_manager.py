@@ -17,7 +17,7 @@ class ReleaseManager:
     def __init__(self) -> None:
         config = Config()
 
-        self.__ji = JiraIntegration(
+        self._ji = JiraIntegration(
             config.data["jira"]["host"],
             config.data["jira"]["username"],
             config.data["jira"]["password"],
@@ -49,7 +49,7 @@ class ReleaseManager:
 
         # moving jira issues to DONE
         for task in component.tasks:
-            error_text = self.__ji.transition_issue(
+            error_text = self._ji.transition_issue(
                 task.name, "Done", f"{release.title} released"
             )
             if error_text:

@@ -19,7 +19,7 @@ class JiraIntegration:
     """
 
     def __init__(self, host, username, password) -> None:
-        self.__j = JIRA(host, basic_auth=(username, password))
+        self._j = JIRA(host, basic_auth=(username, password))
 
     def get_issues(
         self, project_code: str, delivery: str, component_name: str = ""
@@ -42,7 +42,7 @@ class JiraIntegration:
             try:
                 issues = cast(
                     ResultList[Issue],
-                    self.__j.search_issues(
+                    self._j.search_issues(
                         jql, maxResults=chunk_size, startAt=i
                     ),
                 )
@@ -61,7 +61,7 @@ class JiraIntegration:
         :param project_code: project code
         :return: list of components
         """
-        return self.__j.project_components(project_code)
+        return self._j.project_components(project_code)
 
     def mark_version_as_released(
         self, project_code: str, version_name: str
@@ -72,7 +72,7 @@ class JiraIntegration:
         :param project_code: project code
         :param version_name: version name
         """
-        version = self.__j.get_project_version_by_name(
+        version = self._j.get_project_version_by_name(
             project=project_code, version_name=version_name
         )
         if version is None:
@@ -87,7 +87,7 @@ class JiraIntegration:
         :param version_name: version name
         :return: True if version can be released, False otherwise
         """
-        version = self.__j.get_project_version_by_name(
+        version = self._j.get_project_version_by_name(
             project=project_code, version_name=version_name
         )
 
@@ -111,7 +111,7 @@ class JiraIntegration:
             filter(
                 lambda v: not ju.is_jira_hotfix_version(v)
                 and ju.is_jira_released_version(v),
-                self.__j.project_versions(project_code),
+                self._j.project_versions(project_code),
             ),
             key=lambda v: v.releaseDate,
             reverse=True,
@@ -134,7 +134,7 @@ class JiraIntegration:
         :return: error message or empty string
         """
         try:
-            self.__j.transition_issue(task_name, status, comment=comment)
+            self._j.transition_issue(task_name, status, comment=comment)
             return ""
         except JIRAError as error:
             return error.text

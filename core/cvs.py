@@ -1,4 +1,5 @@
 """The module contains classes to keep info about CVS repositories."""
+
 from enum import Enum
 
 from config import Config
@@ -23,8 +24,8 @@ class CodeRepository:
         if config is None:
             config = Config()
 
-        self.__git_cloud = git_cloud
-        self.__url = url
+        self._git_cloud = git_cloud
+        self._url = url
 
         # to access private repositories we need to provide
         # username and password (accessToken for github)
@@ -35,7 +36,7 @@ class CodeRepository:
             else config.data[git_cloud.value]["password"]
         )
 
-        self.__url = self.__url.replace(
+        self._url = self._url.replace(
             "https://",
             f"https://{username}:{password}@",
         )
@@ -43,17 +44,17 @@ class CodeRepository:
     @property
     def url(self):
         """Repository url"""
-        return self.__url
+        return self._url
 
     @property
     def sanitized_url(self):
         """Repository url without credentials"""
-        return CodeRepository.sanitize_git_url(self.__url)
+        return CodeRepository.sanitize_git_url(self._url)
 
     @property
     def git_cloud(self):
         """Git cloud service"""
-        return self.__git_cloud
+        return self._git_cloud
 
     @staticmethod
     def sanitize_git_url(url: str) -> str:

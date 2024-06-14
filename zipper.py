@@ -24,11 +24,11 @@ class Zipper:
         if config is None:
             config = Config()
 
-        self.__nova_version = nova_version
-        self.__delivery = delivery
-        self.__hotfix = hotfix
-        self.__output_path = config.get_artifacts_folder_path(
-            self.__nova_version, self.__delivery, self.__hotfix
+        self._nova_version = nova_version
+        self._delivery = delivery
+        self._hotfix = hotfix
+        self._output_path = config.get_artifacts_folder_path(
+            self._nova_version, self._delivery, self._hotfix
         )
 
     def zip_notes(self, notes: dict[str, str]):
@@ -39,7 +39,7 @@ class Zipper:
         absolute path to the release notes file as a value
         :return: path to the zipped release notes file
         """
-        output_file_path = self.__build_notes_file_path()
+        output_file_path = self._build_notes_file_path()
         with zipfile.ZipFile(
             output_file_path, "w", zipfile.ZIP_DEFLATED
         ) as zipf:
@@ -48,16 +48,16 @@ class Zipper:
 
         return output_file_path
 
-    def __build_notes_file_path(self) -> str:
+    def _build_notes_file_path(self) -> str:
         """
         Builds the name of the release notes file.
 
         :return: name of the release notes file
         """
         file_name = (
-            f"nova{self.__nova_version}_delivery{self.__delivery}"
-            + (f"_hotfix{self.__hotfix}" if self.__hotfix else "")
+            f"nova{self._nova_version}_delivery{self._delivery}"
+            + (f"_hotfix{self._hotfix}" if self._hotfix else "")
             + "_release_notes.zip"
         )
 
-        return f"{self.__output_path}/{file_name}"
+        return f"{self._output_path}/{file_name}"

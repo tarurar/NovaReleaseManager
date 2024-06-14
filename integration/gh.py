@@ -19,8 +19,8 @@ class GitHubIntegration:
     """
 
     def __init__(self, github: Github, branch: str = "master"):
-        self.__g = github
-        self.__branch = branch
+        self._g = github
+        self._branch = branch
 
     def get_repository(self, url: str) -> Repository:
         """
@@ -31,7 +31,7 @@ class GitHubIntegration:
         """
         compatible_url = gu.get_github_compatible_repo_address(url)
 
-        repo = self.__g.get_repo(compatible_url)
+        repo = self._g.get_repo(compatible_url)
         if repo is None:
             raise IOError(f"Could not find repository [{url}]")
 
@@ -64,7 +64,7 @@ class GitHubIntegration:
         :return: Tag object
         """
         repo = self.get_repository(repo_url)
-        latest_commit = repo.get_branch(self.__branch).commit
+        latest_commit = repo.get_branch(self._branch).commit
         new_git_tag = repo.create_git_tag(
             tag_name, message, latest_commit.sha, "commit"
         )

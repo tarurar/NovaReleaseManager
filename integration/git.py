@@ -22,7 +22,7 @@ class GitIntegration:
     """
 
     def __init__(self, branch: str = "master") -> None:
-        self.__branch = branch
+        self._branch = branch
 
     def clone(self, url: str, sources_dir: Optional[str] = None) -> str:
         """
@@ -40,7 +40,7 @@ class GitIntegration:
         if sources_dir is None:
             sources_dir = tempfile.mkdtemp(prefix="nova")
 
-        Repo.clone_from(url, sources_dir, branch=self.__branch)
+        Repo.clone_from(url, sources_dir, branch=self._branch)
 
         return sources_dir
 

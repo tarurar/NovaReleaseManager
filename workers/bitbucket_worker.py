@@ -37,7 +37,7 @@ class BitbucketReleaseWorker(ReleaseWorker):
         if config is None:
             config = Config()
         super().__init__(release, config)
-        self.__gi = gi
+        self._gi = gi
 
     # pylint: disable=too-many-statements
     def release_component(
@@ -56,14 +56,14 @@ class BitbucketReleaseWorker(ReleaseWorker):
             component.repo is not None
         )  # assure Pylance that component.repo is not None
 
-        sources_dir = self.__gi.clone(component.repo.url)
+        sources_dir = self._gi.clone(component.repo.url)
         try:
             changelog_path = fs.search_changelog_first(sources_dir)
             if changelog_path is None:
                 raise FileNotFoundError("Change log file not found")
             parsed_version = changelog.parse_version(changelog_path)
             new_version = txt.next_version(parsed_version)
-            latest_tag = self.__gi.get_latest_tag(sources_dir)
+            latest_tag = self._gi.get_latest_tag(sources_dir)
             print(f"Current version from changelog: {str(parsed_version)}")
             print(f"Latest known tag from repository: {latest_tag}")
             print(f"New suggested version: {str(new_version)}")
@@ -90,10 +90,10 @@ class BitbucketReleaseWorker(ReleaseWorker):
             msbuild.update_solution_version(sources_dir, new_version)
 
             tag_name = f"v{str(new_version)}"
-            self.__gi.commit_changelogs_and_csproj(
+            self._gi.commit_changelogs_and_csproj(
                 sources_dir, f"Version {str(new_version)}"
             )
-            self.__gi.tag(sources_dir, tag_name, self._release.title)
+            self._gi.tag(sources_dir, tag_name, self._release.title)
 
             return NovaComponentRelease(
                 tag_name,

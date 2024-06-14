@@ -1,6 +1,7 @@
 """
 Nova task component module
 """
+
 from typing import Optional
 from core.nova_status import Status
 
@@ -45,30 +46,30 @@ class NovaTask:
         if not name:
             raise ValueError("Task name is not defined")
 
-        self.__name = name
-        self.__status = status
-        self.__summary = summary
-        self.__deployment = deployment
+        self._name = name
+        self._status = status
+        self._summary = summary
+        self._deployment = deployment
 
     @property
     def status(self):
         """Task status"""
-        return self.__status
+        return self._status
 
     @property
     def name(self):
         """Task name"""
-        return self.__name
+        return self._name
 
     @property
     def summary(self):
         """Task summary"""
-        return self.__summary
+        return self._summary
 
     @property
     def deployment(self):
         """Task deployment instructions"""
-        return self.__deployment
+        return self._deployment
 
     def get_release_notes(self, preview=False) -> str:
         """
@@ -78,9 +79,9 @@ class NovaTask:
             includes asterisk if task has deployment instructions
         :return: release notes
         """
-        key = self.__name.strip().upper()
+        key = self._name.strip().upper()
         summary = (
-            self.__summary.split("]")[-1]
+            self._summary.split("]")[-1]
             .strip()
             .lstrip("[")
             .rstrip(".")
@@ -89,7 +90,7 @@ class NovaTask:
         )
         ending = "" if summary.endswith(".") else "."
         asterisk_or_not = (
-            (NovaTask.deployment_asterisk if self.__deployment else "")
+            (NovaTask.deployment_asterisk if self._deployment else "")
             if preview
             else ""
         )

@@ -120,52 +120,52 @@ class NovaComponent:
     longest_component_name = 0
 
     def __init__(self, name: str, repo: CodeRepository | None):
-        self.__name = name
-        self.__ctype = parse_component_type(name)
-        self.__tasks: list[NovaTask] = []
+        self._name = name
+        self._ctype = parse_component_type(name)
+        self._tasks: list[NovaTask] = []
         self.repo = repo
         NovaComponent.longest_component_name = max(
-            NovaComponent.longest_component_name, len(self.__name)
+            NovaComponent.longest_component_name, len(self._name)
         )
 
     def __str__(self):
-        return self.__name
+        return self._name
 
     def __repr__(self):
         return self.__str__()
 
     def __eq__(self, other):
-        return self.__name == other.name
+        return self._name == other.name
 
     @property
     def name(self):
         """Component name"""
-        return self.__name
+        return self._name
 
     @property
     def tasks(self) -> list[NovaTask]:
         """Returns component tasks"""
-        return self.__tasks
+        return self._tasks
 
     @property
     def ctype(self) -> NovaComponentType:
         """Returns component type"""
-        return self.__ctype
+        return self._ctype
 
     def add_task(self, task: NovaTask):
         """Adds task to component"""
-        self.__tasks.append(task)
+        self._tasks.append(task)
 
     def add_tasks(self, tasks: list[NovaTask]):
         """Adds tasks to component"""
-        self.__tasks.extend(tasks)
+        self._tasks.extend(tasks)
 
     @property
     def status(self) -> Status:
         """Returns component status"""
-        if not self.__tasks:
+        if not self._tasks:
             return Status.UNDEFINED
-        statuses = [task.status for task in self.__tasks]
+        statuses = [task.status for task in self._tasks]
         if any(s == Status.UNDEFINED for s in statuses):
             return Status.UNDEFINED
         if all(s == Status.DONE for s in statuses):
@@ -176,10 +176,10 @@ class NovaComponent:
 
     def describe_status(self) -> str:
         """Returns component status description"""
-        tasks_count = len(self.__tasks)
+        tasks_count = len(self._tasks)
         width = NovaComponent.longest_component_name
         description = (
-            f"{self.__name:<{width}}"
+            f"{self._name:<{width}}"
             + f" | {str(self.status):<20}"
             + f" | {tasks_count:>3} tasks"
         )
@@ -195,10 +195,10 @@ class NovaComponent:
                 revision_from,
                 revision_to,
                 self.repo.sanitized_url,
-                self.__tasks,
+                self._tasks,
             )
         if self.repo.git_cloud == GitCloudService.BITBUCKET:
-            return get_release_notes_bitbucket(self.__tasks)
+            return get_release_notes_bitbucket(self._tasks)
 
         return ""
 
