@@ -3,13 +3,14 @@ Notes Generator Module
 """
 
 import os
+from dataclasses import dataclass, field
 from typing import Optional
+
+import fs_utils as fs
 from config import Config
 from core.nova_component import NovaComponent
 from core.nova_release import NovaRelease
 from core.nova_status import Status
-
-import fs_utils as fs
 from integration.git import GitIntegration
 
 
@@ -24,6 +25,7 @@ class NotesGenerator:
     release title.
     """
 
+    @dataclass(frozen=True)
     class Result:
         """
         Represents the result of release notes generation
@@ -31,9 +33,12 @@ class NotesGenerator:
         Either path or error should be set, but not both.
         """
 
-        def __init__(self, path: str = "", error: str = ""):
-            path_normalized = self.normalize_string_param(path)
-            error_normalized = self.normalize_string_param(error)
+        path: Optional[str] = field(default="")
+        error: Optional[str] = field(default="")
+
+        def __post_init__(self):
+            path_normalized = self.normalize_string_param(self.path)
+            error_normalized = self.normalize_string_param(self.error)
 
             if (path_normalized is None) and (error_normalized is None):
                 raise ValueError("Either path or error should be set")
@@ -41,11 +46,12 @@ class NotesGenerator:
                 raise ValueError(
                     "Either path or error should be set, but not both"
                 )
-            self._path = path_normalized
-            self._error = error_normalized
 
-        @classmethod
-        def normalize_string_param(cls, param: Optional[str]) -> Optional[str]:
+            object.__setattr__(self, "path", path_normalized)
+            object.__setattr__(self, "error", error_normalized)
+
+        @staticmethod
+        def normalize_string_param(param: Optional[str]) -> Optional[str]:
             if isinstance(param, str):
                 if param:
                     param_stripped = param.strip()
@@ -57,24 +63,16 @@ class NotesGenerator:
                 return normalized_param
             raise ValueError("Parameter should be a string")
 
-        @property
-        def path(self) -> Optional[str]:
-            return self._path
-
-        @property
-        def error(self) -> Optional[str]:
-            return self._error
+        @staticmethod
+        def from_path(path: str) -> "NotesGenerator.Result":
+            return NotesGenerator.Result(path, "")
 
         @staticmethod
-        def from_path(path: str):
-            return NotesGenerator.Result(path=path)
+        def from_error(error: str) -> "NotesGenerator.Result":
+            return NotesGenerator.Result("", error)
 
         @staticmethod
-        def from_error(error: str):
-            return NotesGenerator.Result(error=error)
-
-        @staticmethod
-        def from_exception(e: Exception):
+        def from_exception(e: Exception) -> "NotesGenerator.Result":
             return NotesGenerator.Result.from_error(str(e))
 
     def __init__(

@@ -10,10 +10,10 @@ from mappers import only_succeeded_notes
 @pytest.fixture(name="sample_notes")
 def fixture_sample_notes():
     return {
-        "note1": NotesGenerator.Result(path="/path/to/note1.pdf"),
+        "note1": NotesGenerator.Result(path="/path/to/note1.pdf", error=""),
         "note2": NotesGenerator.Result(path="", error="Error"),
-        "note3": NotesGenerator.Result(path="/path/to/note3.pdf"),
-        "note4": NotesGenerator.Result(error="Error"),
+        "note3": NotesGenerator.Result(path="/path/to/note3.pdf", error=""),
+        "note4": NotesGenerator.Result(path="", error="Error"),
         "note5": NotesGenerator.Result(path=" ", error="Error"),
         "note6": NotesGenerator.Result(path="/path/to/note6.pdf", error=""),
         "note7": NotesGenerator.Result(path="/path/to/note7.pdf", error=" "),

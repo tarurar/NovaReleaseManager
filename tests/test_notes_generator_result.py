@@ -9,7 +9,7 @@ from notes_generator import NotesGenerator
 
 def test_when_both_path_and_error_are_empty_then_raises_value_error():
     with pytest.raises(ValueError):
-        NotesGenerator.Result()
+        NotesGenerator.Result("", "")
 
 
 def test_when_both_path_and_error_are_set_then_raises_value_error():
