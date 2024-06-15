@@ -11,8 +11,8 @@ class NovaTask:
 
     deployment_asterisk = "*"
 
-    @classmethod
-    def map_jira_issue_status(cls, status):
+    @staticmethod
+    def map_jira_issue_status(status):
         """Maps Jira issue status to Nova task status"""
         match status:
             case "Selected For Release":
