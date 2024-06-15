@@ -216,8 +216,8 @@ class NovaEmptyComponent(NovaComponent):
     def __init__(self):
         super().__init__(NovaEmptyComponent.default_component_name, None)
 
-    @classmethod
-    def parse(cls, component_name: str):
+    @staticmethod
+    def parse(component_name: str):
         """Parses component name"""
         normalized = component_name.strip().lower()
         if normalized in NovaEmptyComponent.component_names:
