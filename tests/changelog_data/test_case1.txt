@@ -1,0 +1,16 @@
+## 2.63.0
+### What's changed
+* LT-5501: Filter allowed tab for standard layout.
+* LT-5380: Migrate from bitbucket to github.
+* LT-5376: Switch to nuget packages for math and security projects.
+* LT-5172: Refactor watchlists.
+
+## 2.62.0
+### What's changed
+* LT-5366: Add app header to logs
+===
+### What's changed
+* LT-5501: Filter allowed tab for standard layout.
+* LT-5380: Migrate from bitbucket to github.
+* LT-5376: Switch to nuget packages for math and security projects.
+* LT-5172: Refactor watchlists.
