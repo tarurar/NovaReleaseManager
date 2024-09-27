@@ -2,6 +2,7 @@
 Text helper functions
 """
 
+import re
 from datetime import datetime
 from typing import Optional
 from packaging.version import Version
@@ -67,3 +68,17 @@ def build_release_title_md(release_title: str, version: str) -> str:
     title_md = f"## {title}"
 
     return title_md
+
+
+def extract_latest_release_notes(changelog: str) -> str:
+    """
+    Extracts the latest release notes from the changelog.
+    Does not include release notes header.
+    Returns empty string if no release notes found.
+
+    :param changelog: changelog text
+    :return: release notes text
+    """
+    blocks = re.split(r"## \d+\.\d+\.\d+.*", changelog)
+
+    return result if len(blocks) > 1 and (result := blocks[1].strip()) else ""

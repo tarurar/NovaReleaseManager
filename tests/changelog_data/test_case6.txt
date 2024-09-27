@@ -1,0 +1,9 @@
+## 2.64.0
+### What's changed
+* LT-5501: Another change.
+## 2.63.0
+### What's changed
+* LT-5501: Filter allowed tab for standard layout.
+===
+### What's changed
+* LT-5501: Another change.
