@@ -42,6 +42,7 @@ class GitHubNugetPackageReleaseWorker(ReleaseWorker):
         self._gh = gh
         self._gi = gi
 
+    # pylint: disable=too-many-statements,too-many-locals
     def release_component(
         self, component: NovaComponent
     ) -> Optional[NovaComponentRelease]:
